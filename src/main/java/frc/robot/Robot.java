@@ -102,33 +102,31 @@ public class Robot extends TimedRobot {
     @Override
     public void robotPeriodic() {
         // Getting the steer values from the joystick and the steering wheel
-        motor.set(ControlMode.PercentOutput, deadZone(JoystickHandler.getInstance().getJoystick(accelerator).getY(), 0.2));
-        System.out.println(motor.getSelectedSensorVelocity());
 
-//        if (steering) {
-//            double speed = 1;
-//            double driveDirection = 1;
-//            double velocity = driveFilter.calculate(JoystickHandler.getInstance().getJoystick(accelerator).getY()) * speed * driveDirection;
-//            double steer = JoystickHandler.getInstance().getJoystick(steeringWheel).getX() * Math.signum(JoystickHandler.getInstance().getJoystick(accelerator).getY()) * 2 * driveDirection;
-//
-//            // Getting the sign of velocity and steer
-//            double velocitySign = Math.signum(velocity);
-//            double steerSign = Math.signum(steer);
-//
-//            // Squaring the velocity, keeping it's sign
-//            velocity = Math.abs(velocity) * velocitySign;
-//
-//            // Calculating the mapped steer and velocity values
-//            double mappedSteer = Math.min(Math.abs(steer), 1) * velocity * steerSign;
-//            double mappedVelocity = Math.min(Math.abs(Math.abs(velocity) + Math.abs(velocity) * Math.min(0, 1 - Math.abs(steer))), Math.abs(velocity)) * velocitySign;
-//
-//            // Driving with those values
-//            tankDrive.arcadeDrive(mappedSteer,
-//                    mappedVelocity, false);
-//        } else {
-//            right.set(deadZone(JoystickHandler.getInstance().getJoystick(accelerator).getY(), 0.1));
-//            left.set(deadZone(-JoystickHandler.getInstance().getJoystick(steeringWheel).getY(), 0.1));
-//        }
+       if (steering) {
+           double speed = 1;
+           double driveDirection = 1;
+           double velocity = driveFilter.calculate(JoystickHandler.getInstance().getJoystick(accelerator).getY()) * speed * driveDirection;
+           double steer = JoystickHandler.getInstance().getJoystick(steeringWheel).getX() * Math.signum(JoystickHandler.getInstance().getJoystick(accelerator).getY()) * 2 * driveDirection;
+
+           // Getting the sign of velocity and steer
+           double velocitySign = Math.signum(velocity);
+           double steerSign = Math.signum(steer);
+
+           // Squaring the velocity, keeping it's sign
+           velocity = Math.abs(velocity) * velocitySign;
+
+           // Calculating the mapped steer and velocity values
+           double mappedSteer = Math.min(Math.abs(steer), 1) * velocity * steerSign;
+           double mappedVelocity = Math.min(Math.abs(Math.abs(velocity) + Math.abs(velocity) * Math.min(0, 1 - Math.abs(steer))), Math.abs(velocity)) * velocitySign;
+
+           // Driving with those values
+           tankDrive.arcadeDrive(mappedSteer,
+                   mappedVelocity, false);
+       } else {
+           right.set(deadZone(JoystickHandler.getInstance().getJoystick(accelerator).getY(), 0.1));
+           left.set(deadZone(-JoystickHandler.getInstance().getJoystick(steeringWheel).getY(), 0.1));
+       }
 
         // Runs the Scheduler.  This is responsible for polling buttons, adding newly-scheduled
         // commands, running already-scheduled commands, removing finished or interrupted commands,

@@ -16,8 +16,8 @@ import frc.fridowpi.pneumatics.PneumaticHandler;
  * project.
  */
 public class Robot extends TimedRobot {
+  
   private Command m_autonomousCommand;
-
   private RobotContainer m_robotContainer;
 
   /**
@@ -27,7 +27,7 @@ public class Robot extends TimedRobot {
   @Override
   public void robotInit() {
     PneumaticHandler.getInstance().init();
-    PneumaticHandler.getInstance().configureCompressor(Constants.GreiferConstants.greiferCompressorId, Constants.GreiferConstants.type);
+    PneumaticHandler.getInstance().configureCompressor(Constants.Gripper.gripperCompressorId, Constants.Gripper.type);
 
     // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
     // autonomous chooser on the dashboard.

@@ -5,30 +5,20 @@
 package frc.robot.subsystems.base;
 
 import edu.wpi.first.wpilibj2.command.CommandBase;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.fridowpi.pneumatics.FridoDoubleSolenoid;
-import frc.fridowpi.pneumatics.PneumaticHandler;
-import frc.robot.subsystems.GreiferSubsystem;
+import frc.fridowpi.module.Module;
+import frc.robot.subsystems.GripperSubsystem;
 
-public class GreiferSubsystemBase extends SubsystemBase {
+public class GripperSubsystemBase extends Module {
 
-  private FridoDoubleSolenoid greiferSolinoid;
-  private PneumaticHandler greiferPenumaticHandler;
-  private static GreiferSubsystem instance;
+  private static GripperSubsystem instance;
 
   /** Creates a new ExampleSubsystem. */
-  public GreiferSubsystemBase() {}
 
-  public void openGreifer(){}
 
-  public void closeGreifer(){}
+  public void openGripper() {}
 
-  public static GreiferSubsystem getInstance(){
-    if (instance == null){
-      instance = new GreiferSubsystem();
-    }
-    return instance;
-  }
+  public void closeGripper() {}
+
 
   /**
    * Example command factory method.

@@ -5,6 +5,9 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
+import frc.fridowpi.joystick.IJoystickButtonId;
+import frc.fridowpi.joystick.IJoystickId;
+import frc.fridowpi.joystick.joysticks.Logitech;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
@@ -15,16 +18,18 @@ import edu.wpi.first.wpilibj.PneumaticsModuleType;
  * constants are needed, to reduce verbosity.
  */
 public final class Constants {
-  public static class OperatorConstants {
-    public static final int kDriverControllerPort = 0;
+  public static class Joysticks {
+    public static final IJoystickId drive = () -> 0;
   }
-  public static class JoystickConstants{
-    public static final int joystickId = 0;
-  }
-  public static class GreiferConstants{
-    public static final int greifersolinoidIdlower = 0;
-    public static final int greifersolinoidIdhigher = 1;
-    public static final int greiferCompressorId = 0;
+  public static class Gripper {
+    public static class ButtonIds {
+      public static final IJoystickButtonId openClose = Logitech.a;
+
+    }
+    public static final boolean enabled = true;
+    public static final int gripperSolenoidIdLower = 0;
+    public static final int gripperSolenoidIdHigher = 1;
+    public static final int gripperCompressorId = 0;
     public static final PneumaticsModuleType type = PneumaticsModuleType.CTREPCM;
   }
 }

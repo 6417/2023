@@ -13,11 +13,9 @@ package frc.robot;
  * constants are needed, to reduce verbosity.
  */
 public final class Constants {
-  public static class OperatorConstants {
-    public static final int kDriverControllerPort = 0;
-  }
-
   public static class Arm {
       public static final boolean enabled = true;
+      public static final double baseArmLength = 109.0; // cm
+      public static final double gripperArmLength = 81.0; // cm
   }
 }

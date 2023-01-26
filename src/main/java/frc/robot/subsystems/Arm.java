@@ -10,6 +10,8 @@ public class Arm extends ArmBase {
     private class Motors {
         public FridolinsMotor base;
         public FridolinsMotor baseFollower;
+        public FridolinsMotor joint;
+        public FridolinsMotor jointFollower;
 
         public Motors() {
             // TODO: Initialize motors

@@ -1,7 +1,5 @@
 package frc.fridowpi.utils;
 
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
-
 public class Vector2 {
     public double x;
     public double y;
@@ -11,16 +9,24 @@ public class Vector2 {
         this.y = y;
     }
 
-    public static Vector2 zero()  {
+    public static Vector2 zero() {
         return new Vector2(0.0, 0.0);
     }
 
     public Vector2 add(Vector2 other) {
-        return new Vector2(x + other.x, y+other.y);
+        return new Vector2(x + other.x, y + other.y);
+    }
+
+    public Vector2 minus(Vector2 other) {
+        return new Vector2(x - other.x, y - other.y);
+    }
+
+    public Vector2 neg() {
+        return new Vector2(-x, -y);
     }
 
     public Vector2 smul(double s) {
-        return new Vector2(s*x, s*y);
+        return new Vector2(s * x, s * y);
     }
 
     public double magnitude() {
@@ -28,11 +34,11 @@ public class Vector2 {
     }
 
     public double dot(Vector2 other) {
-        return x*other.x + y*other.y;
+        return x * other.x + y * other.y;
     }
 
     public double cross(Vector2 other) {
-        return x*other.y - other.x * y;
+        return x * other.y - other.x * y;
     }
 
     public double angleTo(Vector2 other) {

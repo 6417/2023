@@ -83,4 +83,14 @@ public class Matrix2 {
 
         return new Matrix2(result);
     }
+
+    public Vector2 vmul(Vector2 v) {
+        return new Vector2(v.x * components[0][0] + v.y * components[0][1],
+                v.x * components[1][0] + v.y * components[0][1]);
+    }
+
+    public static Matrix2 rot(double angle) {
+        return new Matrix2(
+                new double[][] { { Math.cos(angle), -Math.sin(angle) }, { Math.sin(angle), Math.cos(angle) } });
+    }
 }

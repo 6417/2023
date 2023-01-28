@@ -13,7 +13,8 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
-import frc.robot.subsystems.Drive;
+import frc.robot.Constants.Drive.Autonomous;
+import frc.robot.subsystems.drive.Drive;
 
 public class TrajectoryCreator {
     private static class Datapoint {
@@ -189,16 +190,16 @@ public class TrajectoryCreator {
     public void addDatapoint(ChassisSpeeds speeds, Pose2d pose) {
         try {
             // Conditions to stop and start
-            if ((Math.abs(speeds.vxMetersPerSecond) >= Drive.Constants.Autonomous.velocityThresholdStart)
+            if ((Math.abs(speeds.vxMetersPerSecond) >= Autonomous.velocityThresholdStart)
                     && firstDatapoint) {
                 timer.stop();
                 timer.reset();
                 timer.start();
                 previousTime = -0.1;
-            } else if ((Math.abs(speeds.vxMetersPerSecond) < Drive.Constants.Autonomous.velocityThresholdStart)
+            } else if ((Math.abs(speeds.vxMetersPerSecond) < Autonomous.velocityThresholdStart)
                     && firstDatapoint) {
                 return;
-            } else if (Math.abs(speeds.vxMetersPerSecond) < Drive.Constants.Autonomous.velocityThresholdEnd) {
+            } else if (Math.abs(speeds.vxMetersPerSecond) < Autonomous.velocityThresholdEnd) {
                 timer.stop();
                 return;
             }
@@ -210,8 +211,8 @@ public class TrajectoryCreator {
             rotation.setRadians(pose.getRotation().getRadians());
 
             Translation translation = new Translation();
-            translation.setX(pose.getX() * Drive.Constants.Autonomous.positionCorrection);
-            translation.setY(pose.getY() * Drive.Constants.Autonomous.positionCorrection);
+            translation.setX(pose.getX() * Autonomous.positionCorrection);
+            translation.setY(pose.getY() * Autonomous.positionCorrection);
 
             Pose position = new Pose();
             position.setRotation(rotation);
@@ -239,7 +240,7 @@ public class TrajectoryCreator {
     public void close() {
         try {
             // Writing the content to the file
-            String jsonContent = this.gson.toJson(datapoints);
+            String jsonContent = gson.toJson(datapoints);
             writer.write(jsonContent);
             writer.close();
         } catch (IOException e) {

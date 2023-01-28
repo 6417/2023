@@ -23,11 +23,54 @@ public final class Constants {
         public static final int kDriverControllerPort = 0;
     }
 
-    public static class Drive {
-        public static final boolean enabled = true;
+    public static final class Joystick {
         public static final IJoystickId accelerator = () -> 0;
         public static final IJoystickId steeringWheel = () -> 1;
+    }
 
+    public final static class Drive {
+        public static final boolean enabled = true;
         public static final int movingAveragePrecision = 20;
+        
+        public static class Motors {
+            // TODO: test which motor is which (naming currently not reliable!)
+            public static final int BACKLEFT = 0;
+            public static final int BACKRIGTH = 1;
+            public static final int FRONTLEFT = 2;
+            public static final int FRONTRIGHT = 3;
+        }
+
+        public static final class Odometry {
+            public static final double wheelPerimeter = 0;
+            public static final double transmission = 0;
+            public static final int encoderResolution = 2048;
+
+            public static final double encoderToMetersConversion = (1000 / wheelPerimeter) * transmission * encoderResolution;
+            public static final double trackWidthMeters = 0;
+        }
+
+        public static final class PathWeaver {
+            public static final double ksMeters = 0;
+            public static final double kvMetersPerSecoond = 0;
+            public static final double ka = 0;
+
+            public static final double kMaxSpeed = 0;
+            public static final double kMaxAcceleration = 0;
+            public static final double kMaxCentripetalAcceleration = 0;
+
+            public static final double kRamseteB = 0;
+            public static final double kRamseteZeta = 0;
+
+            public static final double kP = 0;
+            public static final double kI = 0;
+            public static final double kD = 0;
+        }
+
+        public static class Autonomous {
+            public static final double recordingCooldownSeconds = 0.1;
+            public static final double velocityThresholdStart = 0.01;
+            public static final double velocityThresholdEnd = 0.02;
+            public static final double positionCorrection = 0;
+        }
     }
 }

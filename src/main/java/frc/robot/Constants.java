@@ -33,11 +33,10 @@ public final class Constants {
         public static final int movingAveragePrecision = 20;
         
         public static class Motors {
-            // TODO: test which motor is which (naming currently not reliable!)
-            public static final int BACKLEFT = 0;
-            public static final int BACKRIGTH = 1;
-            public static final int FRONTLEFT = 2;
-            public static final int FRONTRIGHT = 3;
+            public static final int BACKLEFT = 13;
+            public static final int BACKRIGHT = 12;
+            public static final int FRONTLEFT = 11;
+            public static final int FRONTRIGHT = 10;
         }
 
         public static final class Odometry {

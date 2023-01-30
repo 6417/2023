@@ -76,8 +76,6 @@ public class Drive extends DriveBase {
 
         resetSensors();
 
-        setDefaultCommand(new DriveCommand());
-
         // configSimpleMotorFeedforward();
 
         // configConstrains();
@@ -93,15 +91,15 @@ public class Drive extends DriveBase {
     }
 
     @Override
-    public void drive(double x, double y) {
-        Pair<Double, Double> pair = this.joystickToChassisSpeed(x, y);
+    public void drive(double velocity, double steer) {
+        Pair<Double, Double> pair = this.joystickToChassisSpeed(velocity, steer);
         tankDrive.arcadeDrive(pair.getFirst(), pair.getSecond(), false);
     }
 
-    private Pair<Double, Double> joystickToChassisSpeed(double x, double y) {
-        double velocity = driveFilter.calculate(JoystickHandler.getInstance().getJoystick(Constants.Joystick.accelerator).getY()) * speed * driveDirection;
-        double steer = JoystickHandler.getInstance().getJoystick(Constants.Joystick.steeringWheel).getX() * Math.signum(JoystickHandler.getInstance().getJoystick(Constants.Joystick.accelerator).getY()) * 2 * driveDirection;
-
+    private Pair<Double, Double> joystickToChassisSpeed(double joystick_y_input, double steer_input) {
+        double velocity = driveFilter.calculate(joystick_y_input) * speed * driveDirection;
+        double steer = steer_input * Math.signum(joystick_y_input) * 2 * driveDirection;
+        
         // Getting the sign of velocity and steer
         double velocitySign = Math.signum(velocity);
         double steerSign = Math.signum(steer);
@@ -171,7 +169,8 @@ public class Drive extends DriveBase {
     }
 
     @Override
-    public void periodic() { }
+    public void periodic() {
+    }
 
     @Override
     public void simulationPeriodic() { }

@@ -1,25 +1,22 @@
 package frc.robot.subsystems.drive;
 
-import com.revrobotics.CANSparkMaxLowLevel.MotorType;
-
-import frc.fridowpi.motors.FridoCanSparkMax;
-import frc.fridowpi.motors.FridolinsMotor;
+import frc.fridowpi.motors.*;
 import frc.robot.Constants;
 
 public class Motors {
     // Class for controlling and grouping all motors in the chassis
-    // Note: works with 4 Falcon motors
+    // Note: works with 4 Falcon motors, where the ones on the front are the masters
 
-    private FridoCanSparkMax masterRight;
-    private FridoCanSparkMax masterLeft;
-    private FridoCanSparkMax followerRight;
-    private FridoCanSparkMax followerLeft;
+    private FridoFalcon500 masterRight;
+    private FridoFalcon500 masterLeft;
+    private FridoFalcon500 followerRight;
+    private FridoFalcon500 followerLeft;
 
     public Motors() {
-        masterRight = new FridoCanSparkMax(Constants.Drive.Motors.FRONTRIGHT, MotorType.kBrushless);
-        masterLeft = new FridoCanSparkMax(Constants.Drive.Motors.FRONTRIGHT, MotorType.kBrushless);
-        followerRight = new FridoCanSparkMax(Constants.Drive.Motors.BACKRIGTH, MotorType.kBrushless);
-        followerLeft = new FridoCanSparkMax(Constants.Drive.Motors.BACKLEFT, MotorType.kBrushless);
+        masterRight = new FridoFalcon500(Constants.Drive.Motors.FRONTRIGHT);
+        masterLeft = new FridoFalcon500(Constants.Drive.Motors.FRONTLEFT);
+        followerRight = new FridoFalcon500(Constants.Drive.Motors.BACKRIGHT);
+        followerLeft = new FridoFalcon500(Constants.Drive.Motors.BACKLEFT);
     }
 
     public void init() {
@@ -39,11 +36,11 @@ public class Motors {
         System.out.println("Motors init completed");
     }
 
-    public FridoCanSparkMax right() {
+    public FridoFalcon500 right() {
         return masterRight;
     }
 
-    public FridoCanSparkMax left() {
+    public FridoFalcon500 left() {
         return masterLeft;
     }
 }

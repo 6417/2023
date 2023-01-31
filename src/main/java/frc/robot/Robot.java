@@ -4,9 +4,12 @@
 
 package frc.robot;
 
+import java.util.List;
+
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.fridowpi.joystick.JoystickHandler;
 import frc.robot.subsystems.drive.Drive;
 
 /**
@@ -30,6 +33,8 @@ public class Robot extends TimedRobot {
     // autonomous chooser on the dashboard.
     m_robotContainer = new RobotContainer();
     Drive.getInstance().init();
+    JoystickHandler.getInstance().setupJoysticks(List.of(Constants.Joystick.accelerator, Constants.Joystick.steeringWheel));
+    JoystickHandler.getInstance().init();
   }
 
   /**

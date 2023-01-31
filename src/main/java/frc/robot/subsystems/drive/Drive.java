@@ -16,9 +16,8 @@ import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
 import edu.wpi.first.math.kinematics.DifferentialDriveOdometry;
 import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
-import frc.fridowpi.joystick.JoystickHandler;
 import frc.robot.Constants;
-import frc.robot.commands.DriveCommand;
+import frc.robot.commands.driveCommands.DriveCommand;
 
 public class Drive extends DriveBase {
     private static DriveBase instance;
@@ -30,13 +29,21 @@ public class Drive extends DriveBase {
     private DifferentialDrive tankDrive;;
     private LinearFilter driveFilter;
         
-    private double speed = 1;
     private double driveDirection = 1;
+    private double speed = 0.8;
+
+    private double steerDirection = -1;
+    private double steeringSensibility = 2;
+    private SteerMode steerMode = Constants.Drive.defaultSteerMode;
 
     private PIDController rightVelocityController;
     private PIDController leftVelocityController;
 
     private SimpleMotorFeedforward motorFeedForward;
+
+    public static enum SteerMode {
+        CARLIKE, BIDIRECTIONAL
+    }
 
     private Drive() {
         motors = new Motors();
@@ -91,14 +98,23 @@ public class Drive extends DriveBase {
     }
 
     @Override
-    public void drive(double velocity, double steer) {
-        Pair<Double, Double> pair = this.joystickToChassisSpeed(velocity, steer);
+    public void drive(double joystickInputY, double steerInput) {
+        Pair<Double, Double> pair = this.joystickToChassisSpeed(joystickInputY, steerInput);
         tankDrive.arcadeDrive(pair.getFirst(), pair.getSecond(), false);
     }
 
-    private Pair<Double, Double> joystickToChassisSpeed(double joystick_y_input, double steer_input) {
-        double velocity = driveFilter.calculate(joystick_y_input) * speed * driveDirection;
-        double steer = steer_input * Math.signum(joystick_y_input) * 2 * driveDirection;
+    private Pair<Double, Double> joystickToChassisSpeed(double accelerationInput, double steerInput) {
+        steerInput *= steerDirection * steeringSensibility;
+        accelerationInput *= driveDirection * speed;
+
+        accelerationInput = deadZone(accelerationInput, 0.1);
+
+        // If driving backwards in bidirectional mode, invert the steer direction
+        if (accelerationInput < 0 && steerMode == SteerMode.BIDIRECTIONAL)
+            steerInput = -steerInput;
+
+        double velocity = driveFilter.calculate(accelerationInput);
+        double steer = steerInput * Math.signum(accelerationInput) * 2;
         
         // Getting the sign of velocity and steer
         double velocitySign = Math.signum(velocity);
@@ -113,6 +129,23 @@ public class Drive extends DriveBase {
 
         // Return with those values
         return new Pair<Double, Double>(mappedSteer, mappedVelocity);
+    }
+
+    private double deadZone(double val, double dead) {
+        if (Math.abs(val) < dead)
+            return 0.0;
+        return (val -  Math.signum(val) * dead) / (1 - dead);
+    }
+
+    @Override
+    public void reverseDrivingDirection(boolean reverse) {
+        driveDirection = reverse? -1: 1;
+        steerDirection = reverse? 1: -1;
+    }
+
+    @Override
+    public void setSteerMode(SteerMode mode) {
+        steerMode = mode;
     }
 
     @Override

@@ -11,6 +11,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
 import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.subsystems.drive.Drive.SteerMode;
 
 public class DriveBase extends SubsystemBase {
 
@@ -18,6 +19,10 @@ public class DriveBase extends SubsystemBase {
 
     public void init() { }
 
+    public void reverseDrivingDirection(boolean reverse) { }
+
+    public void setSteerMode(SteerMode mode) { }
+    
     public Pose2d getPosition() { 
         return null;
     }

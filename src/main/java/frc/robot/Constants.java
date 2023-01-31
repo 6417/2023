@@ -5,6 +5,7 @@
 package frc.robot;
 
 import frc.fridowpi.joystick.IJoystickId;
+import frc.robot.subsystems.drive.Drive.SteerMode;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide
@@ -31,6 +32,7 @@ public final class Constants {
     public final static class Drive {
         public static final boolean enabled = true;
         public static final int movingAveragePrecision = 20;
+        public static final SteerMode defaultSteerMode = SteerMode.CARLIKE;
         
         public static class Motors {
             public static final int BACKLEFT = 13;

@@ -1,12 +1,17 @@
-package frc.robot.commands;
+package frc.robot.commands.driveCommands;
 
 import java.util.List;
 
+import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj2.command.CommandBase;
+import edu.wpi.first.wpilibj2.command.button.Button;
+import frc.fridowpi.joystick.Binding;
 import frc.fridowpi.joystick.JoystickHandler;
+import frc.fridowpi.joystick.joysticks.LogitechExtreme;
 import frc.robot.Constants;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveBase;
+import frc.robot.subsystems.drive.Drive.SteerMode;
 
 public class DriveCommand extends CommandBase {
   private final DriveBase m_subsystem;
@@ -21,8 +26,14 @@ public class DriveCommand extends CommandBase {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    JoystickHandler.getInstance()
-        .setupJoysticks(List.of(Constants.Joystick.accelerator, Constants.Joystick.steeringWheel));
+    Binding driveForward = new Binding(Constants.Joystick.accelerator, LogitechExtreme._8, Button::toggleWhenPressed, new ReverseDrivingDirection(false));
+    Binding driveInverted = new Binding(Constants.Joystick.accelerator, LogitechExtreme._12, Button::toggleWhenPressed, new ReverseDrivingDirection(true));
+
+    Binding carMode = new Binding(Constants.Joystick.accelerator, LogitechExtreme._7, Button::onTrue, new SetSteerMode(SteerMode.CARLIKE));
+    Binding bidirectionalMode = new Binding(Constants.Joystick.accelerator, LogitechExtreme._9, Button::onTrue, new SetSteerMode(SteerMode.BIDIRECTIONAL));
+    JoystickHandler.getInstance().bindAll(List.of(
+        driveForward, driveInverted,
+        carMode, bidirectionalMode));
   }
 
   // Called every time the scheduler runs while the command is scheduled.

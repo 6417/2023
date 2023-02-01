@@ -5,6 +5,7 @@
 package frc.robot;
 
 import frc.fridowpi.motors.FridolinsMotor.DirectionType;
+import frc.robot.ArmCalculator.Cargo;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide
@@ -20,13 +21,19 @@ import frc.fridowpi.motors.FridolinsMotor.DirectionType;
  */
 public final class Constants {
     public static final double gravity = 9.81; // m/s^2
+
     public static class Arm {
+        public static double baseGearRatio = 1.0 / 60.0;
+        public static double jointGearRatio = 1.0 / 30.0;
+        public static double encoderTicksPerMotorRevolution = 2048.0;
+
+        public static ArmCalculator.Cargo initialCargo = Cargo.None;
         public static boolean enabled = true;
+
         public static class PhysicalProperties {
             public double centerOfMass;
             public double mass;
             public double length;
-
 
             public PhysicalProperties(double centerOfMass, double mass, double length) {
                 this.centerOfMass = centerOfMass;
@@ -39,7 +46,6 @@ public final class Constants {
 
         public static final DirectionType baseFollowType = DirectionType.invertMaster;
         public static final DirectionType jointFollowType = DirectionType.invertMaster;
-
 
         public static class Ids {
             public static final int baseMotor = 20;

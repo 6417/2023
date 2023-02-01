@@ -1,5 +1,7 @@
 package frc.robot;
 
+import java.util.function.Supplier;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -17,6 +19,21 @@ public class ArmCalculator {
         }
     }
 
+    public static class AnglesSupplier implements Supplier<Angles>{
+        public Supplier<Double> base;
+        public Supplier<Double> joint;
+
+        public AnglesSupplier(Supplier<Double> base, Supplier<Double> joint) {
+            this.base = base;
+            this.joint = joint;
+
+        }
+
+        public Angles get() {
+            return new Angles(base.get(), joint.get());
+        }
+    }
+
     public static class Angles {
         public double base;
         public double joint;
@@ -24,7 +41,6 @@ public class ArmCalculator {
         public Angles(double base, double joint) {
             this.base = base;
             this.joint = joint;
-
         }
     }
 
@@ -41,8 +57,13 @@ public class ArmCalculator {
     }
 
     public static class ArmState {
-        private Angles angles;
+        private AnglesSupplier angles;
         private Cargo cargo = Cargo.None;
+
+        public ArmState(AnglesSupplier angles, Cargo cargo) {
+            this.angles = angles;
+            this.cargo = cargo;
+        }
 
         public static Vector2 anglesToEndPoint(Angles angles) {
             double alpha = angles.base;
@@ -80,26 +101,22 @@ public class ArmCalculator {
         }
 
         public Vector2 getPos() {
-            return anglesToEndPoint(angles);
+            return anglesToEndPoint(angles.get());
         }
 
         public Angles getAngles() {
-            return angles;
+            return angles.get();
         }
     }
 
     private ArmState state;
 
-    public ArmCalculator() {
-
+    public ArmCalculator(ArmState initialState) {
+        state = initialState;
     }
 
     public void updateState(ArmState newState) {
         this.state = newState;
-    }
-
-    public void updateAngles(Angles angles) {
-        this.state.angles = angles;
     }
 
     public void updateCargo(Cargo cargo) {
@@ -112,8 +129,8 @@ public class ArmCalculator {
      */
     private double baseArmTorqueOnBaseArmOf(double centerOfMassOffset, double mass) {
         return Constants.gravity * mass
-                * (-Constants.Arm.baseArm.length * Math.cos(state.angles.base)
-                        + centerOfMassOffset * Math.cos(state.angles.base + state.angles.joint));
+                * (-Constants.Arm.baseArm.length * Math.cos(state.angles.base.get())
+                        + centerOfMassOffset * Math.cos(state.angles.base.get() + state.angles.joint.get()));
     }
 
     /**
@@ -122,12 +139,12 @@ public class ArmCalculator {
      */
     private double baseArmTorqueOnGripperArmOf(double centerOfMassOffset, double mass) {
         return -Constants.gravity * mass *
-                centerOfMassOffset * Math.cos(state.angles.base);
+                centerOfMassOffset * Math.cos(state.angles.base.get());
     }
 
     private double gripperArmTorqueOf(double centerOfMassOffset, double mass) {
         return -Constants.gravity * mass *
-                centerOfMassOffset * Math.cos(state.angles.base + state.angles.joint);
+                centerOfMassOffset * Math.cos(state.angles.base.get() + state.angles.joint.get());
     }
 
     private double baseArmTorqueOfCargo() {

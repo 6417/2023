@@ -6,22 +6,25 @@ import frc.robot.subsystems.drive.Drive.SteerMode;
 
 
 public class SetSteerMode extends CommandBase {
+  private SteerMode mode;
 
   public SetSteerMode(SteerMode mode) {
-    Drive.getInstance().setSteerMode(mode);
+    this.mode = mode;
   }
 
   @Override
-  public void initialize() {}
+  public void initialize() {
+    Drive.getInstance().setSteerMode(mode);
+  }
 
   @Override
   public void execute() {}
 
   @Override
-  public void end(boolean interrupted) {}
+  public void end(boolean interrupted) { }
 
   @Override
   public boolean isFinished() {
-    return false;
-  }
+    return true;
+   }
 }

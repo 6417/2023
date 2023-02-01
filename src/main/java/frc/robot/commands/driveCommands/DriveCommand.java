@@ -26,14 +26,7 @@ public class DriveCommand extends CommandBase {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    Binding driveForward = new Binding(Constants.Joystick.accelerator, LogitechExtreme._8, Button::toggleWhenPressed, new ReverseDrivingDirection(false));
-    Binding driveInverted = new Binding(Constants.Joystick.accelerator, LogitechExtreme._12, Button::toggleWhenPressed, new ReverseDrivingDirection(true));
 
-    Binding carMode = new Binding(Constants.Joystick.accelerator, LogitechExtreme._7, Button::onTrue, new SetSteerMode(SteerMode.CARLIKE));
-    Binding bidirectionalMode = new Binding(Constants.Joystick.accelerator, LogitechExtreme._9, Button::onTrue, new SetSteerMode(SteerMode.BIDIRECTIONAL));
-    JoystickHandler.getInstance().bindAll(List.of(
-        driveForward, driveInverted,
-        carMode, bidirectionalMode));
   }
 
   // Called every time the scheduler runs while the command is scheduled.
@@ -42,17 +35,21 @@ public class DriveCommand extends CommandBase {
   public void execute() {
 
     // Get input
-    double joystick_y_input = JoystickHandler
+    double joystickInputY = JoystickHandler
       .getInstance()
       .getJoystick(Constants.Joystick.accelerator)
       .getY();
-    double steer_input = JoystickHandler
+    double joystickTurnValue = JoystickHandler
+      .getInstance()
+      .getJoystick(Constants.Joystick.accelerator)
+      .getDirectionDegrees();
+    double steerWheelInput = JoystickHandler
       .getInstance()
       .getJoystick(Constants.Joystick.steeringWheel)
       .getX();
 
     // Call Drive::drive with the input
-    m_subsystem.drive(joystick_y_input, steer_input);
+    m_subsystem.drive(joystickInputY, joystickTurnValue, steerWheelInput);
 
   }
 

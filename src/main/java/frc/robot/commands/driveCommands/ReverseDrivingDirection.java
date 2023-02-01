@@ -6,12 +6,17 @@ import frc.robot.subsystems.drive.Drive;
 /** An example command that uses an example subsystem. */
 public class ReverseDrivingDirection extends CommandBase {
 
+  private boolean reverse;
+
   public ReverseDrivingDirection(boolean reverse) {
-    Drive.getInstance().reverseDrivingDirection(reverse);
+    this.reverse = reverse;
+    System.out.println(reverse);
   }
 
   @Override
-  public void initialize() {}
+  public void initialize() {
+    Drive.getInstance().reverseDrivingDirection(reverse);
+  }
 
   @Override
   public void execute() {}
@@ -21,6 +26,6 @@ public class ReverseDrivingDirection extends CommandBase {
 
   @Override
   public boolean isFinished() {
-    return false;
+    return true;
   }
 }

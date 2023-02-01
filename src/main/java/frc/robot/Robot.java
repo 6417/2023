@@ -7,6 +7,7 @@ package frc.robot;
 import java.util.List;
 
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.fridowpi.joystick.JoystickHandler;
@@ -34,7 +35,9 @@ public class Robot extends TimedRobot {
     m_robotContainer = new RobotContainer();
     Drive.getInstance().init();
     JoystickHandler.getInstance().setupJoysticks(List.of(Constants.Joystick.accelerator, Constants.Joystick.steeringWheel));
+    JoystickHandler.getInstance().bind(Drive.getInstance());
     JoystickHandler.getInstance().init();
+    Shuffleboard.getTab("Debug").add(Drive.getInstance());
   }
 
   /**
@@ -63,7 +66,7 @@ public class Robot extends TimedRobot {
   /** This autonomous runs the autonomous command selected by your {@link RobotContainer} class. */
   @Override
   public void autonomousInit() {
-    m_autonomousCommand = m_robotContainer.getAutonomousCommand();
+    //CommandScheduler.getInstance().schedule(new ChargeCommand(StartingPosition.LEFT));;
 
     // schedule the autonomous command (example)
     if (m_autonomousCommand != null) {

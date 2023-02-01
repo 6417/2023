@@ -1,9 +1,8 @@
 package frc.robot.subsystems;
 
-import java.util.List;
-
-import frc.fridowpi.joystick.Binding;
+import frc.fridowpi.motors.FridoFalcon500;
 import frc.fridowpi.motors.FridolinsMotor;
+import frc.fridowpi.motors.FridolinsMotor.IdleMode;
 import frc.robot.Constants;
 import frc.robot.subsystems.base.ArmBase;
 
@@ -12,12 +11,23 @@ public class Arm extends ArmBase {
 
     private class Motors {
         public FridolinsMotor base;
-        public FridolinsMotor baseFollower;
+        private FridolinsMotor baseFollower;
         public FridolinsMotor joint;
-        public FridolinsMotor jointFollower;
+        private FridolinsMotor jointFollower;
 
         public Motors() {
-            // TODO: Initialize motors
+            base = new FridoFalcon500(Constants.Arm.Ids.baseMotor);
+            baseFollower = new FridoFalcon500(Constants.Arm.Ids.baseFollowerMotor);
+            joint = new FridoFalcon500(Constants.Arm.Ids.jointMotor);
+            jointFollower = new FridoFalcon500(Constants.Arm.Ids.jointFollowerMotor);
+
+            base.setIdleMode(IdleMode.kBrake);
+            baseFollower.setIdleMode(IdleMode.kBrake);
+            joint.setIdleMode(IdleMode.kBrake);
+            jointFollower.setIdleMode(IdleMode.kBrake);
+
+            baseFollower.follow(base, Constants.Arm.baseFollowType);
+            jointFollower.follow(joint, Constants.Arm.jointFollowType);
         }
     }
 

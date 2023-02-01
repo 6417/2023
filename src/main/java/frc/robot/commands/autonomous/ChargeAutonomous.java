@@ -4,32 +4,15 @@
 
 package frc.robot.commands.autonomous;
 
+import frc.fridowpi.command.SequentialCommandGroup;
 import frc.robot.subsystems.drive.Drive;
-import edu.wpi.first.wpilibj2.command.CommandBase;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
 
-public class ChargeAutonomous extends CommandBase {
-  private final Drive m_subsystem;
+public class ChargeAutonomous extends SequentialCommandGroup {
 
-  public ChargeAutonomous(Drive subsystem) {
-    m_subsystem = subsystem;
-    addRequirements(subsystem);
-  }
-
-  @Override
-  public void initialize() {
-    CommandScheduler.getInstance().schedule(new FollowPath(pathToChargingStation));
-  }
-
-  // (Aka .periodic())
-  @Override
-  public void execute() {}
-
-  @Override
-  public void end(boolean interrupted) {}
-
-  @Override
-  public boolean isFinished() {
-    return false;
+  public ChargeAutonomous() {
+    addCommands(
+      new FollowPath("pathToChargingStation"),
+      new FollowPath("driveOnChargingStation")
+    );
   }
 }

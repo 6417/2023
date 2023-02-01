@@ -7,10 +7,12 @@ package frc.robot;
 import java.util.List;
 
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.SPI.Port;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.fridowpi.joystick.JoystickHandler;
+import frc.fridowpi.sensors.Navx;
 import frc.robot.subsystems.drive.Drive;
 
 /**
@@ -32,7 +34,8 @@ public class Robot extends TimedRobot {
   public void robotInit() {
     // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
     // autonomous chooser on the dashboard.
-    m_robotContainer = new RobotContainer();
+    Navx.setup(Port.kMXP);
+    Navx.getInstance().init();
     Drive.getInstance().init();
     JoystickHandler.getInstance().setupJoysticks(List.of(Constants.Joystick.accelerator, Constants.Joystick.steeringWheel));
     JoystickHandler.getInstance().bind(Drive.getInstance());

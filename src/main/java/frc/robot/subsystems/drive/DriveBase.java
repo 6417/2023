@@ -24,6 +24,8 @@ public class DriveBase extends Module {
 
     public void setSteerMode(SteerMode mode) { }
     
+    public void setDirection(int direction) { }
+
     public Pose2d getPosition() { 
         return null;
     }
@@ -59,4 +61,7 @@ public class DriveBase extends Module {
     public void resetSensors() { }
 
     public void resetOdometry(Pose2d initialPose) { }
+
+    public void setSpeedForSeconds(int i, int j) {
+    }
 }

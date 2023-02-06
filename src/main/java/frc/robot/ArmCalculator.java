@@ -1,15 +1,18 @@
 package frc.robot;
 
+import java.util.function.DoubleConsumer;
 import java.util.function.Supplier;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import edu.wpi.first.util.sendable.Sendable;
+import edu.wpi.first.util.sendable.SendableBuilder;
 import frc.fridowpi.utils.Matrix2;
 import frc.fridowpi.utils.Vector2;
 
-public class ArmCalculator {
-    public static class MotorTorques {
+public class ArmCalculator implements Sendable{
+    public static class MotorTorques implements Sendable {
         public double base;
         public double joint;
 
@@ -17,6 +20,17 @@ public class ArmCalculator {
             this.base = base;
             this.joint = joint;
         }
+
+        @Override
+        public String toString() {
+            return String.format("{base: %f, joint: %f}", this.base, this.joint);
+        }
+
+		@Override
+		public void initSendable(SendableBuilder builder) {
+            builder.addDoubleProperty("Base Torque: ", () -> base, null);
+            builder.addDoubleProperty("Joint Torque: ", () -> joint, null);
+		}
     }
 
     public static class AnglesSupplier implements Supplier<Angles>{
@@ -56,7 +70,7 @@ public class ArmCalculator {
         }
     }
 
-    public static class ArmState {
+    public static class ArmState implements Sendable {
         private AnglesSupplier angles;
         private Cargo cargo = Cargo.None;
 
@@ -107,6 +121,14 @@ public class ArmCalculator {
         public Angles getAngles() {
             return angles.get();
         }
+
+		@Override
+		public void initSendable(SendableBuilder builder) {
+            builder.addDoubleProperty("Base Angle", () -> angles.base.get(), null);
+            builder.addDoubleProperty("Joint Angle", () -> angles.joint.get(), null);
+            builder.addDoubleProperty("Cargo", () -> angles.joint.get(), null);
+			
+		}
     }
 
     private ArmState state;
@@ -168,9 +190,19 @@ public class ArmCalculator {
     }
 
     public MotorTorques calculateTorquesForStall() {
-        double baseArmTorque = baseArmTorqueOfBaseArm() + baseArmTorqueOfGripperArm() + baseArmTorqueOfCargo();
-        double gripperArmTorque = gripperArmTorqueOfGripperArm() + gripperArmTorqueOfCargo();
+        double baseArmTorque = Constants.Arm.baseGearRatio * baseArmTorqueOfBaseArm() + baseArmTorqueOfGripperArm() + baseArmTorqueOfCargo();
+        double gripperArmTorque = Constants.Arm.jointGearRatio * gripperArmTorqueOfGripperArm() + gripperArmTorqueOfCargo();
 
         return new MotorTorques(baseArmTorque, gripperArmTorque);
     }
+
+    public static double torqueToAmps(double torque) {
+        return Math.abs(torque) * Constants.Arm.torqueToAmpsProportionality;
+    }
+
+	@Override
+	public void initSendable(SendableBuilder builder) {
+        builder.addDoubleProperty("Base Torque", () -> calculateTorquesForStall().base, null);
+        builder.addDoubleProperty("Joint Torque", () -> calculateTorquesForStall().joint, null);
+	}
 }

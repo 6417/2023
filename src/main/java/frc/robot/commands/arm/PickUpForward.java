@@ -1,2 +1,6 @@
 package frc.robot.commands.arm;
-public class PickUpForward.java extends CommandBase {}
+
+import edu.wpi.first.wpilibj2.command.CommandBase;
+
+public class PickUpForward extends CommandBase {
+}

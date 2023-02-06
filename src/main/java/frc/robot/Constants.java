@@ -5,6 +5,7 @@
 package frc.robot;
 
 import frc.fridowpi.motors.FridolinsMotor.DirectionType;
+import frc.fridowpi.motors.FridolinsMotor.LimitSwitchPolarity;
 import frc.robot.ArmCalculator.Cargo;
 
 /**
@@ -23,9 +24,11 @@ public final class Constants {
     public static final double gravity = 9.81; // m/s^2
 
     public static class Arm {
-        public static double baseGearRatio = 1.0 / 60.0;
+        public static double baseGearRatio = 1.0 / 30.0; // TODO: update to actual value
         public static double jointGearRatio = 1.0 / 30.0;
         public static double encoderTicksPerMotorRevolution = 2048.0;
+
+        public static double torqueToAmpsProportionality = 1 / 0.02076;
 
         public static ArmCalculator.Cargo initialCargo = Cargo.None;
         public static boolean enabled = true;
@@ -41,8 +44,9 @@ public final class Constants {
             }
         }
 
-        public static final PhysicalProperties baseArm = new PhysicalProperties(0.0, 0.0, 110.0);
-        public static final PhysicalProperties gripperArm = new PhysicalProperties(0.0, 0.0, 80.0);
+        public static final LimitSwitchPolarity limitSwitchPolarity = LimitSwitchPolarity.kNormallyOpen;
+        public static final PhysicalProperties baseArm = new PhysicalProperties(0.645, 1.52, 1.150); // TODO: update from test bench mark
+        public static final PhysicalProperties gripperArm = new PhysicalProperties(0.0, 0.0, 0.800); // TODO: update from test bench mark
 
         public static final DirectionType baseFollowType = DirectionType.invertMaster;
         public static final DirectionType jointFollowType = DirectionType.invertMaster;

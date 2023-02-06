@@ -29,6 +29,8 @@ public class FridoFalcon500 extends TalonFX implements FridolinsMotor {
         switch (device) {
             case kRelative:
                 return FeedbackDevice.QuadEncoder;
+            case kBuildin:
+                return FeedbackDevice.IntegratedSensor;
             default:
                 throw new Error("Feedbackdevice not avaible");
         }

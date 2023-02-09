@@ -200,6 +200,10 @@ public class ArmCalculator implements Sendable{
         return Math.abs(torque) * Constants.Arm.torqueToAmpsProportionality;
     }
 
+    public static double ampsToTorque(double amps) {
+        return amps / Constants.Arm.torqueToAmpsProportionality;
+    }
+
 	@Override
 	public void initSendable(SendableBuilder builder) {
         builder.addDoubleProperty("Base Torque", () -> calculateTorquesForStall().base, null);

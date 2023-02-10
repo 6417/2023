@@ -18,17 +18,21 @@ import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
 import edu.wpi.first.math.kinematics.DifferentialDriveOdometry;
 import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
 import edu.wpi.first.util.sendable.SendableBuilder;
+import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj2.command.button.Button;
 import frc.fridowpi.joystick.Binding;
-import frc.fridowpi.joystick.joysticks.LogitechExtreme;
+import frc.fridowpi.pneumatics.FridoDoubleSolenoid;
 import frc.robot.Constants;
+import frc.robot.commands.driveCommands.BreakCommand;
 import frc.robot.commands.driveCommands.DriveCommand;
 import frc.robot.commands.driveCommands.ReverseDrivingDirection;
 import frc.robot.commands.driveCommands.SetSteerMode;
 
 public class Drive extends DriveBase {
     private static DriveBase instance;
+
+    private boolean isBreakActive = true;
 
     private Motors motors;
 
@@ -48,6 +52,9 @@ public class Drive extends DriveBase {
     private PIDController leftVelocityController;
 
     private SimpleMotorFeedforward motorFeedForward;
+
+    private FridoDoubleSolenoid breakSolenoidRight;
+    private FridoDoubleSolenoid breakSolenoidLeft;
 
     public static enum SteerMode {
         CARLIKE, BIDIRECTIONAL
@@ -70,6 +77,9 @@ public class Drive extends DriveBase {
             Constants.Drive.PathWeaver.ka);
 
         driveFilter = LinearFilter.movingAverage(Constants.Drive.movingAveragePrecision);
+
+        breakSolenoidRight = new FridoDoubleSolenoid(Constants.Drive.Break.FridoDoubleSolenoid.rightIdLower, Constants.Drive.Break.FridoDoubleSolenoid.rightIdHigher);
+        breakSolenoidLeft = new FridoDoubleSolenoid(Constants.Drive.Break.FridoDoubleSolenoid.leftIdLower, Constants.Drive.Break.FridoDoubleSolenoid.leftIdHigher);
     }
 
     public static DriveBase getInstance() {
@@ -107,6 +117,10 @@ public class Drive extends DriveBase {
 
     @Override
     public void drive(double joystickInputY, double joystickTurnValue, double steerWheelInput) {
+        if (!isBreakActive) {
+            return;
+        }
+        
         joystickInputY = deadZone(joystickInputY, 0.1);
         steerWheelInput = deadZone(steerWheelInput, 0.1);
 
@@ -220,14 +234,16 @@ public class Drive extends DriveBase {
 
     @Override
     public List<Binding> getMappings() {
-        Binding driveForward = new Binding(Constants.Joystick.accelerator, LogitechExtreme._11, Button::toggleOnTrue, new ReverseDrivingDirection(false));
-        Binding driveInverted = new Binding(Constants.Joystick.accelerator, LogitechExtreme._12, Button::toggleOnTrue, new ReverseDrivingDirection(true));
+        Binding driveForward = new Binding(Constants.Joystick.accelerator, Constants.Drive.ButtonIds.driveForward, Button::toggleOnTrue, new ReverseDrivingDirection(false));
+        Binding driveInverted = new Binding(Constants.Joystick.accelerator, Constants.Drive.ButtonIds.driveBackward, Button::toggleOnTrue, new ReverseDrivingDirection(true));
     
-        Binding carMode = new Binding(Constants.Joystick.accelerator, LogitechExtreme._7, Button::toggleOnTrue, new SetSteerMode(SteerMode.CARLIKE));
-        Binding bidirectionalMode = new Binding(Constants.Joystick.accelerator, LogitechExtreme._9, Button::toggleOnTrue, new SetSteerMode(SteerMode.BIDIRECTIONAL));
+        Binding carMode = new Binding(Constants.Joystick.accelerator, Constants.Drive.ButtonIds.steerModeCarlike, Button::toggleOnTrue, new SetSteerMode(SteerMode.CARLIKE));
+        Binding bidirectionalMode = new Binding(Constants.Joystick.accelerator, Constants.Drive.ButtonIds.steerModeBidirectional, Button::toggleOnTrue, new SetSteerMode(SteerMode.BIDIRECTIONAL));
+
+        Binding activateBreak = new Binding(Constants.Joystick.accelerator, Constants.Drive.ButtonIds.activateBreak, Button::toggleOnTrue, new BreakCommand());
         return List.of(
             driveForward, driveInverted,
-            carMode, bidirectionalMode);
+            carMode, bidirectionalMode, activateBreak);
     }
 
     @Override
@@ -237,5 +253,21 @@ public class Drive extends DriveBase {
         builder.addDoubleProperty("drive driection", () -> driveDirection, null);
         builder.addDoubleProperty("steering sensibility", () -> steeringSensibility, (val) -> steeringSensibility = val);
         builder.addDoubleProperty("speed", () -> speed, (val) -> speed = val);
+
+        builder.addStringProperty("breaks status", () -> isBreakActive? "not active": "active", null);
+    }
+
+    @Override
+    public void triggerBreak() {
+        isBreakActive = false;
+        breakSolenoidRight.set(Value.kForward);
+        breakSolenoidLeft.set(Value.kForward);
+    }
+
+    @Override
+    public void releaseBreak() {
+        breakSolenoidRight.set(Value.kReverse);
+        breakSolenoidLeft.set(Value.kReverse);
+        isBreakActive = true;
     }
 }

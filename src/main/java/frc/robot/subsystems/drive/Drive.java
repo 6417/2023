@@ -24,7 +24,7 @@ import edu.wpi.first.wpilibj2.command.button.Button;
 import frc.fridowpi.joystick.Binding;
 import frc.fridowpi.pneumatics.FridoDoubleSolenoid;
 import frc.robot.Constants;
-import frc.robot.commands.driveCommands.BreakCommand;
+import frc.robot.commands.driveCommands.BrakeCommand;
 import frc.robot.commands.driveCommands.DriveCommand;
 import frc.robot.commands.driveCommands.ReverseDrivingDirection;
 import frc.robot.commands.driveCommands.SetSteerMode;
@@ -32,7 +32,7 @@ import frc.robot.commands.driveCommands.SetSteerMode;
 public class Drive extends DriveBase {
     private static DriveBase instance;
 
-    private boolean isBreakActive = true;
+    private boolean isActive = true;
 
     private Motors motors;
 
@@ -53,8 +53,8 @@ public class Drive extends DriveBase {
 
     private SimpleMotorFeedforward motorFeedForward;
 
-    private FridoDoubleSolenoid breakSolenoidRight;
-    private FridoDoubleSolenoid breakSolenoidLeft;
+    private FridoDoubleSolenoid brakeSolenoidRight;
+    private FridoDoubleSolenoid brakeSolenoidLeft;
 
     public static enum SteerMode {
         CARLIKE, BIDIRECTIONAL
@@ -78,8 +78,8 @@ public class Drive extends DriveBase {
 
         driveFilter = LinearFilter.movingAverage(Constants.Drive.movingAveragePrecision);
 
-        breakSolenoidRight = new FridoDoubleSolenoid(Constants.Drive.Break.FridoDoubleSolenoid.rightIdLower, Constants.Drive.Break.FridoDoubleSolenoid.rightIdHigher);
-        breakSolenoidLeft = new FridoDoubleSolenoid(Constants.Drive.Break.FridoDoubleSolenoid.leftIdLower, Constants.Drive.Break.FridoDoubleSolenoid.leftIdHigher);
+        brakeSolenoidRight = new FridoDoubleSolenoid(Constants.Drive.Brake.FridoDoubleSolenoid.rightIdLower, Constants.Drive.Brake.FridoDoubleSolenoid.rightIdHigher);
+        brakeSolenoidLeft = new FridoDoubleSolenoid(Constants.Drive.Brake.FridoDoubleSolenoid.leftIdLower, Constants.Drive.Brake.FridoDoubleSolenoid.leftIdHigher);
     }
 
     public static DriveBase getInstance() {
@@ -117,7 +117,7 @@ public class Drive extends DriveBase {
 
     @Override
     public void drive(double joystickInputY, double joystickTurnValue, double steerWheelInput) {
-        if (!isBreakActive) {
+        if (!isActive) {
             return;
         }
         
@@ -240,10 +240,10 @@ public class Drive extends DriveBase {
         Binding carMode = new Binding(Constants.Joystick.accelerator, Constants.Drive.ButtonIds.steerModeCarlike, Button::toggleOnTrue, new SetSteerMode(SteerMode.CARLIKE));
         Binding bidirectionalMode = new Binding(Constants.Joystick.accelerator, Constants.Drive.ButtonIds.steerModeBidirectional, Button::toggleOnTrue, new SetSteerMode(SteerMode.BIDIRECTIONAL));
 
-        Binding activateBreak = new Binding(Constants.Joystick.accelerator, Constants.Drive.ButtonIds.activateBreak, Button::toggleOnTrue, new BreakCommand());
+        Binding activateBrake = new Binding(Constants.Joystick.accelerator, Constants.Drive.ButtonIds.activateBrake, Button::toggleOnTrue, new BrakeCommand());
         return List.of(
             driveForward, driveInverted,
-            carMode, bidirectionalMode, activateBreak);
+            carMode, bidirectionalMode, activateBrake);
     }
 
     @Override
@@ -254,20 +254,20 @@ public class Drive extends DriveBase {
         builder.addDoubleProperty("steering sensibility", () -> steeringSensibility, (val) -> steeringSensibility = val);
         builder.addDoubleProperty("speed", () -> speed, (val) -> speed = val);
 
-        builder.addStringProperty("breaks status", () -> isBreakActive? "not active": "active", null);
+        builder.addStringProperty("brake status", () -> isActive? "not active": "active", null);
     }
 
     @Override
-    public void triggerBreak() {
-        isBreakActive = false;
-        breakSolenoidRight.set(Value.kForward);
-        breakSolenoidLeft.set(Value.kForward);
+    public void triggerBrake() {
+        isActive = false;
+        brakeSolenoidRight.set(Value.kForward);
+        brakeSolenoidLeft.set(Value.kForward);
     }
 
     @Override
-    public void releaseBreak() {
-        breakSolenoidRight.set(Value.kReverse);
-        breakSolenoidLeft.set(Value.kReverse);
-        isBreakActive = true;
+    public void releaseBrake() {
+        brakeSolenoidRight.set(Value.kReverse);
+        brakeSolenoidLeft.set(Value.kReverse);
+        isActive = true;
     }
 }

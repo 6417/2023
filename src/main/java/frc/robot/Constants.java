@@ -76,7 +76,7 @@ public final class Constants {
             public static final double positionCorrection = 0;
         }
 
-        public static final class Break {
+        public static final class Brake {
             public static final class FridoDoubleSolenoid {
                 public static final int rightIdLower = 0;
                 public static final int rightIdHigher = 1;
@@ -92,7 +92,7 @@ public final class Constants {
             public static final IJoystickButtonId steerModeCarlike = LogitechExtreme._7;
             public static final IJoystickButtonId steerModeBidirectional = LogitechExtreme._9;
 
-            public static final IJoystickButtonId activateBreak = LogitechExtreme._4;
+            public static final IJoystickButtonId activateBrake = LogitechExtreme._4;
         }
         
 

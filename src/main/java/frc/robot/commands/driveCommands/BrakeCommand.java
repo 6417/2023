@@ -3,15 +3,15 @@ package frc.robot.commands.driveCommands;
 import frc.robot.subsystems.drive.Drive;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 
-public class BreakCommand extends CommandBase {
+public class BrakeCommand extends CommandBase {
 
-  public BreakCommand() {
+  public BrakeCommand() {
     addRequirements(Drive.getInstance());
   }
   
   @Override
   public void initialize() {
-    Drive.getInstance().triggerBreak();
+    Drive.getInstance().triggerBrake();
   }
 
   // Called every time the scheduler runs while the command is scheduled.
@@ -22,7 +22,7 @@ public class BreakCommand extends CommandBase {
   // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {
-    Drive.getInstance().releaseBreak();
+    Drive.getInstance().releaseBrake();
   }
 
   // Returns true when the command should end.

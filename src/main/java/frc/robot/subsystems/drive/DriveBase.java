@@ -60,7 +60,7 @@ public class DriveBase extends Module {
 
     public void resetOdometry(Pose2d initialPose) { }
 
-    public void triggerBreak() { }
+    public void triggerBrake() { }
 
-    public void releaseBreak() { }
+    public void releaseBrake() { }
 }

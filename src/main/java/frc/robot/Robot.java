@@ -6,6 +6,10 @@ package frc.robot;
 
 import java.util.List;
 
+import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.InvertType;
+import com.ctre.phoenix.motorcontrol.can.TalonFX;
+
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.SPI.Port;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
@@ -13,6 +17,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.fridowpi.joystick.JoystickHandler;
 import frc.fridowpi.sensors.Navx;
+import frc.robot.commands.autonomous.ChargeAutonomous;
 import frc.robot.subsystems.drive.Drive;
 
 /**
@@ -24,8 +29,6 @@ import frc.robot.subsystems.drive.Drive;
 public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
 
-  private RobotContainer m_robotContainer;
-
   /**
    * This function is run when the robot is first started up and should be used for any
    * initialization code.
@@ -36,13 +39,13 @@ public class Robot extends TimedRobot {
     // autonomous chooser on the dashboard.
     Navx.setup(Port.kMXP);
     Navx.getInstance().init();
-    Drive.getInstance().init();
     JoystickHandler.getInstance().setupJoysticks(List.of(Constants.Joystick.accelerator, Constants.Joystick.steeringWheel));
     JoystickHandler.getInstance().bind(Drive.getInstance());
     JoystickHandler.getInstance().init();
+
+    Drive.getInstance().init();
     Shuffleboard.getTab("Debug").add(Drive.getInstance());
   }
-
   /**
    * This function is called every 20 ms, no matter the mode. Use this for items like diagnostics
    * that you want ran during disabled, autonomous, teleoperated and test.
@@ -66,20 +69,39 @@ public class Robot extends TimedRobot {
   @Override
   public void disabledPeriodic() {}
 
+  TalonFX front_left;
+  TalonFX front_right;
+  TalonFX back_left;
+  TalonFX back_right;
+
   /** This autonomous runs the autonomous command selected by your {@link RobotContainer} class. */
   @Override
   public void autonomousInit() {
-    //CommandScheduler.getInstance().schedule(new ChargeCommand(StartingPosition.LEFT));;
+    // CommandScheduler.getInstance().schedule(new ChargeAutonomous(StartingPosition.LEFT));;
 
     // schedule the autonomous command (example)
     if (m_autonomousCommand != null) {
       m_autonomousCommand.schedule();
     }
-  }
 
+    front_left = new TalonFX(10);
+    front_right = new TalonFX(11);
+    back_left = new TalonFX(12);
+    back_right = new TalonFX(13);
+
+    front_left.configFactoryDefault();
+    front_right.configFactoryDefault();
+    back_left.configFactoryDefault();
+    back_right.configFactoryDefault();
+
+    front_left.setInverted(InvertType.InvertMotorOutput);
+    back_left.setInverted(InvertType.InvertMotorOutput);
+  }
+  
   /** This function is called periodically during autonomous. */
   @Override
-  public void autonomousPeriodic() {}
+  public void autonomousPeriodic() {
+  }
 
   @Override
   public void teleopInit() {

@@ -5,13 +5,13 @@
 package frc.robot.commands.autonomous;
 
 import frc.fridowpi.command.SequentialCommandGroup;
-import frc.robot.subsystems.drive.Drive;
+import frc.robot.StartingPosition;
 
 public class ChargeAutonomous extends SequentialCommandGroup {
 
-  public ChargeAutonomous() {
+  public ChargeAutonomous(StartingPosition startingPosition) {
     addCommands(
-      new FollowPath("pathToChargingStation"),
+      // new FollowPath("pathToChargingStation"),
       new FollowPath("driveOnChargingStation")
     );
   }

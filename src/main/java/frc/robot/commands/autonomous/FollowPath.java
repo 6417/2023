@@ -18,7 +18,7 @@ public class FollowPath extends Command {
 
     @Override
     public void initialize() {
-        autonomousCommand = RamseteCommandGenerator.generateRamseteCommand(path);
+        autonomousCommand = RamseteCommandGenerator.generateRamseteCommand(this.path);
         CommandScheduler.getInstance().schedule(autonomousCommand);
 
         Drive.getInstance().setDirection(1);

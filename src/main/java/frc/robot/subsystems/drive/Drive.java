@@ -43,8 +43,8 @@ public class Drive extends DriveBase {
     private double speed = 0.8;
 
     private double steerDirection = -1;
-    private double steeringSensibility = 1;
-    private SteerMode steerMode = Constants.Drive.defaultSteerMode;
+    private double steeringWheelSensibility = 1;
+    private SteerMode steerMode = Constants.Drive.Defaults.steerMode;
 
     private PIDController rightVelocityController;
     private PIDController leftVelocityController;
@@ -52,6 +52,11 @@ public class Drive extends DriveBase {
     private SimpleMotorFeedforward motorFeedForward;
 
     private double maxVel = 0;
+    private double maxAcc = 0;
+
+    private boolean steerWithJoystick = Constants.Drive.Defaults.steerWithJoystick;
+
+    private double joystickSteeringSensibility = 1.0;
 
     public static enum SteerMode {
         CARLIKE, BIDIRECTIONAL
@@ -110,24 +115,48 @@ public class Drive extends DriveBase {
     }
 
     @Override
-    public void drive(double joystickInputY, double joystickTurnValue, double steerWheelInput) {
-        double vel = Navx.getInstance().getVelocityX();
-        if (vel > maxVel) {
-            maxVel = vel;
-            System.out.println(vel);
-        }
-        joystickInputY = deadZone(joystickInputY, 0.1);
-        steerWheelInput = deadZone(steerWheelInput, 0.1);
+    public void drive(double joystickInputY, double joystickInputX, double steerWheelInput) {
+        // double acc = Navx.getInstance().getRawAccelX();
+        // if (acc > maxAcc) {
+        //     maxAcc = acc;
+        //     System.out.println("Max acc: " + acc);
+        // }
+        // double vel = Navx.getInstance().getVelocityX();
+        // if (vel > maxVel) {
+        //     maxVel = vel;
+        //     System.out.println("Max vel: " + vel);
+        // }
+        // MaxVel: 3.35 m/s
+        // MaxAcc: 1.20 m/s^6
 
-        steerWheelInput *= steerDirection * steeringSensibility;
-        joystickInputY *= driveDirection * speed;
+        // joystickInputY *= 180;
+
+        // double yInput = Math.abs(joystickInputY) < 0.1 && Math.abs(steerInput) > 0.8? 0.1: joystickInputY;
+
+        // System.out.println(joystickInputY);
+        // System.out.println(steerInput);
+
+        // Deadzone
+        double yInput = deadZone(joystickInputY, 0.02);
+        double xInput = deadZone(joystickInputX, 0.05);
+        double steerInput = deadZone(steerWheelInput, 0.01);
+
+        // Add direction and sensibility
+        steerInput *= steerDirection * steeringWheelSensibility;
+        xInput *= steerDirection * joystickSteeringSensibility;
+        yInput *= driveDirection * speed;
 
         // If driving backwards in bidirectional mode, invert the steer direction
-        if (joystickInputY < 0 && steerMode == SteerMode.CARLIKE)
-            steerWheelInput = -steerWheelInput;
+        if (yInput < 0 && steerMode == SteerMode.CARLIKE)
+            steerInput = -steerInput;
 
-        Pair<Double, Double> pair = joystickToChassisSpeed(joystickInputY, steerWheelInput);
-        tankDrive.arcadeDrive(pair.getFirst(), pair.getSecond(), false);
+
+        if (steerWithJoystick) {
+            tankDrive.arcadeDrive(-xInput, yInput, false);
+        } else {
+            Pair<Double, Double> pair = joystickToChassisSpeed(yInput, steerInput);
+            tankDrive.arcadeDrive(pair.getFirst(), pair.getSecond(), false);
+        }
     }
 
     private Pair<Double, Double> joystickToChassisSpeed(double accelerationInput, double steerInput) {
@@ -171,9 +200,11 @@ public class Drive extends DriveBase {
     @Override
     public void initSendable(SendableBuilder builder) {
         super.initSendable(builder);
+        builder.addBooleanProperty("steer with joystick", () -> steerWithJoystick, (val) -> steerWithJoystick = val);
         builder.addStringProperty("steer mode", () -> steerMode.name(), null);
         builder.addDoubleProperty("drive driection", () -> driveDirection, null);
-        builder.addDoubleProperty("steering sensibility", () -> steeringSensibility, (val) -> steeringSensibility = val);
+        builder.addDoubleProperty("steering wheel sensibility", () -> steeringWheelSensibility, (val) -> steeringWheelSensibility = val);
+        builder.addDoubleProperty("joystick x (steering) sensibility", () -> joystickSteeringSensibility, (val) -> joystickSteeringSensibility = val);
         builder.addDoubleProperty("speed", () -> speed, (val) -> speed = val);
     }
 

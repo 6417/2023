@@ -17,6 +17,7 @@ import edu.wpi.first.math.kinematics.DifferentialDriveOdometry;
 import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import frc.fridowpi.joystick.JoystickHandler;
+import frc.fridowpi.sensors.Navx;
 import frc.robot.Constants;
 import frc.robot.commands.DriveCommand;
 
@@ -35,6 +36,8 @@ public class Drive extends DriveBase {
 
     private PIDController rightVelocityController;
     private PIDController leftVelocityController;
+
+    public Pose2d pose2d;
 
     private SimpleMotorFeedforward motorFeedForward;
 
@@ -171,7 +174,21 @@ public class Drive extends DriveBase {
     }
 
     @Override
-    public void periodic() { }
+    public void periodic() { 
+        var gyroAngle = Navx.getInstance().getRotation2d();
+
+        pose = odometry.update(gyroAngle,
+            getRightEncoderDistance(),
+            getLeftEncoderDistance()
+    }
+
+    public double getRightEncoderDistance() {
+        return motors.right().getEncoderTicks()
+    }
+
+    public double getLeftEncoderDistance() {
+        return motors.left().getEncoderTicks()
+    }
 
     @Override
     public void simulationPeriodic() { }

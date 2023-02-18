@@ -11,12 +11,20 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
 import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.fridowpi.module.Module;
+import frc.robot.subsystems.drive.Drive.SteerMode;
 
-public class DriveBase extends SubsystemBase {
+public class DriveBase extends Module {
 
-    public void drive(double x, double y) { }
+    public void drive(double joystickInputY, double joystickTurnValue, double steerInput) { }
 
     public void init() { }
+
+    public void reverseDrivingDirection(boolean reverse) { }
+
+    public void setSteerMode(SteerMode mode) { }
+    
+    public void setDirection(int direction) { }
 
     public Pose2d getPosition() { 
         return null;
@@ -54,9 +62,6 @@ public class DriveBase extends SubsystemBase {
 
     public void resetOdometry(Pose2d initialPose) { }
 
-    @Override
-    public void periodic() { }
-
-    @Override
-    public void simulationPeriodic() { }
+    public void setSpeedForSeconds(int i, int j) {
+    }
 }

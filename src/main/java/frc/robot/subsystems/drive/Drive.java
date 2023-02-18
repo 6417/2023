@@ -4,6 +4,8 @@
 
 package frc.robot.subsystems.drive;
 
+import java.util.List;
+
 import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
@@ -15,11 +17,17 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
 import edu.wpi.first.math.kinematics.DifferentialDriveOdometry;
 import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
+import edu.wpi.first.util.sendable.SendableBuilder;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
-import frc.fridowpi.joystick.JoystickHandler;
 import frc.fridowpi.sensors.Navx;
+import frc.fridowpi.joystick.joysticks.LogitechExtreme;
+import edu.wpi.first.wpilibj2.command.button.Button;
+import frc.fridowpi.joystick.Binding;
 import frc.robot.Constants;
-import frc.robot.commands.DriveCommand;
+import frc.robot.commands.driveCommands.DriveCommand;
+import frc.robot.commands.driveCommands.ReverseDrivingDirection;
+import frc.robot.commands.driveCommands.SetSteerMode;
 
 public class Drive extends DriveBase {
     private static DriveBase instance;
@@ -28,11 +36,15 @@ public class Drive extends DriveBase {
 
     private DifferentialDriveOdometry odometry;
     private DifferentialDriveKinematics kinematics;
-    private DifferentialDrive tankDrive;;
+    private DifferentialDrive tankDrive;
     private LinearFilter driveFilter;
         
-    private double speed = 1;
     private double driveDirection = 1;
+    private double speed = 0.8;
+
+    private double steerDirection = -1;
+    private double steeringWheelSensibility = 1;
+    private SteerMode steerMode = Constants.Drive.Defaults.steerMode;
 
     private PIDController rightVelocityController;
     private PIDController leftVelocityController;
@@ -40,6 +52,17 @@ public class Drive extends DriveBase {
     public Pose2d pose2d;
 
     private SimpleMotorFeedforward motorFeedForward;
+
+    private double maxVel = 0;
+    private double maxAcc = 0;
+
+    private boolean steerWithJoystick = Constants.Drive.Defaults.steerWithJoystick;
+
+    private double joystickSteeringSensibility = 1.0;
+
+    public static enum SteerMode {
+        CARLIKE, BIDIRECTIONAL
+    }
 
     private Drive() {
         motors = new Motors();
@@ -65,7 +88,7 @@ public class Drive extends DriveBase {
             return instance;
         }
         // If enabled, return a Drive object, else an empty DriveBase
-        instance = Constants.Drive.enabled? new Drive(): new DriveBase();
+        instance = Constants.Drive.enabled ? new Drive(): new DriveBase();
         return instance;
     }
 
@@ -78,8 +101,6 @@ public class Drive extends DriveBase {
         tankDrive = new DifferentialDrive(motors.left(), motors.right());
 
         resetSensors();
-
-        setDefaultCommand(new DriveCommand());
 
         // configSimpleMotorFeedforward();
 
@@ -96,15 +117,55 @@ public class Drive extends DriveBase {
     }
 
     @Override
-    public void drive(double x, double y) {
-        Pair<Double, Double> pair = this.joystickToChassisSpeed(x, y);
-        tankDrive.arcadeDrive(pair.getFirst(), pair.getSecond(), false);
+    public void drive(double joystickInputY, double joystickInputX, double steerWheelInput) {
+        // double acc = Navx.getInstance().getRawAccelX();
+        // if (acc > maxAcc) {
+        //     maxAcc = acc;
+        //     System.out.println("Max acc: " + acc);
+        // }
+        // double vel = Navx.getInstance().getVelocityX();
+        // if (vel > maxVel) {
+        //     maxVel = vel;
+        //     System.out.println("Max vel: " + vel);
+        // }
+        // MaxVel: 3.35 m/s
+        // MaxAcc: 1.20 m/s^6
+
+        // joystickInputY *= 180;
+
+        // double yInput = Math.abs(joystickInputY) < 0.1 && Math.abs(steerInput) > 0.8? 0.1: joystickInputY;
+
+        // System.out.println(joystickInputY);
+        // System.out.println(steerInput);
+
+        // Deadzone
+        double yInput = deadZone(joystickInputY, 0.02);
+        double xInput = deadZone(joystickInputX, 0.05);
+        double steerInput = deadZone(steerWheelInput, 0.01);
+
+        // Add direction and sensibility
+        steerInput *= steerDirection * steeringWheelSensibility;
+        xInput *= steerDirection * joystickSteeringSensibility;
+        yInput *= driveDirection * speed;
+
+        // If driving backwards in bidirectional mode, invert the steer direction
+        if (yInput < 0 && steerMode == SteerMode.CARLIKE)
+            steerInput = -steerInput;
+
+
+        if (steerWithJoystick) {
+            tankDrive.arcadeDrive(-xInput, yInput, false);
+        } else {
+            Pair<Double, Double> pair = joystickToChassisSpeed(yInput, steerInput);
+            tankDrive.arcadeDrive(pair.getFirst(), pair.getSecond(), false);
+        }
     }
 
-    private Pair<Double, Double> joystickToChassisSpeed(double x, double y) {
-        double velocity = driveFilter.calculate(JoystickHandler.getInstance().getJoystick(Constants.Joystick.accelerator).getY()) * speed * driveDirection;
-        double steer = JoystickHandler.getInstance().getJoystick(Constants.Joystick.steeringWheel).getX() * Math.signum(JoystickHandler.getInstance().getJoystick(Constants.Joystick.accelerator).getY()) * 2 * driveDirection;
+    private Pair<Double, Double> joystickToChassisSpeed(double accelerationInput, double steerInput) {
 
+        double velocity = driveFilter.calculate(accelerationInput);
+        double steer = steerInput * Math.signum(accelerationInput) * 2;
+        
         // Getting the sign of velocity and steer
         double velocitySign = Math.signum(velocity);
         double steerSign = Math.signum(steer);
@@ -119,6 +180,54 @@ public class Drive extends DriveBase {
         // Return with those values
         return new Pair<Double, Double>(mappedSteer, mappedVelocity);
     }
+
+    private double deadZone(double val, double dead) {
+        if (Math.abs(val) < dead)
+            return 0.0;
+        return (val -  Math.signum(val) * dead) / (1 - dead);
+    }
+
+    @Override
+    public List<Binding> getMappings() {
+        Binding driveForward = new Binding(Constants.Joystick.accelerator, LogitechExtreme._11, Button::toggleOnTrue, new ReverseDrivingDirection(false));
+        Binding driveInverted = new Binding(Constants.Joystick.accelerator, LogitechExtreme._12, Button::toggleOnTrue, new ReverseDrivingDirection(true));
+    
+        Binding carMode = new Binding(Constants.Joystick.accelerator, LogitechExtreme._7, Button::toggleOnTrue, new SetSteerMode(SteerMode.CARLIKE));
+        Binding bidirectionalMode = new Binding(Constants.Joystick.accelerator, LogitechExtreme._9, Button::toggleOnTrue, new SetSteerMode(SteerMode.BIDIRECTIONAL));
+        return List.of(
+            driveForward, driveInverted,
+            carMode, bidirectionalMode);
+    }
+
+    @Override
+    public void initSendable(SendableBuilder builder) {
+        super.initSendable(builder);
+        builder.addBooleanProperty("steer with joystick", () -> steerWithJoystick, (val) -> steerWithJoystick = val);
+        builder.addStringProperty("steer mode", () -> steerMode.name(), null);
+        builder.addDoubleProperty("drive driection", () -> driveDirection, null);
+        builder.addDoubleProperty("steering wheel sensibility", () -> steeringWheelSensibility, (val) -> steeringWheelSensibility = val);
+        builder.addDoubleProperty("joystick x (steering) sensibility", () -> joystickSteeringSensibility, (val) -> joystickSteeringSensibility = val);
+        builder.addDoubleProperty("speed", () -> speed, (val) -> speed = val);
+    }
+
+    @Override
+    public void reverseDrivingDirection(boolean reverse) {
+        driveDirection = reverse? -1: 1;
+        steerDirection = reverse? 1: -1;
+    }
+
+    @Override
+    public void setSteerMode(SteerMode mode) {
+        steerMode = mode;
+    }
+
+    @Override
+    public void setDirection(int direction) {
+        // TODO: Direction enum/constants
+        driveDirection = direction;
+    }
+
+    /* Getter Methods */
 
     @Override
     public Pose2d getPosition() {

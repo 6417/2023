@@ -49,8 +49,6 @@ public class Drive extends DriveBase {
     private PIDController rightVelocityController;
     private PIDController leftVelocityController;
 
-    public Pose2d pose2d;
-
     private SimpleMotorFeedforward motorFeedForward;
 
     private double maxVel = 0;
@@ -59,6 +57,8 @@ public class Drive extends DriveBase {
     private boolean steerWithJoystick = Constants.Drive.Defaults.steerWithJoystick;
 
     private double joystickSteeringSensibility = 1.0;
+
+    private Pose2d pose;
 
     public static enum SteerMode {
         CARLIKE, BIDIRECTIONAL
@@ -118,16 +118,16 @@ public class Drive extends DriveBase {
 
     @Override
     public void drive(double joystickInputY, double joystickInputX, double steerWheelInput) {
-        // double acc = Navx.getInstance().getRawAccelX();
-        // if (acc > maxAcc) {
-        //     maxAcc = acc;
-        //     System.out.println("Max acc: " + acc);
-        // }
-        // double vel = Navx.getInstance().getVelocityX();
-        // if (vel > maxVel) {
-        //     maxVel = vel;
-        //     System.out.println("Max vel: " + vel);
-        // }
+        double acc = Navx.getInstance().getRawAccelX();
+        if (acc > maxAcc) {
+            maxAcc = acc;
+            System.out.println("Max acc: " + acc);
+        }
+        double vel = Navx.getInstance().getVelocityX();
+        if (vel > maxVel) {
+            maxVel = vel;
+            System.out.println("Max vel: " + vel);
+        }
         // MaxVel: 3.35 m/s
         // MaxAcc: 1.20 m/s^6
 
@@ -288,15 +288,15 @@ public class Drive extends DriveBase {
 
         pose = odometry.update(gyroAngle,
             getRightEncoderDistance(),
-            getLeftEncoderDistance()
+            getLeftEncoderDistance());
     }
 
     public double getRightEncoderDistance() {
-        return motors.right().getEncoderTicks()
+        return motors.right().getEncoderTicks();
     }
 
     public double getLeftEncoderDistance() {
-        return motors.left().getEncoderTicks()
+        return motors.left().getEncoderTicks();
     }
 
     @Override

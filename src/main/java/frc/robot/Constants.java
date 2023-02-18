@@ -68,7 +68,7 @@ public final class Constants {
 
             public static final double kP = 0.049844;
             public static final double kI = 0;
-            public static final double kD = 0;
+            public static final double kD = 5.3848;
         }
 
         public static class Autonomous {

@@ -93,6 +93,8 @@ public final class Constants {
             public static final IJoystickButtonId steerModeBidirectional = LogitechExtreme._9;
 
             public static final IJoystickButtonId activateBrake = LogitechExtreme._4;
+
+            public static final IJoystickButtonId activateBalancing = LogitechExtreme._5;
         }
         
 

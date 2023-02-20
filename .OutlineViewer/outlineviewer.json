@@ -1,0 +1,17 @@
+{
+  "Connections": {
+    "open": true
+  },
+  "NetworkTables Settings": {
+    "listenAddress": "172.21.100.78",
+    "mode": "Server",
+    "persistentFilename": "wpilibpi.json",
+    "serverTeam": "172.21.100.78"
+  },
+  "Server": {
+    "Subscribers": {
+      "open": true
+    },
+    "open": true
+  }
+}

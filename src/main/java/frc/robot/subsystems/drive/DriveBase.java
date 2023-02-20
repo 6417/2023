@@ -63,4 +63,8 @@ public class DriveBase extends Module {
     public void triggerBrake() { }
 
     public void releaseBrake() { }
+
+    public void balance(){};
+
+    public void balancehandler(){};
 }

@@ -23,7 +23,9 @@ import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj2.command.button.Button;
 import frc.fridowpi.joystick.Binding;
 import frc.fridowpi.pneumatics.FridoDoubleSolenoid;
+import frc.fridowpi.sensors.Navx;
 import frc.robot.Constants;
+import frc.robot.commands.driveCommands.BalanceCommand;
 import frc.robot.commands.driveCommands.BrakeCommand;
 import frc.robot.commands.driveCommands.DriveCommand;
 import frc.robot.commands.driveCommands.ReverseDrivingDirection;
@@ -56,6 +58,9 @@ public class Drive extends DriveBase {
     private FridoDoubleSolenoid brakeSolenoidRight;
     private FridoDoubleSolenoid brakeSolenoidLeft;
 
+    private double balancedrivespeed;
+    private double balancestart;
+
     public static enum SteerMode {
         CARLIKE, BIDIRECTIONAL
     }
@@ -80,6 +85,8 @@ public class Drive extends DriveBase {
 
         brakeSolenoidRight = new FridoDoubleSolenoid(Constants.Drive.Brake.FridoDoubleSolenoid.rightIdLower, Constants.Drive.Brake.FridoDoubleSolenoid.rightIdHigher);
         brakeSolenoidLeft = new FridoDoubleSolenoid(Constants.Drive.Brake.FridoDoubleSolenoid.leftIdLower, Constants.Drive.Brake.FridoDoubleSolenoid.leftIdHigher);
+
+        balancestart = 0;
     }
 
     public static DriveBase getInstance() {
@@ -241,6 +248,8 @@ public class Drive extends DriveBase {
         Binding bidirectionalMode = new Binding(Constants.Joystick.accelerator, Constants.Drive.ButtonIds.steerModeBidirectional, Button::toggleOnTrue, new SetSteerMode(SteerMode.BIDIRECTIONAL));
 
         Binding activateBrake = new Binding(Constants.Joystick.accelerator, Constants.Drive.ButtonIds.activateBrake, Button::toggleOnTrue, new BrakeCommand());
+
+        Binding activateBalancing = new Binding(Constants.Joystick.accelerator, Constants.Drive.ButtonIds.activateBalancing, Button::toggleOnTrue, new BalanceCommand());
         return List.of(
             driveForward, driveInverted,
             carMode, bidirectionalMode, activateBrake);
@@ -269,5 +278,30 @@ public class Drive extends DriveBase {
         brakeSolenoidRight.set(Value.kReverse);
         brakeSolenoidLeft.set(Value.kReverse);
         isActive = true;
+    }
+
+    public void balance(float pitch){
+        if (pitch <= 0.1 && pitch >= -0.1){
+            drive(0.0,0.0,0.0);
+            Drive.getInstance().triggerBrake();
+        }else{
+            drive((double)pitch*balancedrivespeed,0.0,0.0);
+            balancedrivespeed += 0.01;
+        }
+        System.out.println(pitch);
+    }
+
+    public void balancehandler(){
+        float pitch = Navx.getInstance().getPitch();
+        if (balancestart == 0){
+            drive(balancedrivespeed, 0.0,0.0);
+            balancedrivespeed += 0.01;
+            if(pitch > 0.2){
+                balancestart = 1.0;
+            }
+        }
+        else{
+            balance(pitch);
+        }
     }
 }

@@ -11,7 +11,7 @@ import edu.wpi.first.util.sendable.SendableBuilder;
 import frc.fridowpi.utils.Matrix2;
 import frc.fridowpi.utils.Vector2;
 
-public class ArmCalculator implements Sendable{
+public class ArmModel implements Sendable{
     public static class MotorTorques implements Sendable {
         public double base;
         public double joint;
@@ -58,7 +58,7 @@ public class ArmCalculator implements Sendable{
         }
     }
 
-    public static Logger logger = LogManager.getLogger(ArmCalculator.class);
+    public static Logger logger = LogManager.getLogger(ArmModel.class);
 
     public static enum Cargo {
         Cube(0.071), Cone(0.653), None(0.0);
@@ -133,7 +133,7 @@ public class ArmCalculator implements Sendable{
 
     private ArmState state;
 
-    public ArmCalculator(ArmState initialState) {
+    public ArmModel(ArmState initialState) {
         state = initialState;
     }
 

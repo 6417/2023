@@ -1,5 +1,6 @@
 package frc.robot.subsystems;
 
+import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.StatorCurrentLimitConfiguration;
 
 import edu.wpi.first.math.controller.PIDController;
@@ -12,6 +13,7 @@ import frc.fridowpi.motors.FridolinsMotor.IdleMode;
 import frc.robot.ArmCalculator;
 import frc.robot.Constants;
 import frc.robot.subsystems.base.ArmBase;
+import jdk.jfr.Percentage;
 
 public class Arm extends ArmBase {
     private static ArmBase instance = null;
@@ -25,6 +27,7 @@ public class Arm extends ArmBase {
         public Motors() {
             base = new FridoFalcon500(Constants.Arm.Ids.baseMotor);
             // baseFollower = new FridoFalcon500(Constants.Arm.Ids.baseFollowerMotor);
+            //
             // joint = new FridoFalcon500(Constants.Arm.Ids.jointMotor);
             // jointFollower = new FridoFalcon500(Constants.Arm.Ids.jointFollowerMotor);
 

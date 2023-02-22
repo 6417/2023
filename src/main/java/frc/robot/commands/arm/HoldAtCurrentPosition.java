@@ -12,9 +12,6 @@ public class HoldAtCurrentPosition extends CommandBase {
 
     public HoldAtCurrentPosition() {
         addRequirements(Arm.getInstance());
-        mmController = new MotionMagic(1.0, ArmCalculator.ampsToTorque(10) / Constants.Arm.baseGearRatio,
-                ArmCalculator.ampsToTorque(4) / Constants.Arm.baseGearRatio,
-                () -> Arm.getInstance().baseAngle() * Constants.Arm.baseArm.centerOfMass);
     }
 
     private double currentPos;

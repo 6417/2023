@@ -6,7 +6,7 @@ package frc.robot;
 
 import frc.fridowpi.motors.FridolinsMotor.DirectionType;
 import frc.fridowpi.motors.FridolinsMotor.LimitSwitchPolarity;
-import frc.robot.ArmCalculator.Cargo;
+import frc.robot.ArmModel.Cargo;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide
@@ -30,13 +30,14 @@ public final class Constants {
 
         public static double torqueToAmpsProportionality = 1 / 0.02076;
 
-        public static ArmCalculator.Cargo initialCargo = Cargo.None;
+        public static ArmModel.Cargo initialCargo = Cargo.None;
         public static boolean enabled = true;
 
         public static class PhysicalProperties {
             public double centerOfMass;
             public double mass;
             public double length;
+			public double momentOfIntertia;
 
             public PhysicalProperties(double centerOfMass, double mass, double length) {
                 this.centerOfMass = centerOfMass;

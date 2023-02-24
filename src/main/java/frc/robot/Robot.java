@@ -86,19 +86,6 @@ public class Robot extends TimedRobot {
         CommandScheduler.getInstance().run();
     }
 
-    /** This function is called once each time the robot enters Disabled mode. */
-    @Override
-    public void disabledInit() {
-    }
-
-  @Override
-  public void disabledPeriodic() {}
-
-  TalonFX front_left;
-  TalonFX front_right;
-  TalonFX back_left;
-  TalonFX back_right;
-
     /**
      * This autonomous runs the autonomous command selected by your
      * {@link RobotContainer} class.

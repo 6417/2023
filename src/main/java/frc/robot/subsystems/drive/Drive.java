@@ -156,6 +156,7 @@ public class Drive extends DriveBase {
         // System.out.println(steerInput);
 
         if (!isActive) {
+            tankDrive.feed();
             return;
         }
 

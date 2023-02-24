@@ -15,20 +15,12 @@ public class DriveCommand extends CommandBase {
         addRequirements(m_subsystem);
     }
 
-  // Called when the command is initially scheduled.
-  @Override
-  public void initialize() {
-  
-  // Called when the command is initially scheduled.
-  @Override
-  public void initialize() {
+    // Called when the command is initially scheduled.
+    @Override
+    public void initialize() { }
 
-  }
-
-  // (Aka .periodic())
-  @Override
-  public void execute() {
-
+    @Override
+    public void execute() {
         // Get input
         double joystickInputY = JoystickHandler
                 .getInstance()

@@ -14,6 +14,7 @@ public class FollowPath extends Command {
 
     public FollowPath(String name) {
         path = PathviewerLoader.loadTrajectory("paths/" + name + ".wpilib.json");
+        addRequirements(Drive.getInstance());
     }
 
     @Override

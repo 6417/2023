@@ -19,10 +19,8 @@ import edu.wpi.first.math.kinematics.DifferentialDriveOdometry;
 import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
-import frc.fridowpi.sensors.Navx;
-import frc.fridowpi.joystick.joysticks.LogitechExtreme;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj2.command.button.Button;
 import frc.fridowpi.joystick.Binding;
 import frc.fridowpi.pneumatics.FridoDoubleSolenoid;
@@ -62,7 +60,7 @@ public class Drive extends DriveBase {
     private FridoDoubleSolenoid brakeSolenoidLeft;
 
     private double balancedrivespeed;
-    private double balancestart;
+    private double balancestart = 0;
 
     private double maxVel = 0;
     private double maxAcc = 0;
@@ -95,10 +93,8 @@ public class Drive extends DriveBase {
 
         driveFilter = LinearFilter.movingAverage(Constants.Drive.movingAveragePrecision);
 
-        brakeSolenoidRight = new FridoDoubleSolenoid(Constants.Drive.Brake.FridoDoubleSolenoid.rightIdLower, Constants.Drive.Brake.FridoDoubleSolenoid.rightIdHigher);
-        brakeSolenoidLeft = new FridoDoubleSolenoid(Constants.Drive.Brake.FridoDoubleSolenoid.leftIdLower, Constants.Drive.Brake.FridoDoubleSolenoid.leftIdHigher);
-
-        balancestart = 0;
+        // brakeSolenoidRight = new FridoDoubleSolenoid(Constants.Drive.Brake.FridoDoubleSolenoid.rightIdLower, Constants.Drive.Brake.FridoDoubleSolenoid.rightIdHigher);
+        // brakeSolenoidLeft = new FridoDoubleSolenoid(Constants.Drive.Brake.FridoDoubleSolenoid.leftIdLower, Constants.Drive.Brake.FridoDoubleSolenoid.leftIdHigher);
     }
 
     public static DriveBase getInstance() {
@@ -126,6 +122,7 @@ public class Drive extends DriveBase {
 
         // configTrajectoryConfig();
 
+
         rightVelocityController = new PIDController(Constants.Drive.PathWeaver.kP, Constants.Drive.PathWeaver.kI,
                 Constants.Drive.PathWeaver.kD);
         leftVelocityController = new PIDController(Constants.Drive.PathWeaver.kP, Constants.Drive.PathWeaver.kI,
@@ -136,10 +133,8 @@ public class Drive extends DriveBase {
 
     @Override
     public void drive(double joystickInputY, double joystickInputX, double steerWheelInput) {
-        if (!isActive) {
-            return;
-        }
-        
+        // System.out.println(joystickInputY + " | " + joystickInputX + " | " + steerWheelInput);
+
         // double acc = Navx.getInstance().getRawAccelX();
         // if (acc > maxAcc) {
         //     maxAcc = acc;
@@ -160,6 +155,10 @@ public class Drive extends DriveBase {
         // System.out.println(joystickInputY);
         // System.out.println(steerInput);
 
+        if (!isActive) {
+            return;
+        }
+
         // Deadzone
         double yInput = deadZone(joystickInputY, 0.02);
         double xInput = deadZone(joystickInputX, 0.05);
@@ -178,7 +177,7 @@ public class Drive extends DriveBase {
             tankDrive.arcadeDrive(-xInput, yInput, false);
         } else {
             Pair<Double, Double> pair = joystickToChassisSpeed(yInput, steerInput);
-            tankDrive.arcadeDrive(pair.getFirst(), pair.getSecond(), false);
+            tankDrive.arcadeDrive(pair.getSecond(), pair.getFirst(), false);
         }
     }
 
@@ -199,7 +198,7 @@ public class Drive extends DriveBase {
         double mappedVelocity = Math.min(Math.abs(Math.abs(velocity) + Math.abs(velocity) * Math.min(0, 1 - Math.abs(steer))), Math.abs(velocity)) * velocitySign;
 
         // Return with those values
-        return new Pair<Double, Double>(mappedSteer, mappedVelocity);
+        return new Pair<Double, Double>(mappedVelocity, mappedSteer);
     }
 
     private double deadZone(double val, double dead) {
@@ -221,7 +220,6 @@ public class Drive extends DriveBase {
 
     @Override
     public void setDirection(int direction) {
-        // TODO: Direction enum/constants
         driveDirection = direction;
     }
 
@@ -277,7 +275,9 @@ public class Drive extends DriveBase {
 
     @Override
     public void stop() {
+        isActive = false;
         tankDrive.stopMotor();
+        // triggerBrake();
     }
 
     @Override
@@ -350,6 +350,7 @@ public class Drive extends DriveBase {
     @Override
     public void triggerBrake() {
         isActive = false;
+        tankDrive.stopMotor();
         brakeSolenoidRight.set(Value.kForward);
         brakeSolenoidLeft.set(Value.kForward);
     }

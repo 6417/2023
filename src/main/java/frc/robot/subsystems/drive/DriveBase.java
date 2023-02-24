@@ -16,7 +16,7 @@ import frc.robot.subsystems.drive.Drive.SteerMode;
 
 public class DriveBase extends Module {
 
-    public void drive(double joystickInputY, double joystickTurnValue, double steerInput) { }
+    public void drive(double joystickInputY, double joystickInputX, double steerWheelInput) { }
 
     public void init() { }
 

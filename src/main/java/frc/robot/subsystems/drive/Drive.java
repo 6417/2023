@@ -135,20 +135,21 @@ public class Drive extends DriveBase {
     }
 
     @Override
+    public void drive(double joystickInputY, double joystickInputX, double steerWheelInput) {
         if (!isActive) {
             return;
         }
         
-        double acc = Navx.getInstance().getRawAccelX();
-        if (acc > maxAcc) {
-            maxAcc = acc;
-            System.out.println("Max acc: " + acc);
-        }
-        double vel = Navx.getInstance().getVelocityX();
-        if (vel > maxVel) {
-            maxVel = vel;
-            System.out.println("Max vel: " + vel);
-        }
+        // double acc = Navx.getInstance().getRawAccelX();
+        // if (acc > maxAcc) {
+        //     maxAcc = acc;
+        //     System.out.println("Max acc: " + acc);
+        // }
+        // double vel = Navx.getInstance().getVelocityX();
+        // if (vel > maxVel) {
+        //     maxVel = vel;
+        //     System.out.println("Max vel: " + vel);
+        // }
         // MaxVel: 3.35 m/s
         // MaxAcc: 1.20 m/s^6
 
@@ -172,7 +173,6 @@ public class Drive extends DriveBase {
         // If driving backwards in bidirectional mode, invert the steer direction
         if (yInput < 0 && steerMode == SteerMode.CARLIKE)
             steerInput = -steerInput;
-
 
         if (steerWithJoystick) {
             tankDrive.arcadeDrive(-xInput, yInput, false);
@@ -206,29 +206,6 @@ public class Drive extends DriveBase {
         if (Math.abs(val) < dead)
             return 0.0;
         return (val -  Math.signum(val) * dead) / (1 - dead);
-    }
-
-    @Override
-    public List<Binding> getMappings() {
-        Binding driveForward = new Binding(Constants.Joystick.accelerator, LogitechExtreme._11, Button::toggleOnTrue, new ReverseDrivingDirection(false));
-        Binding driveInverted = new Binding(Constants.Joystick.accelerator, LogitechExtreme._12, Button::toggleOnTrue, new ReverseDrivingDirection(true));
-    
-        Binding carMode = new Binding(Constants.Joystick.accelerator, LogitechExtreme._7, Button::toggleOnTrue, new SetSteerMode(SteerMode.CARLIKE));
-        Binding bidirectionalMode = new Binding(Constants.Joystick.accelerator, LogitechExtreme._9, Button::toggleOnTrue, new SetSteerMode(SteerMode.BIDIRECTIONAL));
-        return List.of(
-            driveForward, driveInverted,
-            carMode, bidirectionalMode);
-    }
-
-    @Override
-    public void initSendable(SendableBuilder builder) {
-        super.initSendable(builder);
-        builder.addBooleanProperty("steer with joystick", () -> steerWithJoystick, (val) -> steerWithJoystick = val);
-        builder.addStringProperty("steer mode", () -> steerMode.name(), null);
-        builder.addDoubleProperty("drive driection", () -> driveDirection, null);
-        builder.addDoubleProperty("steering wheel sensibility", () -> steeringWheelSensibility, (val) -> steeringWheelSensibility = val);
-        builder.addDoubleProperty("joystick x (steering) sensibility", () -> joystickSteeringSensibility, (val) -> joystickSteeringSensibility = val);
-        builder.addDoubleProperty("speed", () -> speed, (val) -> speed = val);
     }
 
     @Override
@@ -318,28 +295,53 @@ public class Drive extends DriveBase {
 
     public double getLeftEncoderDistance() {
         return motors.left().getEncoderTicks();
+    }
+
     @Override
     public List<Binding> getMappings() {
-        Binding driveForward = new Binding(Constants.Joystick.accelerator, Constants.Drive.ButtonIds.driveForward, Button::toggleOnTrue, new ReverseDrivingDirection(false));
-        Binding driveInverted = new Binding(Constants.Joystick.accelerator, Constants.Drive.ButtonIds.driveBackward, Button::toggleOnTrue, new ReverseDrivingDirection(true));
-    
-        Binding carMode = new Binding(Constants.Joystick.accelerator, Constants.Drive.ButtonIds.steerModeCarlike, Button::toggleOnTrue, new SetSteerMode(SteerMode.CARLIKE));
-        Binding bidirectionalMode = new Binding(Constants.Joystick.accelerator, Constants.Drive.ButtonIds.steerModeBidirectional, Button::toggleOnTrue, new SetSteerMode(SteerMode.BIDIRECTIONAL));
+        Binding driveForward = new Binding(
+            Constants.Joystick.accelerator,
+            Constants.Drive.ButtonIds.driveForward,
+            Button::toggleOnTrue, new ReverseDrivingDirection(false));
 
-        Binding activateBrake = new Binding(Constants.Joystick.accelerator, Constants.Drive.ButtonIds.activateBrake, Button::toggleOnTrue, new BrakeCommand());
+        Binding driveInverted = new Binding(Constants.Joystick.accelerator,
+            Constants.Drive.ButtonIds.driveBackward,
+            Button::toggleOnTrue, new ReverseDrivingDirection(true));
 
-        Binding activateBalancing = new Binding(Constants.Joystick.accelerator, Constants.Drive.ButtonIds.activateBalancing, Button::toggleOnTrue, new BalanceCommand());
+        Binding carMode = new Binding(
+            Constants.Joystick.accelerator,
+            Constants.Drive.ButtonIds.steerModeCarlike,
+            Button::toggleOnTrue, new SetSteerMode(SteerMode.CARLIKE));
+
+        Binding bidirectionalMode = new Binding(
+            Constants.Joystick.accelerator,
+            Constants.Drive.ButtonIds.steerModeBidirectional,
+            Button::toggleOnTrue, new SetSteerMode(SteerMode.BIDIRECTIONAL));
+
+        Binding activateBrake = new Binding(
+            Constants.Joystick.accelerator,
+            Constants.Drive.ButtonIds.activateBrake,
+            Button::toggleOnTrue, new BrakeCommand());
+
+        Binding activateBalancing = new Binding(
+            Constants.Joystick.accelerator,
+            Constants.Drive.ButtonIds.activateBalancing,
+            Button::toggleOnTrue, new BalanceCommand());
+
         return List.of(
             driveForward, driveInverted,
-            carMode, bidirectionalMode, activateBrake);
+            carMode, bidirectionalMode,
+            activateBrake, activateBalancing);
     }
 
     @Override
     public void initSendable(SendableBuilder builder) {
         super.initSendable(builder);
+        builder.addBooleanProperty("steer with joystick", () -> steerWithJoystick, (val) -> steerWithJoystick = val);
         builder.addStringProperty("steer mode", () -> steerMode.name(), null);
         builder.addDoubleProperty("drive driection", () -> driveDirection, null);
-        builder.addDoubleProperty("steering sensibility", () -> steeringSensibility, (val) -> steeringSensibility = val);
+        builder.addDoubleProperty("steering wheel sensibility", () -> steeringWheelSensibility, (val) -> steeringWheelSensibility = val);
+        builder.addDoubleProperty("joystick x (steering) sensibility", () -> joystickSteeringSensibility, (val) -> joystickSteeringSensibility = val);
         builder.addDoubleProperty("speed", () -> speed, (val) -> speed = val);
 
         builder.addStringProperty("brake status", () -> isActive? "not active": "active", null);

@@ -15,6 +15,7 @@ import edu.wpi.first.wpilibj.SPI.Port;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.Commands;
 import frc.fridowpi.joystick.JoystickHandler;
 import frc.fridowpi.sensors.Navx;
 import frc.robot.commands.autonomous.ChargeAutonomous;
@@ -78,8 +79,8 @@ public class Robot extends TimedRobot {
   @Override
   public void autonomousInit() {
     // CommandScheduler.getInstance().schedule(new ChargeAutonomous(StartingPosition.LEFT));;
+    CommandScheduler.getInstance().schedule(new TimedFo);
 
-    // schedule the autonomous command (example)
     if (m_autonomousCommand != null) {
       m_autonomousCommand.schedule();
     }

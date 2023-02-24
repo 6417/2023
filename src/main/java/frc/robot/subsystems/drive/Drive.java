@@ -18,19 +18,26 @@ import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
 import edu.wpi.first.math.kinematics.DifferentialDriveOdometry;
 import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
 import edu.wpi.first.util.sendable.SendableBuilder;
+import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import frc.fridowpi.sensors.Navx;
 import frc.fridowpi.joystick.joysticks.LogitechExtreme;
 import edu.wpi.first.wpilibj2.command.button.Button;
 import frc.fridowpi.joystick.Binding;
+import frc.fridowpi.pneumatics.FridoDoubleSolenoid;
+import frc.fridowpi.sensors.Navx;
 import frc.robot.Constants;
+import frc.robot.commands.driveCommands.BalanceCommand;
+import frc.robot.commands.driveCommands.BrakeCommand;
 import frc.robot.commands.driveCommands.DriveCommand;
 import frc.robot.commands.driveCommands.ReverseDrivingDirection;
 import frc.robot.commands.driveCommands.SetSteerMode;
 
 public class Drive extends DriveBase {
     private static DriveBase instance;
+
+    private boolean isActive = true;
 
     private Motors motors;
 
@@ -50,6 +57,12 @@ public class Drive extends DriveBase {
     private PIDController leftVelocityController;
 
     private SimpleMotorFeedforward motorFeedForward;
+
+    private FridoDoubleSolenoid brakeSolenoidRight;
+    private FridoDoubleSolenoid brakeSolenoidLeft;
+
+    private double balancedrivespeed;
+    private double balancestart;
 
     private double maxVel = 0;
     private double maxAcc = 0;
@@ -81,6 +94,11 @@ public class Drive extends DriveBase {
             Constants.Drive.PathWeaver.ka);
 
         driveFilter = LinearFilter.movingAverage(Constants.Drive.movingAveragePrecision);
+
+        brakeSolenoidRight = new FridoDoubleSolenoid(Constants.Drive.Brake.FridoDoubleSolenoid.rightIdLower, Constants.Drive.Brake.FridoDoubleSolenoid.rightIdHigher);
+        brakeSolenoidLeft = new FridoDoubleSolenoid(Constants.Drive.Brake.FridoDoubleSolenoid.leftIdLower, Constants.Drive.Brake.FridoDoubleSolenoid.leftIdHigher);
+
+        balancestart = 0;
     }
 
     public static DriveBase getInstance() {
@@ -117,7 +135,10 @@ public class Drive extends DriveBase {
     }
 
     @Override
-    public void drive(double joystickInputY, double joystickInputX, double steerWheelInput) {
+        if (!isActive) {
+            return;
+        }
+        
         double acc = Navx.getInstance().getRawAccelX();
         if (acc > maxAcc) {
             maxAcc = acc;
@@ -297,8 +318,69 @@ public class Drive extends DriveBase {
 
     public double getLeftEncoderDistance() {
         return motors.left().getEncoderTicks();
+    @Override
+    public List<Binding> getMappings() {
+        Binding driveForward = new Binding(Constants.Joystick.accelerator, Constants.Drive.ButtonIds.driveForward, Button::toggleOnTrue, new ReverseDrivingDirection(false));
+        Binding driveInverted = new Binding(Constants.Joystick.accelerator, Constants.Drive.ButtonIds.driveBackward, Button::toggleOnTrue, new ReverseDrivingDirection(true));
+    
+        Binding carMode = new Binding(Constants.Joystick.accelerator, Constants.Drive.ButtonIds.steerModeCarlike, Button::toggleOnTrue, new SetSteerMode(SteerMode.CARLIKE));
+        Binding bidirectionalMode = new Binding(Constants.Joystick.accelerator, Constants.Drive.ButtonIds.steerModeBidirectional, Button::toggleOnTrue, new SetSteerMode(SteerMode.BIDIRECTIONAL));
+
+        Binding activateBrake = new Binding(Constants.Joystick.accelerator, Constants.Drive.ButtonIds.activateBrake, Button::toggleOnTrue, new BrakeCommand());
+
+        Binding activateBalancing = new Binding(Constants.Joystick.accelerator, Constants.Drive.ButtonIds.activateBalancing, Button::toggleOnTrue, new BalanceCommand());
+        return List.of(
+            driveForward, driveInverted,
+            carMode, bidirectionalMode, activateBrake);
     }
 
     @Override
-    public void simulationPeriodic() { }
+    public void initSendable(SendableBuilder builder) {
+        super.initSendable(builder);
+        builder.addStringProperty("steer mode", () -> steerMode.name(), null);
+        builder.addDoubleProperty("drive driection", () -> driveDirection, null);
+        builder.addDoubleProperty("steering sensibility", () -> steeringSensibility, (val) -> steeringSensibility = val);
+        builder.addDoubleProperty("speed", () -> speed, (val) -> speed = val);
+
+        builder.addStringProperty("brake status", () -> isActive? "not active": "active", null);
+    }
+
+    @Override
+    public void triggerBrake() {
+        isActive = false;
+        brakeSolenoidRight.set(Value.kForward);
+        brakeSolenoidLeft.set(Value.kForward);
+    }
+
+    @Override
+    public void releaseBrake() {
+        brakeSolenoidRight.set(Value.kReverse);
+        brakeSolenoidLeft.set(Value.kReverse);
+        isActive = true;
+    }
+
+    public void balance(float pitch){
+        if (pitch <= 0.1 && pitch >= -0.1){
+            drive(0.0,0.0,0.0);
+            Drive.getInstance().triggerBrake();
+        }else{
+            drive((double)pitch*balancedrivespeed,0.0,0.0);
+            balancedrivespeed += 0.01;
+        }
+        System.out.println(pitch);
+    }
+
+    public void balancehandler(){
+        float pitch = Navx.getInstance().getPitch();
+        if (balancestart == 0){
+            drive(balancedrivespeed, 0.0,0.0);
+            balancedrivespeed += 0.01;
+            if(pitch > 0.2){
+                balancestart = 1.0;
+            }
+        }
+        else{
+            balance(pitch);
+        }
+    }
 }

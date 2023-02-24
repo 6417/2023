@@ -64,4 +64,12 @@ public class DriveBase extends Module {
 
     public void setSpeedForSeconds(int i, int j) {
     }
+
+    public void triggerBrake() { }
+
+    public void releaseBrake() { }
+
+    public void balance(){};
+
+    public void balancehandler(){};
 }

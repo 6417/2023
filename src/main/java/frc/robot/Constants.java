@@ -5,7 +5,9 @@
 package frc.robot;
 
 import frc.fridowpi.joystick.IJoystickId;
+import frc.fridowpi.joystick.joysticks.LogitechExtreme;
 import frc.robot.subsystems.drive.Drive.SteerMode;
+import frc.fridowpi.joystick.IJoystickButtonId;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide
@@ -77,5 +79,29 @@ public final class Constants {
             public static final double velocityThresholdEnd = 0.02;
             public static final double positionCorrection = 0;
         }
+
+        public static final class Brake {
+            public static final class FridoDoubleSolenoid {
+                public static final int rightIdLower = 0;
+                public static final int rightIdHigher = 1;
+
+                public static final int leftIdLower = 0;
+                public static final int leftIdHigher = 1;
+            }
+        }
+
+        public static final class ButtonIds {
+            public static final IJoystickButtonId driveForward = LogitechExtreme._11;
+            public static final IJoystickButtonId driveBackward = LogitechExtreme._12;
+            public static final IJoystickButtonId steerModeCarlike = LogitechExtreme._7;
+            public static final IJoystickButtonId steerModeBidirectional = LogitechExtreme._9;
+
+            public static final IJoystickButtonId activateBrake = LogitechExtreme._4;
+
+            public static final IJoystickButtonId activateBalancing = LogitechExtreme._5;
+        }
+        
+
+        
     }
 }

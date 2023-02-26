@@ -9,6 +9,7 @@ public class Matrix2 {
         if (components.length != 2 || components[0].length != 2) {
             throw new IllegalArgumentException();
         }
+        this.components = components;
     }
 
     private void check_index_and_throw(int idx) {

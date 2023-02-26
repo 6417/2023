@@ -1,8 +1,8 @@
 package frc.robot.subsystems.base;
 
 import frc.fridowpi.module.Module;
-import frc.robot.ArmCalculator;
-import frc.robot.ArmCalculator.Cargo;
+import frc.robot.ArmModel;
+import frc.robot.ArmModel.Cargo;
 
 public class ArmBase extends Module {
     public double baseAngle() {
@@ -13,8 +13,8 @@ public class ArmBase extends Module {
         return 0.0;
     }
     
-    public ArmCalculator getCalculator() {
-        return new ArmCalculator(new ArmCalculator.ArmState(new ArmCalculator.AnglesSupplier(this::baseAngle, this::jointAngle), ArmCalculator.Cargo.None));
+    public ArmModel getCalculator() {
+        return new ArmModel(new ArmModel.ArmStateSupplier(this::baseAngle, this::jointAngle, () -> 0.0, () -> 0.0), Cargo.None);
     }
 
     public void setBaseAmpsLimit(double amps) {

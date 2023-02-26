@@ -87,7 +87,7 @@ public class FridoFalcon500 extends TalonFX implements FridolinsMotor {
         if (!enable) {
             polarity = LimitSwitchPolarity.kDisabled;
         }
-        super.configForwardLimitSwitchSource(LimitSwitchSource.FeedbackConnector, convertFromFridoLimitSwitchPolarity(polarity));
+        super.configReverseLimitSwitchSource(LimitSwitchSource.FeedbackConnector, convertFromFridoLimitSwitchPolarity(polarity));
     }
 
     @Override

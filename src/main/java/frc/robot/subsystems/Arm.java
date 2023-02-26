@@ -10,7 +10,7 @@ import frc.fridowpi.motors.FridoFalcon500;
 import frc.fridowpi.motors.FridolinsMotor;
 import frc.fridowpi.motors.FridolinsMotor.FridoFeedBackDevice;
 import frc.fridowpi.motors.FridolinsMotor.IdleMode;
-import frc.robot.ArmCalculator;
+import frc.robot.ArmModel;
 import frc.robot.Constants;
 import frc.robot.subsystems.base.ArmBase;
 import jdk.jfr.Percentage;
@@ -20,49 +20,47 @@ public class Arm extends ArmBase {
 
     private class Motors {
         public FridoFalcon500 base;
-        // private FridoFalcon500 baseFollower;
-        // public FridoFalcon500 joint;
-        // private FridoFalcon500 jointFollower;
+        private FridoFalcon500 baseFollower;
+        public FridoFalcon500 joint;
+        private FridoFalcon500 jointFollower;
 
         public Motors() {
             base = new FridoFalcon500(Constants.Arm.Ids.baseMotor);
-            // baseFollower = new FridoFalcon500(Constants.Arm.Ids.baseFollowerMotor);
-            //
-            // joint = new FridoFalcon500(Constants.Arm.Ids.jointMotor);
-            // jointFollower = new FridoFalcon500(Constants.Arm.Ids.jointFollowerMotor);
+            baseFollower = new FridoFalcon500(Constants.Arm.Ids.baseFollowerMotor);
+
+            joint = new FridoFalcon500(Constants.Arm.Ids.jointMotor);
+            jointFollower = new FridoFalcon500(Constants.Arm.Ids.jointFollowerMotor);
 
             base.setIdleMode(IdleMode.kBrake);
-            // baseFollower.setIdleMode(IdleMode.kBrake);
-            // joint.setIdleMode(IdleMode.kBrake);
-            // jointFollower.setIdleMode(IdleMode.kBrake);
+            baseFollower.setIdleMode(IdleMode.kBrake);
+            joint.setIdleMode(IdleMode.kBrake);
+            jointFollower.setIdleMode(IdleMode.kBrake);
 
-            // baseFollower.follow(base, Constants.Arm.baseFollowType);
-            // jointFollower.follow(joint, Constants.Arm.jointFollowType);
+            baseFollower.follow(base, Constants.Arm.baseFollowType);
+            jointFollower.follow(joint, Constants.Arm.jointFollowType);
 
             base.configEncoder(FridoFeedBackDevice.kBuildin, 2048);
-            // joint.configEncoder(FridoFeedBackDevice.kBuildin, 2048);
+            joint.configEncoder(FridoFeedBackDevice.kBuildin, 2048);
 
             base.enableForwardLimitSwitch(Constants.Arm.limitSwitchPolarity, true);
-            // joint.enableForwardLimitSwitch(Constants.Arm.limitSwitchPolarity, true);
+            joint.enableForwardLimitSwitch(Constants.Arm.limitSwitchPolarity, true);
         }
 
         public void setCurrentLimitBase(double amps) {
             base.configStatorCurrentLimit(new StatorCurrentLimitConfiguration(true, amps, amps, 0.001), 0);
-            // baseFollower.configStatorCurrentLimit(new
-            // StatorCurrentLimitConfiguration(true, amps, amps, 0.001),0);
+            baseFollower.configStatorCurrentLimit(new StatorCurrentLimitConfiguration(true, amps, amps, 0.001), 0);
         }
 
         public void setCurrentLimitJoint(double amps) {
-            // joint.configStatorCurrentLimit(new StatorCurrentLimitConfiguration(true,
-            // amps, amps, 0.001),0);
-            // jointFollower.configStatorCurrentLimit(new
-            // StatorCurrentLimitConfiguration(true, amps, amps, 0.001),0);
+            joint.configStatorCurrentLimit(new StatorCurrentLimitConfiguration(true,
+                    amps, amps, 0.001), 0);
+            jointFollower.configStatorCurrentLimit(new StatorCurrentLimitConfiguration(true, amps, amps, 0.001), 0);
         }
 
     }
 
     private Motors motors;
-    private ArmCalculator calculator;
+    private ArmModel calculator;
 
     private double currentLimit = Double.POSITIVE_INFINITY;
 
@@ -81,9 +79,9 @@ public class Arm extends ArmBase {
     @Override
     public void init() {
         motors = new Motors();
-        calculator = new ArmCalculator(
-                new ArmCalculator.ArmState(new ArmCalculator.AnglesSupplier(this::baseAngle, this::jointAngle),
-                        Constants.Arm.initialCargo));
+        calculator = new ArmModel(
+                new ArmModel.ArmStateSupplier(this::baseAngle, this::jointAngle, () -> 0.0, () -> 0.0),
+                Constants.Arm.initialCargo);
 
         addChild("Arm State", calculator);
         Shuffleboard.getTab("Arm").add(this);
@@ -95,13 +93,13 @@ public class Arm extends ArmBase {
                 * Constants.Arm.baseGearRatio * Math.PI * 2.0;
     }
 
-    // public double jointAngle() {
-    // return motors.joint.getEncoderTicks() /
-    // Constants.Arm.encoderTicksPerMotorRevolution
-    // * Constants.Arm.jointGearRatio * Math.PI * 2.0;
-    // }
+    public double jointAngle() {
+        return motors.joint.getEncoderTicks() /
+                Constants.Arm.encoderTicksPerMotorRevolution
+                * Constants.Arm.jointGearRatio * Math.PI * 2.0;
+    }
 
-    public ArmCalculator getCalculator() {
+    public ArmModel getCalculator() {
         return calculator;
     }
 
@@ -125,8 +123,8 @@ public class Arm extends ArmBase {
         super.initSendable(builder);
 
         builder.addDoubleProperty("Amps", () -> currentLimit, null);
-        builder.addDoubleProperty("Torque", () -> calculator.calculateTorquesForStall().base, null);
-        builder.addBooleanProperty("Direction", () -> calculator.calculateTorquesForStall().base > 0, null);
+        builder.addDoubleProperty("Torque", () -> calculator.torqueToHoldState().getFirst(), null);
+        builder.addBooleanProperty("Direction", () -> calculator.torqueToHoldState().getFirst() > 0, null);
         builder.addDoubleProperty("Base Angle", this::baseAngle, null);
         builder.addDoubleProperty("Encoder Ticks", motors.base::getEncoderTicks, null);
         builder.addDoubleProperty("Motor Temp", motors.base::getTemperature, null);

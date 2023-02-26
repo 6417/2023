@@ -24,7 +24,7 @@ public final class Constants {
     public static final double gravity = 9.81; // m/s^2
 
     public static class Arm {
-        public static double baseGearRatio = 1.0 / 30.0; // TODO: update to actual value
+        public static double baseGearRatio = 1.0 / 160.0; 
         public static double jointGearRatio = 1.0 / 30.0;
         public static double encoderTicksPerMotorRevolution = 2048.0;
 
@@ -37,17 +37,19 @@ public final class Constants {
             public double centerOfMass;
             public double mass;
             public double length;
-			public double momentOfIntertia;
+			public double momentOfInertia;
 
-            public PhysicalProperties(double centerOfMass, double mass, double length) {
+            public PhysicalProperties(double centerOfMass, double mass, double length, double momentOfInertia) {
                 this.centerOfMass = centerOfMass;
                 this.mass = mass;
+                this.length = length;
+                this.momentOfInertia = momentOfInertia;
             }
         }
 
         public static final LimitSwitchPolarity limitSwitchPolarity = LimitSwitchPolarity.kNormallyOpen;
-        public static final PhysicalProperties baseArm = new PhysicalProperties(0.645, 1.52, 1.150); // TODO: update from test bench mark
-        public static final PhysicalProperties gripperArm = new PhysicalProperties(0.0, 0.0, 0.800); // TODO: update from test bench mark
+        public static final PhysicalProperties baseArm = new PhysicalProperties(0.782, 7.083, 1.10, 2747698.280 / 1e6);
+        public static final PhysicalProperties gripperArm = new PhysicalProperties(0.55, 2.153, 0.800, 6538.368 / 1e6); // TODO: check value of moment of inertia
 
         public static final DirectionType baseFollowType = DirectionType.invertMaster;
         public static final DirectionType jointFollowType = DirectionType.invertMaster;

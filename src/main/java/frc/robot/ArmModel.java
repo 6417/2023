@@ -11,6 +11,8 @@ import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.fridowpi.command.Command;
+import frc.fridowpi.utils.Matrix2;
+import frc.fridowpi.utils.Vector2;
 
 public class ArmModel implements Sendable {
     public static enum Cargo {
@@ -30,6 +32,10 @@ public class ArmModel implements Sendable {
             Timer timer;
             double prevBaseVel;
             double prevGripperVel;
+            
+            public UpdateAccels() {
+                addRequirements(ArmStateSupplier.this);
+            }
 
             @Override
             public void initialize() {
@@ -49,6 +55,12 @@ public class ArmModel implements Sendable {
 
                 prevBaseVel = baseArmRadialVel.get();
                 prevGripperVel = gripperArmRadialVel.get();
+                
+            }
+            
+            @Override
+            public boolean isFinished() {
+                return false;
             }
         }
 
@@ -77,6 +89,7 @@ public class ArmModel implements Sendable {
             double a = a();
 
             return baseArmAngle.get() - Math.acos((u * u + a * a - l2 * l2) / (2 * u * a));
+
         }
 
         /**
@@ -99,25 +112,25 @@ public class ArmModel implements Sendable {
             this.baseArmRadialVel = baseArmRadialVel;
             this.gripperArmAngle = gripperArmAngle;
             this.gripperArmRadialVel = gripperArmRadialVel;
-
-            CommandScheduler.getInstance().schedule(new UpdateAccels());
+            
+            this.setDefaultCommand(new UpdateAccels());
         }
     }
 
-    private ArmStateSupplier state;
+    public ArmStateSupplier state;
     private Cargo cargo;
 
     public double getGripperArmMomentOfInertia() {
-        return Math.pow(Constants.Arm.gripperArm.length, 2) * cargo.mass + Constants.Arm.gripperArm.momentOfIntertia;
+        return Math.pow(Constants.Arm.gripperArm.length, 2) * cargo.mass + Constants.Arm.gripperArm.momentOfInertia;
     }
 
-    public ArmModel(ArmStateSupplier state) {
+    public ArmModel(ArmStateSupplier state, Cargo initialCargo) {
         this.state = state;
-        cargo = Constants.Arm.initialCargo;
+        cargo = initialCargo;
     }
 
     public double torqueOfBaseArmToGripperArm() {
-        return Constants.Arm.baseArm.momentOfIntertia * state.getGripperArmRadialAccel();
+        return Constants.Arm.baseArm.momentOfInertia * state.getGripperArmRadialAccel();
     }
 
     private double getGripperArmMass() {
@@ -130,8 +143,20 @@ public class ArmModel implements Sendable {
     }
 
     private double torqueOfGravityGripperArm() {
-        return Math.cos(state.theta()) * Constants.gravity * (getGripperArmMass() + getGripperArmMass())
-                * getGriArmCenterOfMass();
+        // return Math.cos(state.theta()) * Constants.gravity * (getGripperArmMass() +
+        // getGripperArmMass())
+        // * getGriArmCenterOfMass();
+        //
+        double alpha = state.baseArmAngle.get();
+        double beta = state.gripperArmAngle.get();
+
+        Matrix2 betaRot = Matrix2.rot(beta - Math.PI / 2.0);
+        Matrix2 alphaRot = Matrix2.rot(alpha);
+
+        double scalar = new Vector2(0, 1.0).dot(betaRot.vmul((alphaRot.vmul(new Vector2(0, -1.0)))));
+        
+        return (Math.cos(alpha + beta)) * Constants.gravity
+                * getGripperArmMass() * getGriArmCenterOfMass();
     }
 
     private double torqueOfGravityBaseArm() {
@@ -140,12 +165,11 @@ public class ArmModel implements Sendable {
     }
 
     public Pair<Double, Double> torqueToHoldState() {
-        double mgGripper = torqueOfGravityGripperArm(); 
-        double mgBase = torqueOfGravityBaseArm(); 
+        double mgGripper = torqueOfGravityGripperArm();
+        double mgBase = torqueOfGravityBaseArm();
 
         return new Pair<>(mgBase, mgGripper + torqueOfBaseArmToGripperArm());
     }
-
 
     public static double torqueToAmps(double torque) {
         return Math.abs(torque) * Constants.Arm.torqueToAmpsProportionality;
@@ -160,6 +184,28 @@ public class ArmModel implements Sendable {
         builder.addDoubleProperty("Radial acceleration base arm", state::getBaseArmRadialAccel, null);
         builder.addDoubleProperty("Radial acceleration gripper arm", state::getGripperArmRadialAccel, null);
         builder.addStringProperty("Cargo", cargo::toString, null);
+        builder.addDoubleProperty("Base Arm Torque to Hold State [Nm]", () -> torqueToHoldState().getFirst(), null);
+        builder.addDoubleProperty("Gripper Arm Torque to Hold State [Nm]", () -> torqueToHoldState().getSecond(), null);
+
+        builder.addDoubleProperty("Base Arm Torque to Hold State [A]",
+                () -> torqueToAmps(torqueToHoldState().getFirst()) * Constants.Arm.baseGearRatio / 2, null);
+        builder.addDoubleProperty("Gripper Arm Torque to Hold State [A]",
+                () -> torqueToAmps(torqueToHoldState().getSecond()) * Constants.Arm.jointGearRatio / 2, null);
+
+        builder.addDoubleProperty("Base Arm Torque of Gravity [Nm]", () -> torqueOfGravityBaseArm(), null);
+        builder.addDoubleProperty("Gripper Arm Torque of Gravity [Nm]", () -> torqueOfGravityGripperArm(), null);
+
+        builder.addDoubleProperty("Gripper Arm Torque of Base Arm [Nm]", () -> torqueOfBaseArmToGripperArm(), null);
+        builder.addDoubleProperty("a [m]", () -> state.a(), null);
+        builder.addDoubleProperty("theta [DEG]", () -> state.theta() * 180 / Math.PI, null);
+        builder.addDoubleProperty("Max Gravity Torque [Nm]",
+                () -> Constants.gravity * getGripperArmMass() * getGriArmCenterOfMass(), null);
+
+        builder.addDoubleProperty("Gravity multiplier [1]", () -> {
+            double alpha = state.baseArmAngle.get();
+            double beta = state.gripperArmAngle.get();
+            return Math.cos(alpha + beta);
+        }, null);
     }
 
     public void updateCargo(Cargo cargo) {

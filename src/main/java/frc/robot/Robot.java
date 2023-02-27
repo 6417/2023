@@ -29,6 +29,7 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.fridowpi.joystick.JoystickHandler;
 import frc.fridowpi.sensors.Navx;
 import frc.robot.commands.autonomous.ChargeAutonomous;
+import frc.robot.subsystems.Vision;
 import frc.robot.subsystems.drive.Drive;
 
 /**
@@ -124,9 +125,7 @@ public class Robot extends TimedRobot {
 
   /** This function is called periodically during operator control. */
   @Override
-  public void teleopPeriodic() {
-    Vision.getInstance().test();
-  }
+  public void teleopPeriodic() { }
 
   @Override
   public void testInit() {

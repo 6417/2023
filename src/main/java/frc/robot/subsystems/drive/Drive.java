@@ -205,29 +205,6 @@ public class Drive extends DriveBase {
     }
 
     @Override
-    public List<Binding> getMappings() {
-        Binding driveForward = new Binding(Constants.Joystick.accelerator, LogitechExtreme._11, Button::toggleOnTrue, new ReverseDrivingDirection(false));
-        Binding driveInverted = new Binding(Constants.Joystick.accelerator, LogitechExtreme._12, Button::toggleOnTrue, new ReverseDrivingDirection(true));
-    
-        Binding carMode = new Binding(Constants.Joystick.accelerator, LogitechExtreme._7, Button::toggleOnTrue, new SetSteerMode(SteerMode.CARLIKE));
-        Binding bidirectionalMode = new Binding(Constants.Joystick.accelerator, LogitechExtreme._9, Button::toggleOnTrue, new SetSteerMode(SteerMode.BIDIRECTIONAL));
-        return List.of(
-            driveForward, driveInverted,
-            carMode, bidirectionalMode);
-    }
-
-    @Override
-    public void initSendable(SendableBuilder builder) {
-        super.initSendable(builder);
-        builder.addBooleanProperty("steer with joystick", () -> steerWithJoystick, (val) -> steerWithJoystick = val);
-        builder.addStringProperty("steer mode", () -> steerMode.name(), null);
-        builder.addDoubleProperty("drive driection", () -> driveDirection, null);
-        builder.addDoubleProperty("steering wheel sensibility", () -> steeringWheelSensibility, (val) -> steeringWheelSensibility = val);
-        builder.addDoubleProperty("joystick x (steering) sensibility", () -> joystickSteeringSensibility, (val) -> joystickSteeringSensibility = val);
-        builder.addDoubleProperty("speed", () -> speed, (val) -> speed = val);
-    }
-
-    @Override
     public void reverseDrivingDirection(boolean reverse) {
         driveDirection = reverse? -1: 1;
         steerDirection = reverse? 1: -1;
@@ -338,11 +315,12 @@ public class Drive extends DriveBase {
     @Override
     public void initSendable(SendableBuilder builder) {
         super.initSendable(builder);
+        builder.addBooleanProperty("steer with joystick", () -> steerWithJoystick, (val) -> steerWithJoystick = val);
         builder.addStringProperty("steer mode", () -> steerMode.name(), null);
         builder.addDoubleProperty("drive driection", () -> driveDirection, null);
-        builder.addDoubleProperty("steering sensibility", () -> steeringSensibility, (val) -> steeringSensibility = val);
+        builder.addDoubleProperty("steering wheel sensibility", () -> steeringWheelSensibility, (val) -> steeringWheelSensibility = val);
+        builder.addDoubleProperty("joystick x (steering) sensibility", () -> joystickSteeringSensibility, (val) -> joystickSteeringSensibility = val);
         builder.addDoubleProperty("speed", () -> speed, (val) -> speed = val);
-
         builder.addStringProperty("brake status", () -> isActive? "not active": "active", null);
     }
 

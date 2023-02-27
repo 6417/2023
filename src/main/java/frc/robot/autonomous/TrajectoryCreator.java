@@ -14,7 +14,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import frc.robot.Constants.Drive.Autonomous;
-import frc.robot.subsystems.drive.Drive;
+
 
 public class TrajectoryCreator {
     private static class Datapoint {

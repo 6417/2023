@@ -34,7 +34,11 @@ public final class Constants {
     public final static class Drive {
         public static final boolean enabled = true;
         public static final int movingAveragePrecision = 20;
-        public static final SteerMode defaultSteerMode = SteerMode.CARLIKE;
+
+        public static final class Defaults {
+            public static final SteerMode steerMode = SteerMode.CARLIKE;
+            public static final boolean steerWithJoystick = true;
+        }
         
         public static class Motors {
             public static final int BACKLEFT = 13;
@@ -44,7 +48,7 @@ public final class Constants {
         }
 
         public static final class Odometry {
-            public static final double wheelPerimeter = 0;
+            public static final double wheelPerimeter = 0.744;
             public static final double transmission = 0;
             public static final int encoderResolution = 2048;
 
@@ -53,9 +57,9 @@ public final class Constants {
         }
 
         public static final class PathWeaver {
-            public static final double ksMeters = 0;
-            public static final double kvMetersPerSecoond = 0;
-            public static final double ka = 0;
+            public static final double ksMeters = 0.086871;
+            public static final double kvMetersPerSecoond = 1.5843;
+            public static final double ka = 0.090473;
 
             public static final double kMaxSpeed = 0;
             public static final double kMaxAcceleration = 0;
@@ -64,9 +68,9 @@ public final class Constants {
             public static final double kRamseteB = 0;
             public static final double kRamseteZeta = 0;
 
-            public static final double kP = 0;
+            public static final double kP = 0.049844;
             public static final double kI = 0;
-            public static final double kD = 0;
+            public static final double kD = 5.3848;
         }
 
         public static class Autonomous {

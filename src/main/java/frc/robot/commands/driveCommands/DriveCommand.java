@@ -42,7 +42,7 @@ public class DriveCommand extends CommandBase {
     double joystickTurnValue = JoystickHandler
       .getInstance()
       .getJoystick(Constants.Joystick.accelerator)
-      .getDirectionDegrees();
+      .getX();
     double steerWheelInput = JoystickHandler
       .getInstance()
       .getJoystick(Constants.Joystick.steeringWheel)

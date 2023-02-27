@@ -20,6 +20,8 @@ import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+import frc.fridowpi.sensors.Navx;
+import frc.fridowpi.joystick.joysticks.LogitechExtreme;
 import edu.wpi.first.wpilibj2.command.button.Button;
 import frc.fridowpi.joystick.Binding;
 import frc.fridowpi.pneumatics.FridoDoubleSolenoid;
@@ -47,8 +49,8 @@ public class Drive extends DriveBase {
     private double speed = 0.8;
 
     private double steerDirection = -1;
-    private double steeringSensibility = 1;
-    private SteerMode steerMode = Constants.Drive.defaultSteerMode;
+    private double steeringWheelSensibility = 1;
+    private SteerMode steerMode = Constants.Drive.Defaults.steerMode;
 
     private PIDController rightVelocityController;
     private PIDController leftVelocityController;
@@ -60,6 +62,15 @@ public class Drive extends DriveBase {
 
     private double balancedrivespeed;
     private double balancestart;
+
+    private double maxVel = 0;
+    private double maxAcc = 0;
+
+    private boolean steerWithJoystick = Constants.Drive.Defaults.steerWithJoystick;
+
+    private double joystickSteeringSensibility = 1.0;
+
+    private Pose2d pose;
 
     public static enum SteerMode {
         CARLIKE, BIDIRECTIONAL
@@ -123,23 +134,48 @@ public class Drive extends DriveBase {
     }
 
     @Override
-    public void drive(double joystickInputY, double joystickTurnValue, double steerWheelInput) {
-        if (!isActive) {
-            return;
+    public void drive(double joystickInputY, double joystickInputX, double steerWheelInput) {
+        double acc = Navx.getInstance().getRawAccelX();
+        if (acc > maxAcc) {
+            maxAcc = acc;
+            System.out.println("Max acc: " + acc);
         }
-        
-        joystickInputY = deadZone(joystickInputY, 0.1);
-        steerWheelInput = deadZone(steerWheelInput, 0.1);
+        double vel = Navx.getInstance().getVelocityX();
+        if (vel > maxVel) {
+            maxVel = vel;
+            System.out.println("Max vel: " + vel);
+        }
+        // MaxVel: 3.35 m/s
+        // MaxAcc: 1.20 m/s^6
 
-        steerWheelInput *= steerDirection * steeringSensibility;
-        joystickInputY *= driveDirection * speed;
+        // joystickInputY *= 180;
+
+        // double yInput = Math.abs(joystickInputY) < 0.1 && Math.abs(steerInput) > 0.8? 0.1: joystickInputY;
+
+        // System.out.println(joystickInputY);
+        // System.out.println(steerInput);
+
+        // Deadzone
+        double yInput = deadZone(joystickInputY, 0.02);
+        double xInput = deadZone(joystickInputX, 0.05);
+        double steerInput = deadZone(steerWheelInput, 0.01);
+
+        // Add direction and sensibility
+        steerInput *= steerDirection * steeringWheelSensibility;
+        xInput *= steerDirection * joystickSteeringSensibility;
+        yInput *= driveDirection * speed;
 
         // If driving backwards in bidirectional mode, invert the steer direction
-        if (joystickInputY < 0 && steerMode == SteerMode.CARLIKE)
-            steerWheelInput = -steerWheelInput;
+        if (yInput < 0 && steerMode == SteerMode.CARLIKE)
+            steerInput = -steerInput;
 
-        Pair<Double, Double> pair = joystickToChassisSpeed(joystickInputY, steerWheelInput);
-        tankDrive.arcadeDrive(pair.getFirst(), pair.getSecond(), false);
+
+        if (steerWithJoystick) {
+            tankDrive.arcadeDrive(-xInput, yInput, false);
+        } else {
+            Pair<Double, Double> pair = joystickToChassisSpeed(yInput, steerInput);
+            tankDrive.arcadeDrive(pair.getFirst(), pair.getSecond(), false);
+        }
     }
 
     private Pair<Double, Double> joystickToChassisSpeed(double accelerationInput, double steerInput) {
@@ -169,6 +205,29 @@ public class Drive extends DriveBase {
     }
 
     @Override
+    public List<Binding> getMappings() {
+        Binding driveForward = new Binding(Constants.Joystick.accelerator, LogitechExtreme._11, Button::toggleOnTrue, new ReverseDrivingDirection(false));
+        Binding driveInverted = new Binding(Constants.Joystick.accelerator, LogitechExtreme._12, Button::toggleOnTrue, new ReverseDrivingDirection(true));
+    
+        Binding carMode = new Binding(Constants.Joystick.accelerator, LogitechExtreme._7, Button::toggleOnTrue, new SetSteerMode(SteerMode.CARLIKE));
+        Binding bidirectionalMode = new Binding(Constants.Joystick.accelerator, LogitechExtreme._9, Button::toggleOnTrue, new SetSteerMode(SteerMode.BIDIRECTIONAL));
+        return List.of(
+            driveForward, driveInverted,
+            carMode, bidirectionalMode);
+    }
+
+    @Override
+    public void initSendable(SendableBuilder builder) {
+        super.initSendable(builder);
+        builder.addBooleanProperty("steer with joystick", () -> steerWithJoystick, (val) -> steerWithJoystick = val);
+        builder.addStringProperty("steer mode", () -> steerMode.name(), null);
+        builder.addDoubleProperty("drive driection", () -> driveDirection, null);
+        builder.addDoubleProperty("steering wheel sensibility", () -> steeringWheelSensibility, (val) -> steeringWheelSensibility = val);
+        builder.addDoubleProperty("joystick x (steering) sensibility", () -> joystickSteeringSensibility, (val) -> joystickSteeringSensibility = val);
+        builder.addDoubleProperty("speed", () -> speed, (val) -> speed = val);
+    }
+
+    @Override
     public void reverseDrivingDirection(boolean reverse) {
         driveDirection = reverse? -1: 1;
         steerDirection = reverse? 1: -1;
@@ -178,6 +237,14 @@ public class Drive extends DriveBase {
     public void setSteerMode(SteerMode mode) {
         steerMode = mode;
     }
+
+    @Override
+    public void setDirection(int direction) {
+        // TODO: Direction enum/constants
+        driveDirection = direction;
+    }
+
+    /* Getter Methods */
 
     @Override
     public Pose2d getPosition() {
@@ -233,7 +300,20 @@ public class Drive extends DriveBase {
     }
 
     @Override
-    public void periodic() {
+    public void periodic() { 
+        var gyroAngle = Navx.getInstance().getRotation2d();
+
+        pose = odometry.update(gyroAngle,
+            getRightEncoderDistance(),
+            getLeftEncoderDistance());
+    }
+
+    public double getRightEncoderDistance() {
+        return motors.right().getEncoderTicks();
+    }
+
+    public double getLeftEncoderDistance() {
+        return motors.left().getEncoderTicks();
     }
 
     @Override

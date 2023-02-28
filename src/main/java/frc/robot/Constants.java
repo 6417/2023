@@ -53,7 +53,7 @@ public final class Constants {
             public static final int encoderResolution = 2048;
 
             public static final double encoderToMetersConversion = (1000 / wheelPerimeter) * transmission * encoderResolution;
-            public static final double trackWidthMeters = 0;
+            public static final double trackWidthMeters = 0.5;
         }
 
         public static final class PathWeaver {

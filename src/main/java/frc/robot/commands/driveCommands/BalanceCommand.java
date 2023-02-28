@@ -5,6 +5,7 @@
 package frc.robot.commands.driveCommands;
 
 import frc.robot.subsystems.ExampleSubsystem;
+import frc.robot.subsystems.Vision;
 import frc.robot.subsystems.drive.Drive;
 
 import org.apache.logging.log4j.core.layout.SyslogLayout;
@@ -22,7 +23,9 @@ public class BalanceCommand extends CommandBase {
 
   // Called when the command is initially scheduled.
   @Override
-  public void initialize() {}
+  public void initialize() {
+    Vision.getInstance().test();
+  }
 
   // Called every time the scheduler runs while the command is scheduled.
   // (Aka .periodic())

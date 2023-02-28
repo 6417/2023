@@ -339,9 +339,10 @@ public class Drive extends DriveBase {
     }
 
     public void balance(float pitch){
-        if (pitch <= 0.1 && pitch >= -0.1){
+        if (Math.abs(pitch) <= 0.1){
             drive(0.0,0.0,0.0);
             Drive.getInstance().triggerBrake();
+            balancestart = 0;
         }else{
             drive((double)pitch*balancedrivespeed,0.0,0.0);
             balancedrivespeed += 0.01;

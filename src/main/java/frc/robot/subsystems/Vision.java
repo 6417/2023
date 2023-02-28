@@ -5,17 +5,33 @@
 package frc.robot.subsystems;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import com.ctre.phoenix.motorcontrol.VelocityMeasPeriod;
 
 import java.lang.Math;
 
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
+import edu.wpi.first.math.trajectory.Trajectory;
+import edu.wpi.first.math.trajectory.TrajectoryConfig;
+import edu.wpi.first.math.trajectory.TrajectoryGenerator;
+import edu.wpi.first.math.trajectory.constraint.DifferentialDriveVoltageConstraint;
 import edu.wpi.first.networktables.DoubleArrayEntry;
 import edu.wpi.first.networktables.DoubleArrayTopic;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.PubSubOption;
 import edu.wpi.first.wpilibj2.command.CommandBase;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.RamseteCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants;
+import frc.robot.autonomous.RamseteCommandGenerator;
+import frc.robot.commands.autonomous.ChargeAutonomous;
 import frc.robot.subsystems.drive.Drive;
 
 public class Vision extends SubsystemBase {
@@ -61,7 +77,46 @@ public class Vision extends SubsystemBase {
     return data;
   }
 
+  public void test(){
+    DifferentialDriveVoltageConstraint autoVoltageConstraint =
+          new DifferentialDriveVoltageConstraint(
+              new SimpleMotorFeedforward(
+                  //DriveConstants.ksVolts,
+                  Constants.Drive.PathWeaver.kI,
+                  //DriveConstants.kvVoltSecondsPerMeter,
+                  Constants.Drive.PathWeaver.kvMetersPerSecoond,
+                  //DriveConstants.kaVoltSecondsSquaredPerMeter),
+                  Constants.Drive.PathWeaver.kvMetersPerSecoond* Constants.Drive.PathWeaver.kvMetersPerSecoond),
+              //DriveConstants.kDriveKinematics,
+              new DifferentialDriveKinematics(Constants.Drive.Odometry.trackWidthMeters),
+              10);
 
+    TrajectoryConfig config =
+          new TrajectoryConfig(
+                  Constants.Drive.PathWeaver.kvMetersPerSecoond,
+                  Constants.Drive.PathWeaver.kMaxAcceleration)
+                  //AutoConstants.kMaxAccelerationMetersPerSecondSquared)
+              // Add kinematics to ensure max speed is actually obeyed
+              .setKinematics(new DifferentialDriveKinematics(Constants.Drive.Odometry.trackWidthMeters))
+              // Apply the voltage constraint
+              .addConstraint(autoVoltageConstraint);
+
+
+    Trajectory exampleTrajectory =
+    TrajectoryGenerator.generateTrajectory(
+        // Start at the origin facing the +X direction
+        new Pose2d(0, 0, new Rotation2d(0)),
+        // Pass through these two interior waypoints, making an 's' curve path
+        List.of(new Translation2d(1, 1), new Translation2d(2, -1)),
+        // End 3 meters straight ahead of where we started, facing forward
+        new Pose2d(3, 0, new Rotation2d(0)),
+        // Pass config
+        config);
+
+    var cmd = RamseteCommandGenerator.generateRamseteCommand(exampleTrajectory);
+
+    CommandScheduler.getInstance().schedule(cmd);
+  }
 
   public double[] getPos(){
     return entryp.get();

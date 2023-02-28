@@ -1,4 +1,4 @@
-package frc.robot.autonomous;
+package frc.robot.autonomous_tools;
 
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.CommandBase;
@@ -17,7 +17,7 @@ public class RecordTrajectoryCommand extends CommandBase{
     @Override
     public void initialize() {
         logger = new TrajectoryCreator("tmp/TrajectoryRecording.wpilib.json");
-        Drive.getInstance().resetSensors();
+        Drive.getInstance().reset();
         timer = new Timer();
         timer.start();
     }

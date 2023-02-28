@@ -58,8 +58,6 @@ public class DriveBase extends Module {
 
     public void stop() { }
 
-    public void resetSensors() { }
-
     public void resetOdometry(Pose2d initialPose) { }
 
     public void setSpeedForSeconds(int i, int j) {
@@ -71,5 +69,8 @@ public class DriveBase extends Module {
 
     public void balance(){};
 
-    public void balancehandler(){};
+    public void balancehandler(){}
+
+    public void reset() {
+    };
 }

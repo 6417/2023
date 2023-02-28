@@ -1,4 +1,4 @@
-package frc.robot.autonomous;
+package frc.robot.autonomous_tools;
 
 import edu.wpi.first.math.controller.RamseteController;
 import edu.wpi.first.math.trajectory.Trajectory;
@@ -14,7 +14,7 @@ public class RamseteCommandGenerator {
         DriveBase instance = Drive.getInstance();
 
         // Resetting all the sensors and the odometry on the robot and setting the initial pose
-        instance.resetSensors();
+        instance.reset();
         instance.resetOdometry(path.getInitialPose());
 
         // Generating the ramsete command

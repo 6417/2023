@@ -13,20 +13,59 @@ public class ArmBase extends Module {
         return 0.0;
     }
     
-    public ArmModel getCalculator() {
+    public ArmModel getModel() {
         return new ArmModel(new ArmModel.ArmStateSupplier(this::baseAngle, this::jointAngle, () -> 0.0, () -> 0.0), Cargo.None);
     }
 
-    public void setBaseAmpsLimit(double amps) {
-        
-    }
-    
     public void setPercentBase(double percent) {
 
     }
+
+    public void setPercentJoint(double percent) {
+
+    }
+
+    public void setEncoderTicksBase(double ticks) {
+
+    }
+
+    public void setEncoderTicksJoint(double ticks) {
+
+    }
+
+    public boolean getBaseLimitSwitchFwd() {
+        return false;
+    }
+
+    public boolean getBaseLimitSwitchRev() {
+        return false;
+    }
     
-    public void resetEncodersBase() {
+    public void baseGotoAngle(double angle) {
+
+    }
+    
+    public void setBasePercent(double percent) {
+
+    }
+
+    public void setJointPercent(double percent) {
+
+    }
+    
+    public void enableHoldJoint() {
         
     }
 
+    public void disableHoldJoint() {
+        
+    }
+    
+    public boolean baseIsAtTarget() {
+        return true;
+    }
+    
+    public void stop() {
+        
+    }
 }

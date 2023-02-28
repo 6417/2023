@@ -7,11 +7,14 @@ import frc.fridowpi.motors.utils.PidValues;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.FollowerType;
 import com.ctre.phoenix.motorcontrol.IMotorController;
+import com.ctre.phoenix.motorcontrol.InvertType;
 import com.ctre.phoenix.motorcontrol.LimitSwitchNormal;
 import com.ctre.phoenix.motorcontrol.LimitSwitchSource;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
+
+import edu.wpi.first.hal.SimDevice.Direction;
 import frc.fridowpi.module.IModule;
 import frc.fridowpi.module.Module;
 
@@ -203,8 +206,13 @@ public class FridoFalcon500 extends TalonFX implements FridolinsMotor {
 
     @Override
     public void follow(FridolinsMotor master, DirectionType direction) {
-        if (master instanceof IMotorController)
+        if (master instanceof IMotorController) {
             super.follow((IMotorController) master, FollowerType.PercentOutput);
+            if (direction == DirectionType.invertMaster) 
+                super.setInverted(InvertType.OpposeMaster);
+            else if (direction == DirectionType.followMaster)
+                super.setInverted(InvertType.FollowMaster);
+        }
         else
             throw new Error("Can only follow 'com.ctre.phoenix.motorcontrol.IMotorController' motors");
     }

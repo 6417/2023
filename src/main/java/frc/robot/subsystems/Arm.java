@@ -1,17 +1,36 @@
 package frc.robot.subsystems;
 
+import java.util.List;
+
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.StatorCurrentLimitConfiguration;
+import com.ctre.phoenix.motorcontrol.can.TalonFX;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.util.sendable.SendableBuilder;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandBase;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.button.Button;
+import frc.fridowpi.joystick.Binding;
+import frc.fridowpi.joystick.joysticks.Logitech;
 import frc.fridowpi.motors.FridoFalcon500;
 import frc.fridowpi.motors.FridolinsMotor;
 import frc.fridowpi.motors.FridolinsMotor.FridoFeedBackDevice;
 import frc.fridowpi.motors.FridolinsMotor.IdleMode;
+import frc.fridowpi.motors.FridolinsMotor.LimitSwitchPolarity;
 import frc.robot.ArmModel;
 import frc.robot.Constants;
+import frc.robot.commands.arm.BaseGotoPositionShuffleBoard;
+import frc.robot.commands.arm.BaseManualControl;
+import frc.robot.commands.arm.JointManualControl;
+import frc.robot.commands.arm.ResetEncodersOnBaseLimitSwitch;
+import frc.robot.commands.arm.ToggleCone;
 import frc.robot.subsystems.base.ArmBase;
 import jdk.jfr.Percentage;
 
@@ -42,31 +61,44 @@ public class Arm extends ArmBase {
             base.configEncoder(FridoFeedBackDevice.kBuildin, 2048);
             joint.configEncoder(FridoFeedBackDevice.kBuildin, 2048);
 
+            base.setInverted(true);
+
             base.enableForwardLimitSwitch(Constants.Arm.limitSwitchPolarity, true);
-            joint.enableForwardLimitSwitch(Constants.Arm.limitSwitchPolarity, true);
-        }
+            baseFollower.enableForwardLimitSwitch(Constants.Arm.limitSwitchPolarity, true);
 
-        public void setCurrentLimitBase(double amps) {
-            base.configStatorCurrentLimit(new StatorCurrentLimitConfiguration(true, amps, amps, 0.001), 0);
-            baseFollower.configStatorCurrentLimit(new StatorCurrentLimitConfiguration(true, amps, amps, 0.001), 0);
-        }
+            base.enableReverseLimitSwitch(Constants.Arm.limitSwitchPolarity, true);
+            baseFollower.enableReverseLimitSwitch(Constants.Arm.limitSwitchPolarity, true);
 
-        public void setCurrentLimitJoint(double amps) {
+            base.configStatorCurrentLimit(new StatorCurrentLimitConfiguration(true,
+                    Constants.Arm.baseStatorCurrentLimit, Constants.Arm.baseStatorCurrentLimit, 1));
+            baseFollower.configStatorCurrentLimit(new StatorCurrentLimitConfiguration(true,
+                    Constants.Arm.baseStatorCurrentLimit, Constants.Arm.baseStatorCurrentLimit, 1));
+
             joint.configStatorCurrentLimit(new StatorCurrentLimitConfiguration(true,
-                    amps, amps, 0.001), 0);
-            jointFollower.configStatorCurrentLimit(new StatorCurrentLimitConfiguration(true, amps, amps, 0.001), 0);
-        }
+                    Constants.Arm.baseStatorCurrentLimit, Constants.Arm.baseStatorCurrentLimit, 1));
+            jointFollower.configStatorCurrentLimit(new StatorCurrentLimitConfiguration(true,
+                    Constants.Arm.jointStatorCurrentLimit, Constants.Arm.jointStatorCurrentLimit, 1));
 
+            base.config_kP(0, Constants.Arm.basePid.p);
+            base.config_kI(0, Constants.Arm.basePid.i);
+            base.config_kD(0, Constants.Arm.basePid.d);
+            base.config_IntegralZone(0, Constants.Arm.basePid.iZone);
+            base.setIntegralAccumulator(Constants.Arm.basePid.maxIntegralAccum, 0, 20);
+            base.configAllowableClosedloopError(0, Constants.Arm.basePid.allowableError);
+
+            base.configMotionCruiseVelocity(Constants.Arm.baseMotionMagic.cruiseVel);
+            base.configMotionAcceleration(Constants.Arm.baseMotionMagic.accel);
+            base.configMotionSCurveStrength(Constants.Arm.baseMotionMagic.curveStrength);
+        }
     }
 
     private Motors motors;
-    private ArmModel calculator;
-
-    private double currentLimit = Double.POSITIVE_INFINITY;
+    private ArmModel model;
+    private boolean isBaseZeroed = false;
+    private boolean holdJoint = true;
 
     public static ArmBase getInstance() {
         if (instance == null) {
-
             if (Constants.Arm.enabled) {
                 instance = new Arm();
             } else {
@@ -79,12 +111,17 @@ public class Arm extends ArmBase {
     @Override
     public void init() {
         motors = new Motors();
-        calculator = new ArmModel(
+        model = new ArmModel(
                 new ArmModel.ArmStateSupplier(this::baseAngle, this::jointAngle, () -> 0.0, () -> 0.0),
                 Constants.Arm.initialCargo);
 
-        addChild("Arm State", calculator);
         Shuffleboard.getTab("Arm").add(this);
+        Shuffleboard.getTab("Arm").add("Model", model);
+        CommandScheduler.getInstance().schedule(new ResetEncodersOnBaseLimitSwitch());
+
+        CommandBase manualControl = new ParallelCommandGroup(new BaseManualControl(), new JointManualControl());
+        manualControl.addRequirements(this);
+        setDefaultCommand(manualControl);
     }
 
     @Override
@@ -99,13 +136,9 @@ public class Arm extends ArmBase {
                 * Constants.Arm.jointGearRatio * Math.PI * 2.0;
     }
 
-    public ArmModel getCalculator() {
-        return calculator;
-    }
-
-    public void setBaseAmpsLimit(double amps) {
-        currentLimit = amps;
-        motors.setCurrentLimitBase(amps);
+    @Override
+    public ArmModel getModel() {
+        return model;
     }
 
     @Override
@@ -114,19 +147,138 @@ public class Arm extends ArmBase {
     }
 
     @Override
-    public void resetEncodersBase() {
-        motors.base.setEncoderPosition(0);
+    public void setPercentJoint(double percent) {
+        motors.joint.set(percent);
+    }
+
+    @Override
+    public void setEncoderTicksBase(double ticks) {
+        isBaseZeroed = true;
+        motors.base.setEncoderPosition(ticks);
+    }
+
+    @Override
+    public void setEncoderTicksJoint(double ticks) {
+        motors.joint.setEncoderPosition(ticks);
+    }
+
+    @Override
+    public boolean getBaseLimitSwitchFwd() {
+        boolean value = motors.base.isForwardLimitSwitchActive();
+        if (Constants.Arm.limitSwitchPolarity == LimitSwitchPolarity.kNormallyClosed) {
+            return !value;
+        } else {
+            return value;
+        }
+    }
+
+    @Override
+    public boolean getBaseLimitSwitchRev() {
+        boolean value = motors.base.isReverseLimitSwitchActive();
+        if (Constants.Arm.limitSwitchPolarity == LimitSwitchPolarity.kNormallyClosed) {
+            return !value;
+        } else {
+            return value;
+        }
+    }
+
+    public static double baseAngleToTicks(double angle) {
+        final double minTicks = Math.min(Constants.Arm.baseEncoderPosFwdLimitSwitch,
+                Constants.Arm.baseEncoderPosRevLimitSwitch);
+        final double maxTicks = Math.max(Constants.Arm.baseEncoderPosFwdLimitSwitch,
+                Constants.Arm.baseEncoderPosRevLimitSwitch);
+
+        return MathUtil.clamp(angle / (2 * Math.PI) * 2048 / Constants.Arm.baseGearRatio, minTicks, maxTicks);
+    }
+
+    @Override
+    public void baseGotoAngle(double angle) {
+        if (isBaseZeroed) {
+            motors.base.set(ControlMode.MotionMagic, baseAngleToTicks(angle));
+        } else {
+            DriverStation.reportError("Can't go to an angle if base arm is not zeroed", false);
+        }
+    }
+
+    @Override
+    public boolean baseIsAtTarget() {
+        return true;
+    }
+
+    @Override
+    public void setBasePercent(double percent) {
+        motors.base.set(percent);
+    }
+
+    @Override
+    public void setJointPercent(double percent) {
+        motors.joint.set(percent);
+    }
+
+    @Override
+    public void stop() {
+        motors.base.stopMotor();
+        motors.joint.stopMotor();
+    }
+
+    @Override
+    public List<Binding> getMappings() {
+        return List.of(new Binding(Constants.Joysticks.armJoystick, Logitech.b, Button::toggleOnTrue, new ToggleCone()));
+    }
+
+    @Override
+    public void periodic() {
+        if (holdJoint) {
+            double torque = model.torqueToHoldState().getSecond();
+            double limit = Constants.Arm.jointGearRatio * ArmModel.torqueToAmps(model.torqueToHoldState().getSecond());
+            motors.joint.configStatorCurrentLimit(
+                    new StatorCurrentLimitConfiguration(true, limit,
+                            limit, 1), 0);
+
+            motors.jointFollower.configStatorCurrentLimit(
+                    new StatorCurrentLimitConfiguration(true, limit,
+                            limit, 1), 0);
+            setJointPercent(Math.signum(torque) * 0.1); // TODO: Remove Factor
+        }
+    }
+
+    @Override
+    public void enableHoldJoint() {
+        holdJoint = true;
+    }
+
+    @Override
+    public void disableHoldJoint() {
+        if (holdJoint) {
+            holdJoint = false;
+            motors.joint.configStatorCurrentLimit(new StatorCurrentLimitConfiguration(true, Constants.Arm.jointMaxAmps,
+                    Constants.Arm.jointMaxAmps, 1), 1);
+        }
     }
 
     @Override
     public void initSendable(SendableBuilder builder) {
         super.initSendable(builder);
 
-        builder.addDoubleProperty("Amps", () -> currentLimit, null);
-        builder.addDoubleProperty("Torque", () -> calculator.torqueToHoldState().getFirst(), null);
-        builder.addBooleanProperty("Direction", () -> calculator.torqueToHoldState().getFirst() > 0, null);
-        builder.addDoubleProperty("Base Angle", this::baseAngle, null);
-        builder.addDoubleProperty("Encoder Ticks", motors.base::getEncoderTicks, null);
-        builder.addDoubleProperty("Motor Temp", motors.base::getTemperature, null);
+        builder.addDoubleProperty("Torque to hold state base", () -> model.torqueToHoldState().getFirst(), null);
+        builder.addDoubleProperty("Torque to hold state joint", () -> model.torqueToHoldState().getSecond(), null);
+        builder.addBooleanProperty("Torque to hold state base direction",
+                () -> model.torqueToHoldState().getFirst() > 0, null);
+        builder.addBooleanProperty("Torque to hold state joint direction",
+                () -> model.torqueToHoldState().getSecond() > 0, null);
+        builder.addDoubleProperty("Base Angle [DEG]", () -> Math.toDegrees(this.baseAngle()), null);
+        builder.addDoubleProperty("Joint Angle [DEG]", () -> Math.toDegrees(this.jointAngle()), null);
+        builder.addDoubleProperty("Joint ticks", motors.joint::getEncoderTicks, null);
+        builder.addDoubleProperty("Base ticks", motors.base::getEncoderTicks, null);
+        builder.addDoubleProperty("Motor Temp base right", motors.base::getTemperature, null);
+        builder.addDoubleProperty("Motor Temp base left", motors.baseFollower::getTemperature, null);
+        builder.addDoubleProperty("Motor Temp joint right", motors.joint::getTemperature, null);
+        builder.addDoubleProperty("Motor Temp joint left", motors.jointFollower::getTemperature, null);
+        builder.addDoubleProperty("Joint Current Stator", motors.joint::getTemperature, null);
+        builder.addDoubleProperty("Base CurrentStator", motors.base::getStatorCurrent, null);
+        builder.addBooleanProperty("Base is zeroed", () -> isBaseZeroed, null);
+        builder.addDoubleProperty("base shuffle board target",
+                () -> Math.toDegrees(BaseGotoPositionShuffleBoard.getInstance().target),
+                (newTarget) -> BaseGotoPositionShuffleBoard.getInstance().target = Math.toRadians(newTarget));
     }
 }

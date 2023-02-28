@@ -16,7 +16,7 @@ import frc.fridowpi.utils.Vector2;
 
 public class ArmModel implements Sendable {
     public static enum Cargo {
-        None(0.0, 0.0), Cone(5.0, 0.0), Cube(2.0, 0.0); // TODO: update inertias
+        None(0.0, 0.0), Cone(0.653, 0.0), Cube(0.071, 0.0); // TODO: update inertias
 
         public final double mass;
         public final double momentOfIntertia;
@@ -149,14 +149,17 @@ public class ArmModel implements Sendable {
         //
         double alpha = state.baseArmAngle.get();
         double beta = state.gripperArmAngle.get();
-
-        Matrix2 betaRot = Matrix2.rot(beta - Math.PI / 2.0);
-        Matrix2 alphaRot = Matrix2.rot(alpha);
-
-        double scalar = new Vector2(0, 1.0).dot(betaRot.vmul((alphaRot.vmul(new Vector2(0, -1.0)))));
+        double phi = beta - alpha;
         
-        return (Math.cos(alpha + beta)) * Constants.gravity
-                * getGripperArmMass() * getGriArmCenterOfMass();
+        return Constants.gravity * getGripperArmMass() * getGriArmCenterOfMass() * Math.cos(phi);
+
+        // Matrix2 betaRot = Matrix2.rot(beta - Math.PI / 2.0);
+        // Matrix2 alphaRot = Matrix2.rot(alpha);
+
+        // double scalar = new Vector2(0, 1.0).dot(betaRot.vmul((alphaRot.vmul(new Vector2(0, -1.0)))));
+        
+        // return (Math.cos(alpha + beta)) * Constants.gravity
+        //         * getGripperArmMass() * getGriArmCenterOfMass();
     }
 
     private double torqueOfGravityBaseArm() {
@@ -166,13 +169,14 @@ public class ArmModel implements Sendable {
 
     public Pair<Double, Double> torqueToHoldState() {
         double mgGripper = torqueOfGravityGripperArm();
-        double mgBase = torqueOfGravityBaseArm();
+        // double mgBase = torqueOfGravityBaseArm();
+        double mgBase = 0;
 
         return new Pair<>(mgBase, mgGripper + torqueOfBaseArmToGripperArm());
     }
 
     public static double torqueToAmps(double torque) {
-        return Math.abs(torque) * Constants.Arm.torqueToAmpsProportionality;
+        return Math.abs(torque) * Constants.Arm.torqueToAmpsProportionality / 2.0;
     }
 
     public static double ampsToTorque(double amps) {
@@ -183,7 +187,7 @@ public class ArmModel implements Sendable {
     public void initSendable(SendableBuilder builder) {
         builder.addDoubleProperty("Radial acceleration base arm", state::getBaseArmRadialAccel, null);
         builder.addDoubleProperty("Radial acceleration gripper arm", state::getGripperArmRadialAccel, null);
-        builder.addStringProperty("Cargo", cargo::toString, null);
+        builder.addStringProperty("Cargo", () -> this.cargo.toString(), null);
         builder.addDoubleProperty("Base Arm Torque to Hold State [Nm]", () -> torqueToHoldState().getFirst(), null);
         builder.addDoubleProperty("Gripper Arm Torque to Hold State [Nm]", () -> torqueToHoldState().getSecond(), null);
 
@@ -210,5 +214,9 @@ public class ArmModel implements Sendable {
 
     public void updateCargo(Cargo cargo) {
         this.cargo = cargo;
+    }
+    
+    public Cargo getCargo() {
+        return cargo;
     }
 }

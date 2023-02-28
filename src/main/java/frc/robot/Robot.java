@@ -21,6 +21,17 @@ import edu.wpi.first.math.trajectory.constraint.DifferentialDriveVoltageConstrai
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.AnalogInput;
+import edu.wpi.first.networktables.BooleanArrayEntry;
+import edu.wpi.first.networktables.BooleanArrayTopic;
+import edu.wpi.first.networktables.BooleanEntry;
+import edu.wpi.first.networktables.BooleanTopic;
+import edu.wpi.first.networktables.DoubleArrayEntry;
+import edu.wpi.first.networktables.DoubleArrayTopic;
+import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.PubSubOption;
+import edu.wpi.first.networktables.Topic;
+import edu.wpi.first.networktables.TopicInfo;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.SPI.Port;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
@@ -36,6 +47,7 @@ import frc.robot.autonomous_tools.RamseteCommandGenerator;
 import frc.robot.commands.autonomous.ChargeAutonomous;
 import frc.robot.commands.autonomous.FollowPath;
 import frc.robot.commands.autonomous.TimedForward;
+import frc.robot.subsystems.Vision;
 import frc.robot.subsystems.drive.Drive;
 
 public class Robot extends TimedRobot {

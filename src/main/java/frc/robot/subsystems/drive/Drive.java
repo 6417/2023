@@ -65,6 +65,12 @@ public class Drive extends DriveBase {
     private double balancedrivespeed;
     private double balancestart = 0;
 
+    private FridoDoubleSolenoid brakeSolenoidRight;
+    private FridoDoubleSolenoid brakeSolenoidLeft;
+
+    private double balancedrivespeed;
+    private double balancestart;
+
     private double maxVel = 0;
     private double maxAcc = 0;
 
@@ -372,6 +378,9 @@ public class Drive extends DriveBase {
     }
 
     @Override
+    public void simulationPeriodic() { }
+
+    @Override
     public List<Binding> getMappings() {
         Binding driveForward = new Binding(
                 Constants.Joystick.accelerator,
@@ -414,10 +423,8 @@ public class Drive extends DriveBase {
         builder.addBooleanProperty("steer with joystick", () -> steerWithJoystick, (val) -> steerWithJoystick = val);
         builder.addStringProperty("steer mode", () -> steerMode.name(), null);
         builder.addDoubleProperty("drive driection", () -> driveDirection, null);
-        builder.addDoubleProperty("steering wheel sensibility", () -> steeringWheelSensibility,
-                (val) -> steeringWheelSensibility = val);
-        builder.addDoubleProperty("joystick x (steering) sensibility", () -> joystickSteeringSensibility,
-                (val) -> joystickSteeringSensibility = val);
+        builder.addDoubleProperty("steering wheel sensibility", () -> steeringWheelSensibility, (val) -> steeringWheelSensibility = val);
+        builder.addDoubleProperty("joystick x (steering) sensibility", () -> joystickSteeringSensibility, (val) -> joystickSteeringSensibility = val);
         builder.addDoubleProperty("speed", () -> speed, (val) -> speed = val);
         builder.addStringProperty("brake status", () -> isActive ? "not active" : "active", null);
         builder.addDoubleProperty("wheel speed right", () -> this.getWheelSpeeds().rightMetersPerSecond, null);
@@ -443,12 +450,13 @@ public class Drive extends DriveBase {
         isActive = true;
     }
 
-    public void balance(float pitch) {
-        if (pitch <= 0.1 && pitch >= -0.1) {
-            drive(0.0, 0.0, 0.0);
+    public void balance(float pitch){
+        if (Math.abs(pitch) <= 0.1){
+            drive(0.0,0.0,0.0);
             Drive.getInstance().triggerBrake();
-        } else {
-            drive((double) pitch * balancedrivespeed, 0.0, 0.0);
+            balancestart = 0;
+        }else{
+            drive((double)pitch*balancedrivespeed,0.0,0.0);
             balancedrivespeed += 0.01;
         }
         System.out.println(pitch);
@@ -467,5 +475,3 @@ public class Drive extends DriveBase {
         }
     }
 }
-// CommandScheduler.getInstance().schedule(new
-// ChargeAutonomous(StartingPosition.LEFT));

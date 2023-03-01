@@ -48,18 +48,19 @@ public final class Constants {
         }
 
         public static final class Odometry {
-            public static final double wheelPerimeter = 0.744;
-            public static final double transmission = 0;
+            public static final double wheelPerimeter = 0.47;
+            // The transmission denotes how many revolution the motor makes compared to the wheel
+            public static final double transmission = 10.71;
             public static final int encoderResolution = 2048;
 
-            public static final double encoderToMetersConversion = (1000 / wheelPerimeter) * transmission * encoderResolution;
+            public static final double encoderToMetersConversion = 1 / ((1 / wheelPerimeter) * transmission * encoderResolution);
             public static final double trackWidthMeters = 0.5;
         }
 
         public static final class PathWeaver {
-            public static final double ksMeters = 0.086871;
-            public static final double kvMetersPerSecoond = 1.5843;
-            public static final double ka = 0.090473;
+            public static final double ksMeters = 0.12091;
+            public static final double kvMetersPerSecoond = 2.3501;
+            public static final double ka = 0.21997;
 
             public static final double kMaxSpeed = 0;
             public static final double kMaxAcceleration = 0;
@@ -68,9 +69,9 @@ public final class Constants {
             public static final double kRamseteB = 0;
             public static final double kRamseteZeta = 0;
 
-            public static final double kP = 0.049844;
+            public static final double kP = 0.36205;
             public static final double kI = 0;
-            public static final double kD = 5.3848;
+            public static final double kD = 0;
         }
 
         public static class Autonomous {

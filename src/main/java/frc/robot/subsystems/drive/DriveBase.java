@@ -16,7 +16,7 @@ import frc.robot.subsystems.drive.Drive.SteerMode;
 
 public class DriveBase extends Module {
 
-    public void drive(double joystickInputY, double joystickTurnValue, double steerInput) { }
+    public void drive(double joystickInputY, double joystickInputX, double steerWheelInput) { }
 
     public void init() { }
 
@@ -58,9 +58,10 @@ public class DriveBase extends Module {
 
     public void stop() { }
 
-    public void resetSensors() { }
-
     public void resetOdometry(Pose2d initialPose) { }
+
+    public void setSpeedForSeconds(int i, int j) {
+    }
 
     public void triggerBrake() { }
 
@@ -68,8 +69,8 @@ public class DriveBase extends Module {
 
     public void balance(){};
 
-    public void balancehandler(){};
+    public void balancehandler(){}
 
-    public void setSpeedForSeconds(int i, int j) {
-    }
+    public void reset() {
+    };
 }

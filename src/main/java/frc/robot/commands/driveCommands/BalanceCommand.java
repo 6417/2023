@@ -24,14 +24,14 @@ public class BalanceCommand extends CommandBase {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    Vision.getInstance().test();
+    //Vision.getInstance().test();
   }
 
   // Called every time the scheduler runs while the command is scheduled.
   // (Aka .periodic())
   @Override
   public void execute() {
-    Drive.getInstance().balancehandler();
+    Drive.getInstance().balance();
   }
 
   // Called once the command ends or is interrupted.

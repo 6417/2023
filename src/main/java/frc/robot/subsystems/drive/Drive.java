@@ -4,7 +4,10 @@
 
 package frc.robot.subsystems.drive;
 
+import java.util.ArrayList;
 import java.util.List;
+
+import javax.print.attribute.standard.MediaSize.NA;
 
 import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.controller.PIDController;
@@ -60,8 +63,7 @@ public class Drive extends DriveBase {
     private FridoDoubleSolenoid brakeSolenoidRight;
     private FridoDoubleSolenoid brakeSolenoidLeft;
 
-    private double balancedrivespeed;
-    private double balancestart;
+    private ArrayList<Float> balancevalues = new ArrayList();
 
     private double maxVel = 0;
     private double maxAcc = 0;
@@ -97,7 +99,6 @@ public class Drive extends DriveBase {
         brakeSolenoidRight = new FridoDoubleSolenoid(Constants.Drive.Brake.FridoDoubleSolenoid.rightIdLower, Constants.Drive.Brake.FridoDoubleSolenoid.rightIdHigher);
         brakeSolenoidLeft = new FridoDoubleSolenoid(Constants.Drive.Brake.FridoDoubleSolenoid.leftIdLower, Constants.Drive.Brake.FridoDoubleSolenoid.leftIdHigher);
 
-        balancestart = 0;
     }
 
     public static DriveBase getInstance() {
@@ -135,6 +136,9 @@ public class Drive extends DriveBase {
 
     @Override
     public void drive(double joystickInputY, double joystickInputX, double steerWheelInput) {
+        if (!isActive)
+            tankDrive.feed();
+            
         double acc = Navx.getInstance().getRawAccelX();
         if (acc > maxAcc) {
             maxAcc = acc;
@@ -337,30 +341,25 @@ public class Drive extends DriveBase {
         brakeSolenoidLeft.set(Value.kReverse);
         isActive = true;
     }
-
-    public void balance(float pitch){
-        if (Math.abs(pitch) <= 0.1){
-            drive(0.0,0.0,0.0);
-            Drive.getInstance().triggerBrake();
-            balancestart = 0;
-        }else{
-            drive((double)pitch*balancedrivespeed,0.0,0.0);
-            balancedrivespeed += 0.01;
-        }
-        System.out.println(pitch);
-    }
-
-    public void balancehandler(){
+    int testbalance = 0;
+    public void balance(){
         float pitch = Navx.getInstance().getPitch();
-        if (balancestart == 0){
-            drive(balancedrivespeed, 0.0,0.0);
-            balancedrivespeed += 0.01;
-            if(pitch > 0.2){
-                balancestart = 1.0;
+        //System.out.println(pitch);
+        balancevalues.add(pitch);
+        if (balancevalues.size() == 3){
+            balancevalues.remove(0);
+            System.out.println(balancevalues.get(1)-balancevalues.get(0));
+            if (balancevalues.get(1)-balancevalues.get(0) < -1){
+                Drive.getInstance().drive(0,0,0);
+                //Drive.getInstance().triggerBrake();
+                testbalance = 1;
+                System.out.println("balanced");
+            }else{
+                //Drive.getInstance().drive(0.4, 0,0);
             }
         }
-        else{
-            balance(pitch);
+        if (testbalance == 0){
+            Drive.getInstance().drive(0.5, 0, 0);
         }
     }
 }

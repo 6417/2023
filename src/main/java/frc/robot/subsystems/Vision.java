@@ -30,7 +30,7 @@ import edu.wpi.first.wpilibj2.command.RamseteCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
-import frc.robot.autonomous.RamseteCommandGenerator;
+import frc.robot.autonomous_tools.RamseteCommandGenerator;
 import frc.robot.commands.autonomous.ChargeAutonomous;
 import frc.robot.subsystems.drive.Drive;
 

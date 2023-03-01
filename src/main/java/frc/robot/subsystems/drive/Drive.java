@@ -65,12 +65,6 @@ public class Drive extends DriveBase {
     private double balancedrivespeed;
     private double balancestart = 0;
 
-    private FridoDoubleSolenoid brakeSolenoidRight;
-    private FridoDoubleSolenoid brakeSolenoidLeft;
-
-    private double balancedrivespeed;
-    private double balancestart;
-
     private double maxVel = 0;
     private double maxAcc = 0;
 
@@ -86,7 +80,7 @@ public class Drive extends DriveBase {
     private DifferentialDriveKinematicsConstraint kinematicsConstraint;
     private CentripetalAccelerationConstraint centripetalAccelerationConstraint;
 
-    // config
+    // Config
     private TrajectoryConfig trajectoryConfig;
 
     public static enum SteerMode {
@@ -451,23 +445,24 @@ public class Drive extends DriveBase {
     }
 
     public void balance(float pitch){
-        if (Math.abs(pitch) <= 0.1){
+        if (Math.abs(pitch) <= 3){
             drive(0.0,0.0,0.0);
             Drive.getInstance().triggerBrake();
             balancestart = 0;
         }else{
-            drive((double)pitch*balancedrivespeed,0.0,0.0);
-            balancedrivespeed += 0.01;
+            drive((double)pitch*balancedrivespeed/15,0.0,0.0);
+            // balancedrivespeed += 0.01;
         }
         System.out.println(pitch);
     }
 
     public void balancehandler() {
         float pitch = FridoNavx.getInstance().getPitch();
+        System.out.println(pitch);
         if (balancestart == 0) {
+            balancedrivespeed = 0.3;
             drive(balancedrivespeed, 0.0, 0.0);
-            balancedrivespeed += 0.01;
-            if (pitch > 0.2) {
+            if (pitch > 1) {
                 balancestart = 1.0;
             }
         } else {

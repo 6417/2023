@@ -47,6 +47,7 @@ import frc.robot.autonomous_tools.RamseteCommandGenerator;
 import frc.robot.commands.autonomous.ChargeAutonomous;
 import frc.robot.commands.autonomous.FollowPath;
 import frc.robot.commands.autonomous.TimedForward;
+import frc.robot.commands.driveCommands.BalanceCommand;
 import frc.robot.subsystems.Vision;
 import frc.robot.subsystems.drive.Drive;
 
@@ -82,7 +83,8 @@ public class Robot extends TimedRobot {
 
     @Override
     public void autonomousInit() {
-        m_autonomousCommand = new ChargeAutonomous(StartingPosition.LEFT);
+        // m_autonomousCommand = new ChargeAutonomous(StartingPosition.LEFT);
+        m_autonomousCommand = new BalanceCommand();
 
         // var cmd = RamseteCommandGenerator.generateRamseteCommand(path);
         // CommandScheduler.getInstance().schedule(cmd);

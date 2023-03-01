@@ -120,9 +120,12 @@ public class Robot extends TimedRobot {
         CommandScheduler.getInstance().cancelAll();
     }
 
-    @Override
-    public void testPeriodic() {
-    }
+  /** This function is called periodically during operator control. */
+  @Override
+  public void teleopPeriodic() {
+    //Drive.getInstance().balance();
+    Drive.getInstance().drive(0.2,0,0);
+  }
 
     @Override
     public void simulationInit() {

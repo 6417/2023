@@ -101,7 +101,7 @@ public class Vision extends SubsystemBase {
               // Apply the voltage constraint
               .addConstraint(autoVoltageConstraint);
 
-
+    /* 
     Trajectory exampleTrajectory =
     TrajectoryGenerator.generateTrajectory(
         // Start at the origin facing the +X direction
@@ -116,6 +116,7 @@ public class Vision extends SubsystemBase {
     var cmd = RamseteCommandGenerator.generateRamseteCommand(exampleTrajectory);
 
     CommandScheduler.getInstance().schedule(cmd);
+    */
   }
 
   public double[] getPos(){

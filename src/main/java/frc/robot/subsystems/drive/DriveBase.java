@@ -56,21 +56,26 @@ public class DriveBase extends Module {
         return null;
     }
 
-    public void stop() { }
-
-    public void resetOdometry(Pose2d initialPose) { }
-
-    public void setSpeedForSeconds(int i, int j) {
-    }
+    public void stopMotors() { }
 
     public void triggerBrake() { }
 
     public void releaseBrake() { }
 
-    public void balance(){};
+    public void stopAndBreak() { }
 
-    public void balancehandler(){}
+    public void balance() { }
+
+    public void balancehandler() { }
 
     public void reset() {
+    }
+
+    public void resetOdometry(Pose2d initialPose) { }
+
+    public void setSpeedForSeconds(int i, int j) { }
+
+    public double getPitch() {
+        return 0;
     };
 }

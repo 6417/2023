@@ -48,6 +48,7 @@ import frc.robot.commands.autonomous.ChargeAutonomous;
 import frc.robot.commands.autonomous.FollowPath;
 import frc.robot.commands.autonomous.TimedForward;
 import frc.robot.commands.driveCommands.BalanceCommand;
+import frc.robot.commands.driveCommands.DriveCommand;
 import frc.robot.subsystems.Vision;
 import frc.robot.subsystems.drive.Drive;
 
@@ -95,8 +96,7 @@ public class Robot extends TimedRobot {
     }
 
     @Override
-    public void autonomousPeriodic() {
-    }
+    public void autonomousPeriodic() { }
 
     @Override
     public void teleopInit() {
@@ -113,19 +113,13 @@ public class Robot extends TimedRobot {
         // double Distanz = 29.988 * Math.pow((volt), -1.173);
         // System.out.println(Distanz);
 
+        // Drive.getInstance().balance();
     }
 
     @Override
     public void testInit() {
         CommandScheduler.getInstance().cancelAll();
     }
-
-  /** This function is called periodically during operator control. */
-  @Override
-  public void teleopPeriodic() {
-    //Drive.getInstance().balance();
-    Drive.getInstance().drive(0.2,0,0);
-  }
 
     @Override
     public void simulationInit() {

@@ -26,6 +26,6 @@ public class TimedForward extends WaitCommand {
   @Override
   public void end(boolean interrupted) {
     super.end(interrupted);
-    Drive.getInstance().stop();
+    Drive.getInstance().stopMotors();
   }
 }

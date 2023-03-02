@@ -62,8 +62,8 @@ public final class Constants {
             public static final double kvMetersPerSecoond = 2.3501;
             public static final double ka = 0.21997;
 
-            public static final double kMaxSpeed = 0;
-            public static final double kMaxAcceleration = 0;
+            public static final double kMaxSpeed = 3.3;
+            public static final double kMaxAcceleration = 1.2;
             public static final double kMaxCentripetalAcceleration = 0;
 
             public static final double kRamseteB = 0;

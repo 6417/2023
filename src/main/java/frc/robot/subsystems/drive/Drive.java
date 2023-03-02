@@ -117,8 +117,9 @@ public class Drive extends DriveBase {
 
     @Override
     public void init() {
-        motors.init();
         setDefaultCommand(new DriveCommand());
+
+        motors.init();
 
         tankDrive = new DifferentialDrive(motors.left(), motors.right());
 
@@ -345,9 +346,16 @@ public class Drive extends DriveBase {
     }
 
     @Override
-    public void stop() {
+    public void stopMotors() {
         isActive = false;
         tankDrive.stopMotor();
+    }
+
+    @Override
+    public void stopAndBreak() {
+        stopMotors();
+        // triggerBrake();
+        // TODO
     }
 
     @Override
@@ -439,9 +447,15 @@ public class Drive extends DriveBase {
         brakeSolenoidLeft.set(Value.kReverse);
         isActive = true;
     }
+
+    @Override
+    public double getPitch() {
+        return (double) FridoNavx.getInstance().getPitch();
+    }
+
     int testbalance = 0;
     public void balance(){
-        float pitch = Navx.getInstance().getPitch();
+        float pitch = FridoNavx.getInstance().getPitch();
         //System.out.println(pitch);
         balancevalues.add(pitch);
         if (balancevalues.size() == 3){

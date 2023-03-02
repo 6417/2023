@@ -34,6 +34,6 @@ public class RamseteCommandGenerator {
         );
 
         // Finishing and returning the command
-        return ramseteCommand.andThen(() -> instance.stop());
+        return ramseteCommand.andThen(() -> instance.stopMotors());
     }
 }

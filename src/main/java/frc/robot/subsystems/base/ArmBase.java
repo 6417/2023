@@ -68,4 +68,28 @@ public class ArmBase extends Module {
     public void stop() {
         
     }
+    
+    public void reset() {
+        
+    }
+
+    public void setJointTargetVel(double vel) {
+        
+    }
+    
+    public boolean isZeroed() {
+        return true;
+    }
+
+    public boolean isBaseRightHallActive() {
+        return false;
+    }
+
+    public boolean isBaseLeftHallActive() {
+        return false;
+    }
+    
+    public double getBaseEncoderVelocity() {
+        return 0.0;
+    }
 }

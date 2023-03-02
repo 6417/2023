@@ -4,7 +4,7 @@ import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.Constants;
 import frc.robot.subsystems.Arm;
 
-public class ResetEncodersOnBaseLimitSwitch extends CommandBase {
+public class ResetBaseEncodersOnLimitSwitch extends CommandBase {
     @Override
     public void execute() {
         if (Arm.getInstance().getBaseLimitSwitchFwd())  {

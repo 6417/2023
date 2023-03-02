@@ -26,13 +26,16 @@ public class JointManualControl extends CommandBase {
         double percent = MathUtil.applyDeadband(
                 JoystickHandler.getInstance().getJoystick(Constants.Joysticks.armJoystick).getThrottle(),
                 Constants.Joysticks.armJoystickDeadZone);
+        if (Arm.getInstance().isZeroed()) {
 
-        if (Math.abs(percent) < 1e-5) {
-            Arm.getInstance().enableHoldJoint();
+            if (Math.abs(percent) < 1e-5) {
+                Arm.getInstance().enableHoldJoint();
+            } else {
+                Arm.getInstance().disableHoldJoint();
+                // Arm.getInstance().setJointTargetVel(percent * 1000);
+            }
         } else {
-            Arm.getInstance().disableHoldJoint();
-            Arm.getInstance().setJointPercent(percent * maxPercent);
+            Arm.getInstance().setJointPercent(maxPercent * percent);
         }
-
     }
 }

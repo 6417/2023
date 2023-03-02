@@ -110,7 +110,7 @@ public class ArmModel implements Sendable {
                 Supplier<Double> gripperArmRadialVel) {
             this.baseArmAngle = baseArmAngle;
             this.baseArmRadialVel = baseArmRadialVel;
-            this.gripperArmAngle = gripperArmAngle;
+            this.gripperArmAngle = () -> gripperArmAngle.get() + Constants.Arm.jointCenterOfMassAngleOffset;
             this.gripperArmRadialVel = gripperArmRadialVel;
             
             this.setDefaultCommand(new UpdateAccels());

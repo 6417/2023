@@ -24,13 +24,12 @@ import frc.robot.ArmModel.Cargo;
  */
 public final class Constants {
     public static final double gravity = 9.81; // m/s^2
-    
+
     public static class Joysticks {
         public static final IJoystickId armJoystick = () -> 0;
         public static final double armJoystickDeadZone = 0.1;
     }
 
-    
     public static class Arm {
         public static class PhysicalProperties {
             public double centerOfMass;
@@ -90,25 +89,29 @@ public final class Constants {
         public static final double encoderTicksPerMotorRevolution = 2048.0;
 
         public static final double torqueToAmpsProportionality = 1 / 0.02076;
-        
-        public static final double jointMaxAmps = torqueToAmpsProportionality * 1.5; 
+
+        public static final double jointMaxAmps = torqueToAmpsProportionality * 1.5;
 
         public static final ArmModel.Cargo initialCargo = Cargo.None;
         public static final boolean enabled = true;
+        public static final double jointCenterOfMassAngleOffset = Math.toRadians(-2.955);
 
         public static final PIDValues basePid = new PIDValues(0.775, 2e-5, 0.01, 2000, 0, 10);
         public static final MotionMagic baseMotionMagic = new MotionMagic(9500, 5000, 1);
 
         public static final LimitSwitchPolarity limitSwitchPolarity = LimitSwitchPolarity.kNormallyClosed;
+        public static final int dioIdHallBaseRight = 8;
+        public static final int dioIdHallBaseLeft = 9;
         public static final PhysicalProperties baseArm = new PhysicalProperties(0.782, 7.083, 1.10, 2747698.280 / 1e6);
-        public static final PhysicalProperties gripperArm = new PhysicalProperties(0.55, 2.153, 0.800, 6538.368 / 1e6); // TODO:
-                                                                                                                        // check
-                                                                                                                        // value
-                                                                                                                        // of
-                                                                                                                        // moment
-                                                                                                                        // of
-                                                                                                                        // inertia
 
+        public static final double gripperMassCAD = 2.153;
+        // public static final double gripperAmpereExtra90Deg = 4.8975;
+        // public static final double gripperAmpereExtra90Deg = 4.5;
+        public static final double gripperAmpereExtra90Deg = 0.0;
+
+        public static final PhysicalProperties gripperArm = new PhysicalProperties(0.55,
+                (2 / torqueToAmpsProportionality * gripperAmpereExtra90Deg / jointGearRatio) / (gravity * 0.55) + gripperMassCAD, 0.800, 6538.368 / 1e6); 
+        
         public static final DirectionType baseFollowType = DirectionType.followMaster;
         public static final DirectionType jointFollowType = DirectionType.invertMaster;
 
@@ -118,6 +121,11 @@ public final class Constants {
         public static final double baseEncoderPosFwdLimitSwitch = 150.0 / 360.0 / Constants.Arm.baseGearRatio * 2048.0;
         public static final double baseEncoderPosRevLimitSwitch = 30.0 / 360.0 / Constants.Arm.baseGearRatio * 2048.0;
         
+        public static final double baseRightEncoderPosHallVelPositive = 0.0;
+        public static final double baseRightEncoderPosHallVelNegative = 0.0;
+        public static final double baseLeftEncoderPosHallVelPositive = 0.0;
+        public static final double baseLeftEncoderPosHallVelNegative = 0.0;
+
         public static final double baseDefaultManualMaxPercent = 0.3;
         public static final double jointDefaultManualMaxPercent = 0.3;
 

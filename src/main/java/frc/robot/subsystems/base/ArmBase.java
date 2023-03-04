@@ -92,4 +92,16 @@ public class ArmBase extends Module {
     public double getBaseEncoderVelocity() {
         return 0.0;
     }
+    
+    public boolean isBaseAtTarget() {
+        return true;
+    }
+
+    public boolean isJointAtTarget() {
+        return true;
+    }
+    
+    public boolean isArmAtTarget() {
+        return isBaseAtTarget() && isJointAtTarget();
+    }
 }

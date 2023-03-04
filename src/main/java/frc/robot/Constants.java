@@ -120,6 +120,9 @@ public final class Constants {
         public static final double baseRightEncoderPosHallVelNegative = 0.0;
         public static final double baseLeftEncoderPosHallVelPositive = 0.0;
         public static final double baseLeftEncoderPosHallVelNegative = 0.0;
+        
+        public static final double baseAllowableError = 100;
+        public static final double jointAllowableError = 500;
 
         public static final double baseDefaultManualMaxPercent = 0.3;
         public static final double jointDefaultManualMaxPercent = 0.3;

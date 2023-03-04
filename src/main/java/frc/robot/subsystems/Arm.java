@@ -20,6 +20,7 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.Button;
 import frc.fridowpi.joystick.Binding;
 import frc.fridowpi.joystick.joysticks.Logitech;
@@ -29,11 +30,13 @@ import frc.fridowpi.motors.FridolinsMotor.FridoFeedBackDevice;
 import frc.fridowpi.motors.FridolinsMotor.IdleMode;
 import frc.fridowpi.motors.FridolinsMotor.LimitSwitchPolarity;
 import frc.fridowpi.utils.LatchBooleanRising;
+import frc.fridowpi.utils.Vector2;
 import frc.robot.ArmKinematics;
 import frc.robot.ArmModel;
 import frc.robot.Constants;
 import frc.robot.commands.arm.BaseGotoPositionShuffleBoard;
 import frc.robot.commands.arm.BaseManualControl;
+import frc.robot.commands.arm.GotoPosNoChecks;
 import frc.robot.commands.arm.JointManualControl;
 import frc.robot.commands.arm.ResetBaseEncodersOnHall;
 import frc.robot.commands.arm.ResetBaseEncodersOnLimitSwitch;
@@ -318,6 +321,9 @@ public class Arm extends ArmBase {
     public List<Binding> getMappings() {
         return List
                 .of(new Binding(Constants.Joysticks.armJoystick, Logitech.b, Button::toggleOnTrue, new ToggleCone()),
+                        new Binding(Constants.Joysticks.armJoystick, Logitech.a, Button::onTrue,
+                                new SequentialCommandGroup(new GotoPosNoChecks(new Vector2(-1.13, 0.8)),
+                                        new GotoPosNoChecks(new Vector2(-1.45, 0.95)))),
                         new Binding(Constants.Joysticks.armJoystick, Logitech.start, Button::onTrue,
                                 new InstantCommand(() -> {
                                     isBaseZeroed = !(isBaseZeroed && isJointZeroed);
@@ -360,6 +366,21 @@ public class Arm extends ArmBase {
     @Override
     public boolean isBaseRightHallActive() {
         return !baseHallLeft.get();
+    }
+
+    @Override
+    public boolean isBaseAtTarget() {
+        return Math.abs(motors.base.getEncoderTicks() - targetPosBase) < Constants.Arm.baseAllowableError;
+    }
+
+    @Override
+    public boolean isJointAtTarget() {
+        return Math.abs(motors.joint.getEncoderTicks() - targetPosJoint) < Constants.Arm.jointAllowableError;
+    }
+
+    @Override
+    public boolean isArmAtTarget() {
+        return isBaseAtTarget() && isJointAtTarget();
     }
 
     @Override

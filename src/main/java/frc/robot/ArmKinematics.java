@@ -33,6 +33,7 @@ public class ArmKinematics {
         // double theta = base - phi;
 
         // return new Vector2(Math.cos(theta) * a, Math.sin(theta) * a);
+        base = Math.PI - base; 
         Vector2 u = new Vector2(baseArmLen, 0);
         Vector2 v = new Vector2(-gripperArmLen, 0);
 
@@ -62,6 +63,6 @@ public class ArmKinematics {
         double beta2 = Math.signum(u2Prime.cross(pos.minus(u2Prime).neg()))
                 * Math.acos(dotProd2 / (u2Prime.magnitude() * pos.minus(u2Prime).magnitude()));
 
-        return new Pair<>(new Values<>(alpha1, beta1), new Values<>(alpha2, beta2));
+        return new Pair<>(new Values<>(alpha1, -beta1), new Values<>(alpha2, -beta2));
     }
 }

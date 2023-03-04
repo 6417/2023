@@ -1,6 +1,8 @@
 package frc.robot.subsystems.base;
 
 import frc.fridowpi.module.Module;
+import frc.fridowpi.utils.Vector2;
+import frc.robot.ArmKinematics;
 import frc.robot.ArmModel;
 import frc.robot.ArmModel.Cargo;
 
@@ -103,5 +105,9 @@ public class ArmBase extends Module {
     
     public boolean isArmAtTarget() {
         return isBaseAtTarget() && isJointAtTarget();
+    }
+    
+    public Vector2 getPos() {
+        return ArmKinematics.anglesToPos(baseAngle(), jointAngle());
     }
 }

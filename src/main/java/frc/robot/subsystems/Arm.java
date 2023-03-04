@@ -38,6 +38,7 @@ import frc.robot.commands.arm.BaseGotoPositionShuffleBoard;
 import frc.robot.commands.arm.BaseManualControl;
 import frc.robot.commands.arm.GotoPosNoChecks;
 import frc.robot.commands.arm.JointManualControl;
+import frc.robot.commands.arm.ManualControl;
 import frc.robot.commands.arm.ResetBaseEncodersOnHall;
 import frc.robot.commands.arm.ResetBaseEncodersOnLimitSwitch;
 import frc.robot.commands.arm.ToggleCone;
@@ -164,7 +165,7 @@ public class Arm extends ArmBase {
 
         CommandBase manualControl = new ParallelCommandGroup(new BaseManualControl(), new JointManualControl());
         manualControl.addRequirements(this);
-        setDefaultCommand(manualControl);
+        setDefaultCommand(new ManualControl());
     }
 
     @Override
@@ -270,19 +271,27 @@ public class Arm extends ArmBase {
 
     @Override
     public void baseGotoAngle(double angle) {
-        if (isBaseZeroed && isJointZeroed) {
-            setBaseTargetPos(baseAngleToTicks(angle));
+        if (Double.isFinite(angle) && !Double.isNaN(angle)) {
+            if (isBaseZeroed && isJointZeroed) {
+                setBaseTargetPos(baseAngleToTicks(angle));
+            } else {
+                DriverStation.reportError("Can't go to an angle if base arm is not zeroed", false);
+            }
         } else {
-            DriverStation.reportError("Can't go to an angle if base arm is not zeroed", false);
+            DriverStation.reportError("[Arm::jointGotoAngle] received angle: " + angle, false);
         }
     }
 
     @Override
     public void jointGotoAngle(double angle) {
-        if (isBaseZeroed && isJointZeroed) {
-            setJointTargetPos(jointAngleToTicks(angle));
+        if (Double.isFinite(angle) && !Double.isNaN(angle)) {
+            if (isBaseZeroed && isJointZeroed) {
+                setJointTargetPos(jointAngleToTicks(angle));
+            } else {
+                DriverStation.reportError("Can't go to an angle if base arm is not zeroed", false);
+            }
         } else {
-            DriverStation.reportError("Can't go to an angle if base arm is not zeroed", false);
+            DriverStation.reportError("[Arm::jointGotoAngle] received angle: " + angle, false);
         }
     }
 
@@ -381,6 +390,11 @@ public class Arm extends ArmBase {
     @Override
     public boolean isArmAtTarget() {
         return isBaseAtTarget() && isJointAtTarget();
+    }
+
+    @Override
+    public Vector2 getPos() {
+        return ArmKinematics.anglesToPos(baseAngle(), jointAngle());
     }
 
     @Override

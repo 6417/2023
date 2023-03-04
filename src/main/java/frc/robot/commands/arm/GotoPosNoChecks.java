@@ -16,7 +16,6 @@ public class GotoPosNoChecks extends CommandBase {
     
     @Override
     public void initialize() {
-        System.out.println("init");
         var solutions = ArmKinematics.posToAngles(target);
         ArmKinematics.Values<Double> angles;
 

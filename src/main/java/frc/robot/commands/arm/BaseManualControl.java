@@ -5,7 +5,6 @@ import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.fridowpi.joystick.JoystickHandler;
 import frc.robot.Constants;
 import frc.robot.subsystems.Arm;
@@ -27,6 +26,14 @@ public class BaseManualControl extends CommandBase {
         double percent = MathUtil.applyDeadband(
                 JoystickHandler.getInstance().getJoystick(Constants.Joysticks.armJoystick).getY(),
                 Constants.Joysticks.armJoystickDeadZone);
-        Arm.getInstance().setBasePercent(percent * maxPercent);
+
+        if (Arm.getInstance().isZeroed()) {
+            if (!(Math.abs(percent) < 1e-5)) {
+                Arm.getInstance()
+                        .baseGotoAngle(Arm.getInstance().getBaseTargetAngle() + Arm.baseTicksToAngle(150) * percent);
+            }
+        } else {
+            Arm.getInstance().setBasePercent(maxPercent * percent);
+        }
     }
 }

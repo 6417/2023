@@ -12,6 +12,7 @@ import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandBase;
@@ -27,6 +28,8 @@ import frc.fridowpi.motors.FridolinsMotor;
 import frc.fridowpi.motors.FridolinsMotor.FridoFeedBackDevice;
 import frc.fridowpi.motors.FridolinsMotor.IdleMode;
 import frc.fridowpi.motors.FridolinsMotor.LimitSwitchPolarity;
+import frc.fridowpi.utils.LatchBooleanRising;
+import frc.robot.ArmKinematics;
 import frc.robot.ArmModel;
 import frc.robot.Constants;
 import frc.robot.commands.arm.BaseGotoPositionShuffleBoard;
@@ -83,8 +86,8 @@ public class Arm extends ArmBase {
             jointFollower.configStatorCurrentLimit(new StatorCurrentLimitConfiguration(true,
                     Constants.Arm.jointStatorCurrentLimit, Constants.Arm.jointStatorCurrentLimit, 1));
             
-            joint.configNeutralDeadband(0.0);
-            jointFollower.configNeutralDeadband(0.0);
+            joint.configNeutralDeadband(0.0001);
+            jointFollower.configNeutralDeadband(0.0001);
 
             base.config_kP(0, Constants.Arm.basePid.p);
             base.config_kI(0, Constants.Arm.basePid.i);
@@ -96,6 +99,21 @@ public class Arm extends ArmBase {
             base.configMotionCruiseVelocity(Constants.Arm.baseMotionMagic.cruiseVel);
             base.configMotionAcceleration(Constants.Arm.baseMotionMagic.accel);
             base.configMotionSCurveStrength(Constants.Arm.baseMotionMagic.curveStrength);
+            
+            joint.configForwardSoftLimitThreshold(21000);
+            jointFollower.configForwardSoftLimitThreshold(21000);
+
+            joint.configReverseSoftLimitThreshold(-28100);
+            jointFollower.configReverseSoftLimitThreshold(-28100);
+
+            
+            joint.config_kP(0, Arm.this.kP);
+            joint.config_kI(0, Arm.this.kI);
+            joint.config_kD(0, Arm.this.kD);
+            joint.config_kF(0, 0);
+            
+            joint.configMotionAcceleration(9000);
+            joint.configMotionCruiseVelocity(3000);
         }
     }
 
@@ -119,12 +137,15 @@ public class Arm extends ArmBase {
         return instance;
     }
 
-    double kP = 0.0; // 0.2
-    double kI = 0.0; // 0.000025 * factor;
-    double kD = 0.0; // 0.3
+    double kP = 0.045; // 0.2
+    double kI = 0.00001; // 25; // 0.000025 * factor;
+    double kD = 0.001; // 0.3
+    
+    LatchBooleanRising gettingZeroed;
 
     @Override
     public void init() {
+        gettingZeroed = new LatchBooleanRising(isBaseZeroed && isJointZeroed);
         motors = new Motors();
         model = new ArmModel(
                 new ArmModel.ArmStateSupplier(this::baseAngle, this::jointAngle, () -> 0.0, () -> 0.0),
@@ -151,9 +172,24 @@ public class Arm extends ArmBase {
     }
 
 
-    public void setJointTargetPos(double pos) {
-        jointPosController.reset();
-        jointPosController.calculate(motors.joint.getEncoderTicks(), pos);
+    private double targetPosJoint = 0;
+    private double targetPosBase = (Constants.Arm.baseEncoderPosFwdLimitSwitch + Constants.Arm.baseEncoderPosRevLimitSwitch) / 2;
+
+    private void setJointTargetPos(double pos) {
+        System.out.println("target pos set to: " + pos);
+        motors.joint.set(ControlMode.MotionMagic, pos);
+        targetPosJoint = pos;
+    }
+
+    private void setBaseTargetPos(double pos) {
+        motors.base.set(ControlMode.MotionMagic, pos);
+        targetPosBase = pos;
+    }
+    
+    @Override
+    public void hold() {
+        baseGotoAngle(baseAngle());
+        jointGotoAngle(jointAngle());
     }
 
     public double jointAngle() {
@@ -215,21 +251,47 @@ public class Arm extends ArmBase {
     }
 
     public static double baseAngleToTicks(double angle) {
-        final double minTicks = Math.min(Constants.Arm.baseEncoderPosFwdLimitSwitch,
-                Constants.Arm.baseEncoderPosRevLimitSwitch);
-        final double maxTicks = Math.max(Constants.Arm.baseEncoderPosFwdLimitSwitch,
-                Constants.Arm.baseEncoderPosRevLimitSwitch);
+        return angle / (2 * Math.PI) * 2048 / Constants.Arm.baseGearRatio;
+    }
 
-        return MathUtil.clamp(angle / (2 * Math.PI) * 2048 / Constants.Arm.baseGearRatio, minTicks, maxTicks);
+    public static double jointAngleToTicks(double angle) {
+        return angle / (2 * Math.PI) * 2048 / Constants.Arm.jointGearRatio;
+    }
+
+    public static double baseTicksToAngle(double ticks) {
+        return ticks * (2 * Math.PI) / 2048 * Constants.Arm.baseGearRatio;
+    }
+
+    public static double jointTicksToAngle(double ticks) {
+        return ticks * (2 * Math.PI) / 2048 * Constants.Arm.jointGearRatio;
     }
 
     @Override
     public void baseGotoAngle(double angle) {
-        if (isBaseZeroed) {
-            motors.base.set(ControlMode.MotionMagic, baseAngleToTicks(angle));
+        if (isBaseZeroed && isJointZeroed) {
+            setBaseTargetPos(baseAngleToTicks(angle));
         } else {
             DriverStation.reportError("Can't go to an angle if base arm is not zeroed", false);
         }
+    }
+
+    @Override
+    public void jointGotoAngle(double angle) {
+        if (isBaseZeroed && isJointZeroed) {
+           setJointTargetPos(jointAngleToTicks(angle));
+        } else {
+            DriverStation.reportError("Can't go to an angle if base arm is not zeroed", false);
+        }
+    }
+    
+    @Override
+    public double getBaseTargetAngle() {
+        return baseTicksToAngle(targetPosBase);
+    } 
+    
+    @Override
+    public double getJointTargetAngle() {
+        return jointTicksToAngle(targetPosJoint);
     }
 
     @Override
@@ -261,56 +323,29 @@ public class Arm extends ArmBase {
                                 new InstantCommand(() -> {
                                     isBaseZeroed = !(isBaseZeroed && isJointZeroed);
                                     isJointZeroed = !(isBaseZeroed && isJointZeroed);
+                                    
+                                    if (!isBaseZeroed || !isJointZeroed) {
+                                        stop(); 
+                                    }
                                 })));
     }
 
     double currentVelOut;
-    double kF = 0.001;
+    final double kF = 0.002;
     double iZone = 1000;
 
+    
     @Override
     public void periodic() {
+        if (gettingZeroed.updateAndGet(isBaseZeroed && isJointZeroed)) {
+            setBaseTargetPos(motors.base.getEncoderTicks());
+            setJointTargetPos(motors.joint.getEncoderTicks());
+        }
+
         if (isJointZeroed && isBaseZeroed) {
             double torque = model.torqueToHoldState().getSecond();
-
-            if (holdJoint) {
-                
-                motors.joint.set(torque * kF);
-            } else {
-                if (jointPosController.getPositionError() > 1000) {
-                    jointPosController.setIntegratorRange(0, 0);
-                } else {
-                    jointPosController.setIntegratorRange(-1, 1);
-                }
-
-                double posOut = MathUtil.clamp(jointPosController.calculate(motors.joint.getEncoderTicks()), -0.3, 0.3);
-                currentVelOut = posOut;
-                motors.joint.set(torque * kF + posOut);
-            }
-        }
-    }
-
-    @Override
-    public void enableHoldJoint() {
-        if (!holdJoint) {
-            holdJoint = true;
-            jointPosController.reset();
-        }
-    }
-
-    @Override
-    public void reset() {
-        jointPosController.reset();
-    }
-
-    @Override
-    public void disableHoldJoint() {
-        if (holdJoint) {
-            holdJoint = false;
-            motors.joint.configStatorCurrentLimit(new StatorCurrentLimitConfiguration(true, Constants.Arm.jointMaxAmps,
-                    Constants.Arm.jointMaxAmps, 1), 1);
-
-            jointPosController.reset();
+            
+            motors.joint.config_kF(0, MathUtil.clamp(torque * kF, -0.1, 0.1), 0);
         }
     }
 
@@ -321,14 +356,14 @@ public class Arm extends ArmBase {
 
     @Override
     public boolean isBaseLeftHallActive() {
-        return baseHallRight.get();
+        return !baseHallRight.get();
     }
 
     @Override
     public boolean isBaseRightHallActive() {
-        return baseHallLeft.get();
+        return !baseHallLeft.get();
     }
-
+    
     @Override
     public void initSendable(SendableBuilder builder) {
         super.initSendable(builder);
@@ -342,23 +377,26 @@ public class Arm extends ArmBase {
         builder.addDoubleProperty("Base Angle [DEG]", () -> Math.toDegrees(this.baseAngle()), null);
         builder.addDoubleProperty("Joint Angle [DEG]", () -> Math.toDegrees(this.jointAngle()), null);
         builder.addDoubleProperty("Joint ticks", motors.joint::getEncoderTicks, null);
+        builder.addBooleanProperty("holdJoint", () -> holdJoint, null);
         builder.addDoubleProperty("Base ticks", motors.base::getEncoderTicks, null);
-        builder.addDoubleProperty("Motor Temp base right", motors.base::getTemperature, null);
-        builder.addDoubleProperty("Motor Temp base left", motors.baseFollower::getTemperature, null);
-        builder.addDoubleProperty("Motor Temp joint right", motors.joint::getTemperature, null);
-        builder.addDoubleProperty("Motor Temp joint left", motors.jointFollower::getTemperature, null);
-        builder.addDoubleProperty("Joint Current Stator", motors.joint::getTemperature, null);
+        // builder.addDoubleProperty("Motor Temp base right", motors.base::getTemperature, null);
+        // builder.addDoubleProperty("Motor Temp base left", motors.baseFollower::getTemperature, null);
+        // builder.addDoubleProperty("Motor Temp joint right", motors.joint::getTemperature, null);
+        // builder.addDoubleProperty("Motor Temp joint left", motors.jointFollower::getTemperature, null);
+        // builder.addDoubleProperty("Joint Current Stator", motors.joint::getTemperature, null);
         builder.addDoubleProperty("Joint encoder velocity", motors.joint::getEncoderVelocity, null);
         builder.addBooleanProperty("Base hall right", this::isBaseRightHallActive, null);
         builder.addBooleanProperty("Base hall left", this::isBaseLeftHallActive, null);
         builder.addDoubleProperty("Base CurrentStator", motors.base::getStatorCurrent, null);
-        builder.addDoubleProperty("kF", () -> kF, (newF) -> kF = newF );
         builder.addDoubleProperty("out hold", () -> kF * model.torqueToHoldState().getSecond(), null);
         builder.addDoubleProperty("VelOut", () -> currentVelOut, null);
-        builder.addDoubleProperty("joint target pos", () -> jointPosController.getSetpoint(), (target) -> this.setJointTargetPos(target));
+        builder.addDoubleProperty("joint target pos", () -> targetPosJoint, (target) -> targetPosJoint = target);
         builder.addBooleanProperty("Base is zeroed", () -> isBaseZeroed, null);
+        builder.addDoubleProperty("Arm pos x", () -> ArmKinematics.anglesToPos(baseAngle(), jointAngle()).x, null);
+        builder.addDoubleProperty("Arm pos y", () -> ArmKinematics.anglesToPos(baseAngle(), jointAngle()).y, null);
         builder.addDoubleProperty("base shuffle board target",
                 () -> Math.toDegrees(BaseGotoPositionShuffleBoard.getInstance().target),
                 (newTarget) -> BaseGotoPositionShuffleBoard.getInstance().target = Math.toRadians(newTarget));
     }
 }
+

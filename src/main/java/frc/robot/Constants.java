@@ -104,14 +104,9 @@ public final class Constants {
         public static final int dioIdHallBaseLeft = 9;
         public static final PhysicalProperties baseArm = new PhysicalProperties(0.782, 7.083, 1.10, 2747698.280 / 1e6);
 
-        public static final double gripperMassCAD = 2.153;
-        // public static final double gripperAmpereExtra90Deg = 4.8975;
-        // public static final double gripperAmpereExtra90Deg = 4.5;
-        public static final double gripperAmpereExtra90Deg = 0.0;
-
         public static final PhysicalProperties gripperArm = new PhysicalProperties(0.55,
-                (2 / torqueToAmpsProportionality * gripperAmpereExtra90Deg / jointGearRatio) / (gravity * 0.55) + gripperMassCAD, 0.800, 6538.368 / 1e6); 
-        
+                2.153, 0.840, 6538.368 / 1e6);
+
         public static final DirectionType baseFollowType = DirectionType.followMaster;
         public static final DirectionType jointFollowType = DirectionType.invertMaster;
 
@@ -120,7 +115,7 @@ public final class Constants {
 
         public static final double baseEncoderPosFwdLimitSwitch = 150.0 / 360.0 / Constants.Arm.baseGearRatio * 2048.0;
         public static final double baseEncoderPosRevLimitSwitch = 30.0 / 360.0 / Constants.Arm.baseGearRatio * 2048.0;
-        
+
         public static final double baseRightEncoderPosHallVelPositive = 0.0;
         public static final double baseRightEncoderPosHallVelNegative = 0.0;
         public static final double baseLeftEncoderPosHallVelPositive = 0.0;

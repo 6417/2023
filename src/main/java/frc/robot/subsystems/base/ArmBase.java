@@ -13,6 +13,14 @@ public class ArmBase extends Module {
         return 0.0;
     }
     
+    public double getJointTargetAngle() {
+        return jointAngle();
+    }
+
+    public double getBaseTargetAngle() {
+        return baseAngle();
+    }
+    
     public ArmModel getModel() {
         return new ArmModel(new ArmModel.ArmStateSupplier(this::baseAngle, this::jointAngle, () -> 0.0, () -> 0.0), Cargo.None);
     }
@@ -44,6 +52,10 @@ public class ArmBase extends Module {
     public void baseGotoAngle(double angle) {
 
     }
+
+    public void jointGotoAngle(double angle) {
+
+    }
     
     public void setBasePercent(double percent) {
 
@@ -51,14 +63,6 @@ public class ArmBase extends Module {
 
     public void setJointPercent(double percent) {
 
-    }
-    
-    public void enableHoldJoint() {
-        
-    }
-
-    public void disableHoldJoint() {
-        
     }
     
     public boolean baseIsAtTarget() {
@@ -69,11 +73,7 @@ public class ArmBase extends Module {
         
     }
     
-    public void reset() {
-        
-    }
-
-    public void setJointTargetVel(double vel) {
+    public void hold() {
         
     }
     

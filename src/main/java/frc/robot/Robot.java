@@ -26,6 +26,7 @@ import frc.fridowpi.joystick.JoystickHandler;
 import frc.fridowpi.joystick.joysticks.Logitech;
 import frc.fridowpi.pneumatics.FridoDoubleSolenoid;
 import frc.fridowpi.pneumatics.PneumaticHandler;
+import frc.fridowpi.utils.Vector2;
 import frc.robot.commands.arm.BaseGotoPositionShuffleBoard;
 import frc.robot.subsystems.Arm;
 
@@ -41,52 +42,64 @@ import frc.robot.subsystems.Arm;
 public class Robot extends TimedRobot {
     private Command m_autonomousCommand;
 
-
     AnalogInput distanceSensor = new AnalogInput(0);
+
+    private static boolean floatComp(double a, double b, double epsilon) {
+        return Math.abs(a - b) < epsilon;
+    }
+
+    static final double epsilon = 0.001;
 
     @Override
     public void robotInit() {
-        Shuffleboard.getTab("debug").add("Base goto angle", BaseGotoPositionShuffleBoard.getInstance());
+        Shuffleboard.getTab("debug").add("Base goto angle",
+                BaseGotoPositionShuffleBoard.getInstance());
 
         JoystickHandler.getInstance().setupJoysticks(List.of(Constants.Joysticks.armJoystick));
-        PneumaticHandler.getInstance().configureCompressor(61, PneumaticsModuleType.CTREPCM);
+        PneumaticHandler.getInstance().configureCompressor(61,
+                PneumaticsModuleType.CTREPCM);
         PneumaticHandler.getInstance().init();
 
         Arm.getInstance().init();
-        
+
         JoystickHandler.getInstance().bind(Arm.getInstance());
 
         FridoDoubleSolenoid gripper = new FridoDoubleSolenoid(2, 3);
         gripper.init();
         // PneumaticHandler.getInstance().enableCompressor();
         // Shuffleboard.getTab("Arm").add(new ResetEncodersBase());
+        Shuffleboard.getTab("debug").add("Analog In", distanceSensor);
 
-        JoystickHandler.getInstance().bind(new Binding(Constants.Joysticks.armJoystick, Logitech.rt, Button::toggleOnTrue, new CommandBase() {
-            @Override
-            public void initialize() {
-                gripper.set(Value.kForward);
-            };
+        JoystickHandler.getInstance()
+                .bind(new Binding(Constants.Joysticks.armJoystick, Logitech.rt, Button::toggleOnTrue,
+                        new CommandBase() {
+                            @Override
+                            public void initialize() {
+                                gripper.set(Value.kForward);
+                            };
 
-            @Override
-            public boolean isFinished() {
-                return false;
-            }
+                            @Override
+                            public boolean isFinished() {
+                                return false;
+                            }
 
-            @Override
-            public void end(boolean interrupted) {
-                gripper.set(Value.kReverse);
-            }
+                            @Override
+                            public void end(boolean interrupted) {
+                                gripper.set(Value.kReverse);
+                            }
 
-            @Override
-            public Set<Subsystem> getRequirements() {
-                return new HashSet<>();
-            };
-        }));
+                            @Override
+                            public Set<Subsystem> getRequirements() {
+                                return new HashSet<>();
+                            };
+                        }));
 
-        JoystickHandler.getInstance().bind(new Binding(Constants.Joysticks.armJoystick, Logitech.x, Button::onFalse, new InstantCommand(
-                () -> Arm.getInstance().setEncoderTicksJoint(-167.0 / 360.0 / Constants.Arm.jointGearRatio * 2048))));
-        
-        JoystickHandler.getInstance().init();        
+        JoystickHandler.getInstance()
+                .bind(new Binding(Constants.Joysticks.armJoystick, Logitech.x, Button::onFalse, new InstantCommand(
+                        () -> Arm.getInstance().setEncoderTicksJoint(-167.0 / 360.0 /
+                                Constants.Arm.jointGearRatio * 2048))));
+
+        JoystickHandler.getInstance().init();
     }
 
     @Override
@@ -97,6 +110,7 @@ public class Robot extends TimedRobot {
     /** This function is called once each time the robot enters Disabled mode. */
     @Override
     public void disabledInit() {
+        Arm.getInstance().stop();
     }
 
     @Override
@@ -109,6 +123,8 @@ public class Robot extends TimedRobot {
      */
     @Override
     public void autonomousInit() {
+        Arm.getInstance().stop();
+        Arm.getInstance().hold();
         // schedule the autonomous command (example)
         if (m_autonomousCommand != null) {
             m_autonomousCommand.schedule();
@@ -122,7 +138,8 @@ public class Robot extends TimedRobot {
 
     @Override
     public void teleopInit() {
-        Arm.getInstance().reset();
+        Arm.getInstance().stop();
+        Arm.getInstance().hold();
         // This makes sure that the autonomous stops running when
         // teleop starts running. If you want the autonomous to
         // continue until interrupted by another command, remove
@@ -139,6 +156,8 @@ public class Robot extends TimedRobot {
 
     @Override
     public void testInit() {
+        Arm.getInstance().stop();
+        Arm.getInstance().hold();
         // Cancels all running commands at the start of test mode.
         CommandScheduler.getInstance().cancelAll();
     }
@@ -151,6 +170,8 @@ public class Robot extends TimedRobot {
     /** This function is called once when the robot is first started up. */
     @Override
     public void simulationInit() {
+        Arm.getInstance().stop();
+        Arm.getInstance().hold();
     }
 
     /** This function is called periodically whilst in simulation. */

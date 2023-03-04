@@ -1,19 +1,62 @@
-// Copyright (c) FIRST and other WPILib contributors.
-// Open Source Software; you can modify and/or share it under the terms of
-// the WPILib BSD license file in the root directory of this project.
-
 package frc.robot;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.RamseteCommand;
+import frc.fridowpi.joystick.JoystickHandler;
+import frc.fridowpi.sensors.FridoNavx;
+import frc.robot.Constants.Drive.Motors;
+import frc.robot.autonomous_tools.PathviewerLoader;
+import frc.robot.autonomous_tools.RamseteCommandGenerator;
+import frc.robot.commands.autonomous.ChargeAutonomous;
+import frc.robot.commands.autonomous.FollowPath;
+import frc.robot.commands.autonomous.TimedForward;
+import frc.robot.commands.driveCommands.BalanceCommand;
+import frc.robot.subsystems.Vision;
+import frc.robot.subsystems.drive.Drive;
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
+import java.util.List;
+
+import javax.swing.JComboBox.KeySelectionManager;
+
+import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.InvertType;
+import com.ctre.phoenix.motorcontrol.can.TalonFX;
+
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
+import edu.wpi.first.math.trajectory.Trajectory;
+import edu.wpi.first.math.trajectory.TrajectoryConfig;
+import edu.wpi.first.math.trajectory.TrajectoryGenerator;
+import edu.wpi.first.math.trajectory.TrajectoryParameterizer.TrajectoryGenerationException;
+import edu.wpi.first.math.trajectory.constraint.DifferentialDriveVoltageConstraint;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.util.sendable.SendableBuilder;
+import edu.wpi.first.wpilibj.AnalogInput;
+import edu.wpi.first.networktables.BooleanArrayEntry;
+import edu.wpi.first.networktables.BooleanArrayTopic;
+import edu.wpi.first.networktables.BooleanEntry;
+import edu.wpi.first.networktables.BooleanTopic;
+import edu.wpi.first.networktables.DoubleArrayEntry;
+import edu.wpi.first.networktables.DoubleArrayTopic;
+import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.PubSubOption;
+import edu.wpi.first.networktables.Topic;
+import edu.wpi.first.networktables.TopicInfo;
+import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.SPI.Port;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandBase;
@@ -55,7 +98,7 @@ public class Robot extends TimedRobot {
         Shuffleboard.getTab("debug").add("Base goto angle",
                 BaseGotoPositionShuffleBoard.getInstance());
 
-        JoystickHandler.getInstance().setupJoysticks(List.of(Constants.Joysticks.armJoystick));
+        JoystickHandler.getInstance().setupJoysticks(List.of(Constants.Joysticks.armJoystick, Constants.Joystick.accelerator, Constants.Joystick.steeringWheel));
         PneumaticHandler.getInstance().configureCompressor(61,
                 PneumaticsModuleType.CTREPCM);
         PneumaticHandler.getInstance().init();
@@ -99,6 +142,16 @@ public class Robot extends TimedRobot {
                         () -> Arm.getInstance().setEncoderTicksJoint(-167.0 / 360.0 /
                                 Constants.Arm.jointGearRatio * 2048))));
 
+
+        FridoNavx.setup(Port.kMXP);
+        FridoNavx.getInstance().init();
+        JoystickHandler.getInstance()
+            .setupJoysticks(List.of());
+        JoystickHandler.getInstance().bind(Drive.getInstance());
+
+        Drive.getInstance().init();
+        Shuffleboard.getTab("Debug").add(Drive.getInstance());
+
         JoystickHandler.getInstance().init();
     }
 
@@ -117,21 +170,21 @@ public class Robot extends TimedRobot {
     public void disabledPeriodic() {
     }
 
-    /**
-     * This autonomous runs the autonomous command selected by your
-     * {@link RobotContainer} class.
-     */
     @Override
     public void autonomousInit() {
         Arm.getInstance().stop();
         Arm.getInstance().hold();
-        // schedule the autonomous command (example)
+        // m_autonomousCommand = new ChargeAutonomous(StartingPosition.LEFT);
+        m_autonomousCommand = new BalanceCommand();
+
+        // var cmd = RamseteCommandGenerator.generateRamseteCommand(path);
+        // CommandScheduler.getInstance().schedule(cmd);
+
         if (m_autonomousCommand != null) {
             m_autonomousCommand.schedule();
         }
     }
 
-    /** This function is called periodically during autonomous. */
     @Override
     public void autonomousPeriodic() {
     }
@@ -140,41 +193,30 @@ public class Robot extends TimedRobot {
     public void teleopInit() {
         Arm.getInstance().stop();
         Arm.getInstance().hold();
-        // This makes sure that the autonomous stops running when
-        // teleop starts running. If you want the autonomous to
-        // continue until interrupted by another command, remove
-        // this line or comment it out.
         if (m_autonomousCommand != null) {
             m_autonomousCommand.cancel();
         }
+        Drive.getInstance().reset();
     }
 
-    /** This function is called periodically during operator control. */
     @Override
     public void teleopPeriodic() {
+        // double AnalogWert = analog.getValue();
+        // double volt = AnalogWert*(5.0/4096);
+        // double Distanz = 29.988 * Math.pow((volt), -1.173);
+        // System.out.println(Distanz);
+
+    Drive.getInstance().drive(0.2,0,0);
     }
 
     @Override
     public void testInit() {
-        Arm.getInstance().stop();
-        Arm.getInstance().hold();
-        // Cancels all running commands at the start of test mode.
         CommandScheduler.getInstance().cancelAll();
-    }
-
-    /** This function is called periodically during test mode. */
-    @Override
-    public void testPeriodic() {
-    }
-
-    /** This function is called once when the robot is first started up. */
-    @Override
-    public void simulationInit() {
         Arm.getInstance().stop();
         Arm.getInstance().hold();
     }
 
-    /** This function is called periodically whilst in simulation. */
+
     @Override
     public void simulationPeriodic() {
     }

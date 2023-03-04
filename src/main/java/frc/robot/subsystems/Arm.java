@@ -85,7 +85,7 @@ public class Arm extends ArmBase {
                     Constants.Arm.baseStatorCurrentLimit, Constants.Arm.baseStatorCurrentLimit, 1));
             jointFollower.configStatorCurrentLimit(new StatorCurrentLimitConfiguration(true,
                     Constants.Arm.jointStatorCurrentLimit, Constants.Arm.jointStatorCurrentLimit, 1));
-            
+
             joint.configNeutralDeadband(0.0001);
             jointFollower.configNeutralDeadband(0.0001);
 
@@ -99,19 +99,18 @@ public class Arm extends ArmBase {
             base.configMotionCruiseVelocity(Constants.Arm.baseMotionMagic.cruiseVel);
             base.configMotionAcceleration(Constants.Arm.baseMotionMagic.accel);
             base.configMotionSCurveStrength(Constants.Arm.baseMotionMagic.curveStrength);
-            
+
             joint.configForwardSoftLimitThreshold(21000);
             jointFollower.configForwardSoftLimitThreshold(21000);
 
             joint.configReverseSoftLimitThreshold(-28100);
             jointFollower.configReverseSoftLimitThreshold(-28100);
 
-            
             joint.config_kP(0, Arm.this.kP);
             joint.config_kI(0, Arm.this.kI);
             joint.config_kD(0, Arm.this.kD);
             joint.config_kF(0, 0);
-            
+
             joint.configMotionAcceleration(9000);
             joint.configMotionCruiseVelocity(3000);
         }
@@ -140,7 +139,7 @@ public class Arm extends ArmBase {
     double kP = 0.045; // 0.2
     double kI = 0.00001; // 25; // 0.000025 * factor;
     double kD = 0.001; // 0.3
-    
+
     LatchBooleanRising gettingZeroed;
 
     @Override
@@ -171,9 +170,9 @@ public class Arm extends ArmBase {
                 * Constants.Arm.baseGearRatio * Math.PI * 2.0;
     }
 
-
     private double targetPosJoint = 0;
-    private double targetPosBase = (Constants.Arm.baseEncoderPosFwdLimitSwitch + Constants.Arm.baseEncoderPosRevLimitSwitch) / 2;
+    private double targetPosBase = (Constants.Arm.baseEncoderPosFwdLimitSwitch
+            + Constants.Arm.baseEncoderPosRevLimitSwitch) / 2;
 
     private void setJointTargetPos(double pos) {
         System.out.println("target pos set to: " + pos);
@@ -185,7 +184,7 @@ public class Arm extends ArmBase {
         motors.base.set(ControlMode.MotionMagic, pos);
         targetPosBase = pos;
     }
-    
+
     @Override
     public void hold() {
         baseGotoAngle(baseAngle());
@@ -278,17 +277,17 @@ public class Arm extends ArmBase {
     @Override
     public void jointGotoAngle(double angle) {
         if (isBaseZeroed && isJointZeroed) {
-           setJointTargetPos(jointAngleToTicks(angle));
+            setJointTargetPos(jointAngleToTicks(angle));
         } else {
             DriverStation.reportError("Can't go to an angle if base arm is not zeroed", false);
         }
     }
-    
+
     @Override
     public double getBaseTargetAngle() {
         return baseTicksToAngle(targetPosBase);
-    } 
-    
+    }
+
     @Override
     public double getJointTargetAngle() {
         return jointTicksToAngle(targetPosJoint);
@@ -323,9 +322,9 @@ public class Arm extends ArmBase {
                                 new InstantCommand(() -> {
                                     isBaseZeroed = !(isBaseZeroed && isJointZeroed);
                                     isJointZeroed = !(isBaseZeroed && isJointZeroed);
-                                    
+
                                     if (!isBaseZeroed || !isJointZeroed) {
-                                        stop(); 
+                                        stop();
                                     }
                                 })));
     }
@@ -334,7 +333,6 @@ public class Arm extends ArmBase {
     final double kF = 0.002;
     double iZone = 1000;
 
-    
     @Override
     public void periodic() {
         if (gettingZeroed.updateAndGet(isBaseZeroed && isJointZeroed)) {
@@ -344,7 +342,7 @@ public class Arm extends ArmBase {
 
         if (isJointZeroed && isBaseZeroed) {
             double torque = model.torqueToHoldState().getSecond();
-            
+
             motors.joint.config_kF(0, MathUtil.clamp(torque * kF, -0.1, 0.1), 0);
         }
     }
@@ -363,7 +361,7 @@ public class Arm extends ArmBase {
     public boolean isBaseRightHallActive() {
         return !baseHallLeft.get();
     }
-    
+
     @Override
     public void initSendable(SendableBuilder builder) {
         super.initSendable(builder);
@@ -379,11 +377,16 @@ public class Arm extends ArmBase {
         builder.addDoubleProperty("Joint ticks", motors.joint::getEncoderTicks, null);
         builder.addBooleanProperty("holdJoint", () -> holdJoint, null);
         builder.addDoubleProperty("Base ticks", motors.base::getEncoderTicks, null);
-        // builder.addDoubleProperty("Motor Temp base right", motors.base::getTemperature, null);
-        // builder.addDoubleProperty("Motor Temp base left", motors.baseFollower::getTemperature, null);
-        // builder.addDoubleProperty("Motor Temp joint right", motors.joint::getTemperature, null);
-        // builder.addDoubleProperty("Motor Temp joint left", motors.jointFollower::getTemperature, null);
-        // builder.addDoubleProperty("Joint Current Stator", motors.joint::getTemperature, null);
+        // builder.addDoubleProperty("Motor Temp base right",
+        // motors.base::getTemperature, null);
+        // builder.addDoubleProperty("Motor Temp base left",
+        // motors.baseFollower::getTemperature, null);
+        // builder.addDoubleProperty("Motor Temp joint right",
+        // motors.joint::getTemperature, null);
+        // builder.addDoubleProperty("Motor Temp joint left",
+        // motors.jointFollower::getTemperature, null);
+        // builder.addDoubleProperty("Joint Current Stator",
+        // motors.joint::getTemperature, null);
         builder.addDoubleProperty("Joint encoder velocity", motors.joint::getEncoderVelocity, null);
         builder.addBooleanProperty("Base hall right", this::isBaseRightHallActive, null);
         builder.addBooleanProperty("Base hall left", this::isBaseLeftHallActive, null);
@@ -394,9 +397,21 @@ public class Arm extends ArmBase {
         builder.addBooleanProperty("Base is zeroed", () -> isBaseZeroed, null);
         builder.addDoubleProperty("Arm pos x", () -> ArmKinematics.anglesToPos(baseAngle(), jointAngle()).x, null);
         builder.addDoubleProperty("Arm pos y", () -> ArmKinematics.anglesToPos(baseAngle(), jointAngle()).y, null);
+
+        builder.addDoubleProperty("Arm angle calc alpha1", () -> Math.toDegrees(
+                ArmKinematics.posToAngles(ArmKinematics.anglesToPos(baseAngle(), jointAngle())).getFirst().base), null);
+        builder.addDoubleProperty("Arm angle calc beta1", () -> Math.toDegrees(
+                ArmKinematics.posToAngles(ArmKinematics.anglesToPos(baseAngle(), jointAngle())).getFirst().joint),
+                null);
+
+        builder.addDoubleProperty("Arm angle calc alpha2", () -> Math.toDegrees(
+                ArmKinematics.posToAngles(ArmKinematics.anglesToPos(baseAngle(), jointAngle())).getSecond().base),
+                null);
+        builder.addDoubleProperty("Arm angle calc beta2", () -> Math.toDegrees(
+                ArmKinematics.posToAngles(ArmKinematics.anglesToPos(baseAngle(), jointAngle())).getSecond().joint),
+                null);
         builder.addDoubleProperty("base shuffle board target",
                 () -> Math.toDegrees(BaseGotoPositionShuffleBoard.getInstance().target),
                 (newTarget) -> BaseGotoPositionShuffleBoard.getInstance().target = Math.toRadians(newTarget));
     }
 }
-

@@ -37,6 +37,10 @@ public class Vector2 {
         return x * other.x + y * other.y;
     }
 
+    public double signCrossDot(Vector2 other) {
+        return Math.signum(cross(other)) * dot(other);
+    }
+
     public double cross(Vector2 other) {
         return x * other.y - other.x * y;
     }

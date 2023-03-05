@@ -118,10 +118,10 @@ public final class Constants {
 
     public static class Arm {
         public static class PhysicalProperties {
-            public double centerOfMass;
-            public double mass;
-            public double length;
-            public double momentOfInertia;
+            public final double centerOfMass;
+            public final double mass;
+            public final double length;
+            public final double momentOfInertia;
 
             public PhysicalProperties(double centerOfMass, double mass, double length, double momentOfInertia) {
                 this.centerOfMass = centerOfMass;
@@ -183,7 +183,7 @@ public final class Constants {
         public static final double jointCenterOfMassAngleOffset = Math.toRadians(-2.955);
 
         public static final PIDValues basePid = new PIDValues(0.775, 2e-5, 0.01, 2000, 0, 10);
-        public static final MotionMagic baseMotionMagic = new MotionMagic(9500, 5000, 1);
+        public static final MotionMagic baseMotionMagic = new MotionMagic(1500, 5000, 1); // TODO: set vel back to 9500
 
         public static final LimitSwitchPolarity limitSwitchPolarity = LimitSwitchPolarity.kNormallyClosed;
         public static final int dioIdHallBaseRight = 8;

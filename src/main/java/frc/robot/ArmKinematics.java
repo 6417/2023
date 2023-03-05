@@ -47,7 +47,15 @@ public class ArmKinematics {
         double u = baseArmLen;
         double v = gripperArmLen;
         double a = pos.magnitude();
+
         double theta = Math.atan2(pos.y, pos.x);
+        
+        // If x < 0 and y < 0 the angle should be > pi
+        if (theta < -Math.PI / 2) {
+            System.out.println("alternate branch");
+            theta = Math.PI * 2 + theta;
+        }
+
         double phi1 = Math.acos((sq(u) - sq(v) + sq(a)) / (2 * a * u));
         double phi2 = -phi1;
 

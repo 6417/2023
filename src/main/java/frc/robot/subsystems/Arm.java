@@ -35,6 +35,7 @@ import frc.fridowpi.utils.LatchedBooleanFalling;
 import frc.fridowpi.utils.Vector2;
 import frc.robot.ArmKinematics;
 import frc.robot.ArmModel;
+import frc.robot.ArmPathGenerator;
 import frc.robot.Constants;
 import frc.robot.commands.InstantCommandRunWhenDisabled;
 import frc.robot.commands.arm.BaseGotoPositionShuffleBoard;
@@ -133,7 +134,7 @@ public class Arm extends ArmBase {
             joint.config_kF(0, 0);
 
             joint.configMotionAcceleration(9000);
-            joint.configMotionCruiseVelocity(3000);
+            joint.configMotionCruiseVelocity(500); // TODO: change back to 3000
         }
     }
 
@@ -146,6 +147,7 @@ public class Arm extends ArmBase {
     private DigitalInput baseHallRight;
     private DigitalInput baseHallLeft;
     private ManualControlMode currentManualControlMode;
+    private ArmPathGenerator pathGenerator;
 
     public static ArmBase getInstance() {
         if (instance == null) {
@@ -167,6 +169,7 @@ public class Arm extends ArmBase {
 
     @Override
     public void init() {
+        pathGenerator = new ArmPathGenerator();
         gettingZeroed = new LatchBooleanRising(isBaseZeroed && isJointZeroed);
         gettingUnzeroed = new LatchedBooleanFalling(isBaseZeroed && isJointZeroed);
         motors = new Motors();
@@ -473,12 +476,14 @@ public class Arm extends ArmBase {
         builder.addDoubleProperty("Base CurrentStator", motors.base::getStatorCurrent, null);
         builder.addDoubleProperty("out hold", () -> kF * model.torqueToHoldState().getSecond(), null);
         builder.addDoubleProperty("VelOut", () -> currentVelOut, null);
-        builder.addDoubleProperty("joint target pos", () -> targetPosJoint, (target) -> targetPosJoint = target);
         builder.addBooleanProperty("Base is zeroed", () -> isBaseZeroed, null);
         builder.addBooleanProperty("Joint is zeroed", () -> isJointZeroed, null);
         builder.addDoubleProperty("Arm pos x", () -> ArmKinematics.anglesToPos(baseAngle(), jointAngle()).x, null);
         builder.addDoubleProperty("Arm pos y", () -> ArmKinematics.anglesToPos(baseAngle(), jointAngle()).y, null);
         builder.addStringProperty("Manual Control Mode", () -> currentManualControlMode.toString(), null);
+        builder.addBooleanProperty("Current Pos Valid", () -> pathGenerator.isValidInField(getPos()), null);
+        builder.addDoubleProperty("Joint target [DEG]", () -> Math.toDegrees(jointTicksToAngle(targetPosJoint)), null);
+        builder.addDoubleProperty("Base target [DEG]", () -> Math.toDegrees(baseTicksToAngle(targetPosBase)), null);
 
         builder.addDoubleProperty("Arm angle calc alpha1", () -> Math.toDegrees(
                 ArmKinematics.posToAngles(ArmKinematics.anglesToPos(baseAngle(), jointAngle())).getFirst().base), null);

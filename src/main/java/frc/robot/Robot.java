@@ -188,7 +188,6 @@ public class Robot extends TimedRobot {
 
     @Override
     public void teleopInit() {
-        CommandScheduler.getInstance().cancelAll();
         Arm.getInstance().stop();
         Arm.getInstance().hold();
         if (m_autonomousCommand != null) {

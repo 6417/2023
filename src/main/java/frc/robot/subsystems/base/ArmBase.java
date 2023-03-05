@@ -23,6 +23,10 @@ public class ArmBase extends Module {
     public double getBaseTargetAngle() {
         return baseAngle();
     }
+    
+    public boolean isPosValid(Vector2 pos) {
+        return true;
+    }
 
     public ArmModel getModel() {
         return new ArmModel(new ArmModel.ArmStateSupplier(this::baseAngle, this::jointAngle, () -> 0.0, () -> 0.0),

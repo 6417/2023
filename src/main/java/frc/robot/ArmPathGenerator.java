@@ -15,6 +15,7 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.Pair;
 import edu.wpi.first.wpilibj.Relay.InvalidValueException;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.fridowpi.utils.Matrix2;
 import frc.fridowpi.utils.Vector2;
 import frc.robot.commands.arm.PickUpBackward;
 
@@ -29,6 +30,23 @@ public class ArmPathGenerator {
 
     private Supplier<Double> baseAngle;
     private Supplier<Double> jointAngle;
+
+    private static class Pair<A, B> extends edu.wpi.first.math.Pair<A, B> {
+        public Pair(A first, B second) {
+            super(first, second);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj instanceof Pair<?, ?>) {
+                var otherFirst = ((Pair<?, ?>) obj).getFirst();
+                var otherSecond = ((Pair<?, ?>) obj).getSecond();
+
+                return getFirst().equals(otherFirst) && getSecond().equals(otherSecond);
+            }
+            return super.equals(obj);
+        }
+    }
 
     private static class Quadrant {
         public Vector2 from;
@@ -64,12 +82,29 @@ public class ArmPathGenerator {
             return Arrays.stream(quadrants).map((q) -> q.offset(off)).collect(Collectors.toList())
                     .toArray(Quadrant[]::new);
         }
+
+        public static Quadrant[] flip(Quadrant[] quadrants) {
+            return Arrays.stream(quadrants).map((q) -> q.flip()).collect(Collectors.toList())
+                    .toArray(Quadrant[]::new);
+        }
+
+        public Quadrant flip() {
+            Matrix2 matFlip = new Matrix2(new double[][] {
+                    { -1, 0 },
+                    { 0, 1 }
+            });
+            if (driveThrough != null) {
+                return new Quadrant(matFlip.vmul(from), matFlip.vmul(to), matFlip.vmul(driveThrough));
+            } else {
+                return new Quadrant(matFlip.vmul(from), matFlip.vmul(to), null);
+            }
+        }
     }
 
     static final double coneHeight = Constants.Arm.baseArm.length - Constants.Arm.gripperArm.length;
     static final double robotHeight = 0.164;
 
-    static Map<Pair<RobotPos, RobotOrientation>, Quadrant[]> quadrants = new HashMap<>();
+    static Map<RobotPos, Map<RobotOrientation, Quadrant[]>> quadrants = new HashMap<>();
 
     static <T> T[] concat(T[] array1, T[] array2) {
         List<T> resultList = new ArrayList<>(array1.length + array2.length);
@@ -85,7 +120,7 @@ public class ArmPathGenerator {
     static Quadrant[] quadrantsField = new Quadrant[] {
             new Quadrant(new Vector2(0.26, -0.05), new Vector2(1.44, 0.05), null),
             new Quadrant(new Vector2(0.26, 0.05), new Vector2(1.44, 1.78), new Vector2(0.29, coneHeight + 0.01)),
-            new Quadrant(new Vector2(0.26, 0.05), new Vector2(-0.56, 1.78),
+            new Quadrant(new Vector2(0.26, 0.05), new Vector2(-0.61, 1.78),
                     new Vector2(0, coneHeight)),
             new Quadrant(new Vector2(-0.56, 0.05), new Vector2(-1.74, 1.78), new Vector2(-0.75, coneHeight + 0.01)),
             new Quadrant(new Vector2(-0.56, -0.05), new Vector2(-1.74, 0.05), null)
@@ -93,51 +128,56 @@ public class ArmPathGenerator {
 
     static {
 
+        // ORDER MATTERS!
         Quadrant[] quadrantsLoadingZone = new Quadrant[] {
-                new Quadrant(new Vector2(0, -0.5), new Vector2(0.1, 1.78), new Vector2(-0.05, 1.2)),
                 new Quadrant(new Vector2(0, 1.0 - robotHeight), new Vector2(0.3, 1.78), null),
+                new Quadrant(new Vector2(-0.05, -0.05), new Vector2(0.0, 1.78), new Vector2(-0.05, 1.2)),
         };
 
         Quadrant[] quadrantsGrid = new Quadrant[] {
-                new Quadrant(new Vector2(0.0, 0.25), new Vector2(0.3, 1.74), new Vector2(0.25, 1.05 + coneHeight)),
-                new Quadrant(new Vector2(0.30, 1.05), new Vector2(0.75, 1.74), new Vector2(0.6, 1.35)),
-                new Quadrant(new Vector2(0.75, 1.3), new Vector2(1.1, 1.74), null),
+                new Quadrant(new Vector2(0.75, 1.07), new Vector2(1.44, 1.74), null),
+                new Quadrant(new Vector2(0.30, 0.78), new Vector2(0.75, 1.74), new Vector2(0.6, 1.35)),
+                new Quadrant(new Vector2(0.0, 0.20), new Vector2(0.29, 1.74), new Vector2(0.25, 1.05 + coneHeight)),
         };
 
-        Vector2 forwardOffset = new Vector2(0.46, 0.0);
-        Vector2 reverseOffset = new Vector2(-0.60, 0.0);
+        Vector2 forwardOffset = new Vector2(0.26, 0.0);
+        Vector2 reverseOffset = new Vector2(0.61, 0.0);
 
         Quadrant[] fieldForward = new Quadrant[] {
-                quadrantsField[4],
-                quadrantsField[3],
                 quadrantsField[2],
-                quadrantsField[1],
+                quadrantsField[3],
+                quadrantsField[4],
         };
 
         Quadrant[] fieldReverse = new Quadrant[] {
-                quadrantsField[0],
-                quadrantsField[1],
                 quadrantsField[2],
-                quadrantsField[3],
+                quadrantsField[1],
+                quadrantsField[0],
         };
 
-        quadrants.put(new Pair<>(RobotPos.FIELD, RobotOrientation.FORWARD), quadrantsField);
-        quadrants.put(new Pair<>(RobotPos.FIELD, RobotOrientation.REVERSE), quadrantsField);
+        Map<RobotOrientation, Quadrant[]> quadrantsFieldMap = new HashMap<>();
+        quadrantsFieldMap.put(RobotOrientation.FORWARD, quadrantsField);
+        quadrantsFieldMap.put(RobotOrientation.REVERSE, quadrantsField);
+        quadrants.put(RobotPos.FIELD, quadrantsFieldMap);
 
-        quadrants.put(new Pair<>(RobotPos.LOADING_ZONE, RobotOrientation.FORWARD),
+        Map<RobotOrientation, Quadrant[]> quadrantsLoadingZoneMap = new HashMap<>();
+        quadrantsLoadingZoneMap.put(RobotOrientation.FORWARD,
                 concat(Quadrant.offset(quadrantsLoadingZone, forwardOffset), fieldForward));
-        quadrants.put(new Pair<>(RobotPos.LOADING_ZONE, RobotOrientation.REVERSE),
-                concat(Quadrant.offset(quadrantsLoadingZone, reverseOffset), fieldReverse));
+        quadrantsLoadingZoneMap.put(RobotOrientation.REVERSE,
+                concat(Quadrant.flip(Quadrant.offset(quadrantsLoadingZone, reverseOffset)), fieldReverse));
+        quadrants.put(RobotPos.LOADING_ZONE, quadrantsLoadingZoneMap);
 
-        quadrants.put(new Pair<>(RobotPos.GRID, RobotOrientation.FORWARD),
+        Map<RobotOrientation, Quadrant[]> quadrantsGridMap = new HashMap<>();
+        quadrantsGridMap.put(RobotOrientation.FORWARD,
                 concat(Quadrant.offset(quadrantsGrid, forwardOffset), fieldForward));
-        quadrants.put(new Pair<>(RobotPos.GRID, RobotOrientation.REVERSE),
-                concat(Quadrant.offset(quadrantsGrid, reverseOffset), fieldReverse));
+        quadrantsGridMap.put(RobotOrientation.REVERSE,
+                concat(Quadrant.flip(Quadrant.offset(quadrantsGrid, reverseOffset)), fieldReverse));
+        quadrants.put(RobotPos.GRID, quadrantsGridMap);
     }
 
-    private int getQuadrantIndexOfPoint(Vector2 point, RobotPos pos, RobotOrientation orientation)
+    public int getQuadrantIndexOfPoint(Vector2 point, RobotPos pos, RobotOrientation orientation)
             throws InvalidValueException {
-        Quadrant[] quadrants = ArmPathGenerator.quadrants.get(new Pair<>(pos, orientation));
+        Quadrant[] quadrants = ArmPathGenerator.quadrants.get(pos).get(orientation);
         for (int i = 0; i < quadrants.length; i++) {
             if (quadrants[i].contains(point)) {
                 return i;
@@ -181,7 +221,7 @@ public class ArmPathGenerator {
 
             int i = 0;
             for (int quad = indexPos + sign; quad != indexTarget - sign; quad += sign) {
-                path[i] = quadrants.get(new Pair<>(pos, orientation))[quad].driveThrough;
+                path[i] = quadrants.get(pos).get(orientation)[quad].driveThrough;
                 i++;
             }
 

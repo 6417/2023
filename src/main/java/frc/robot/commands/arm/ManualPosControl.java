@@ -1,6 +1,7 @@
 package frc.robot.commands.arm;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.fridowpi.joystick.JoystickHandler;
@@ -40,9 +41,15 @@ public class ManualPosControl extends CommandBase {
                 Constants.Joysticks.armJoystickDeadZone);
 
         if (Arm.getInstance().isZeroed()) {
-            target = target.add(new Vector2(px, py).smul(-0.005));
+            Vector2 newTarget = target.add(new Vector2(px, py).smul(-0.005));
+            if (!Arm.getInstance().isPosValid(newTarget)) {
+                DriverStation.reportError("[ManualPosControl::execute] Invalid position", false);
+                return;
+            }
+            target = newTarget;
             var solutions = ArmKinematics.posToAngles(target);
             ArmKinematics.Values<Double> angles;
+
 
             if (target.x >= 0) {
                 angles = solutions.getFirst();

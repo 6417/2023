@@ -14,6 +14,7 @@ import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.Relay.InvalidValueException;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandBase;
@@ -37,6 +38,8 @@ import frc.robot.ArmKinematics;
 import frc.robot.ArmModel;
 import frc.robot.ArmPathGenerator;
 import frc.robot.Constants;
+import frc.robot.ArmPathGenerator.RobotOrientation;
+import frc.robot.ArmPathGenerator.RobotPos;
 import frc.robot.commands.InstantCommandRunWhenDisabled;
 import frc.robot.commands.arm.BaseGotoPositionShuffleBoard;
 import frc.robot.commands.arm.BaseManualControl;
@@ -360,6 +363,11 @@ public class Arm extends ArmBase {
         motors.base.stopMotor();
         motors.joint.stopMotor();
     }
+    
+    @Override
+    public boolean isPosValid(Vector2 pos) {
+        return pathGenerator.isValidInField(pos);
+    }
 
     @Override
     public List<Binding> getMappings() {
@@ -481,7 +489,13 @@ public class Arm extends ArmBase {
         builder.addDoubleProperty("Arm pos x", () -> ArmKinematics.anglesToPos(baseAngle(), jointAngle()).x, null);
         builder.addDoubleProperty("Arm pos y", () -> ArmKinematics.anglesToPos(baseAngle(), jointAngle()).y, null);
         builder.addStringProperty("Manual Control Mode", () -> currentManualControlMode.toString(), null);
-        builder.addBooleanProperty("Current Pos Valid", () -> pathGenerator.isValidInField(getPos()), null);
+        builder.addDoubleProperty("Pos Quadrant idx", () -> {
+            try {
+                return pathGenerator.getQuadrantIndexOfPoint(getPos(), RobotPos.GRID, RobotOrientation.FORWARD);
+            } catch (InvalidValueException e) {
+                return -1;
+            }
+        }, null);
         builder.addDoubleProperty("Joint target [DEG]", () -> Math.toDegrees(jointTicksToAngle(targetPosJoint)), null);
         builder.addDoubleProperty("Base target [DEG]", () -> Math.toDegrees(baseTicksToAngle(targetPosBase)), null);
 

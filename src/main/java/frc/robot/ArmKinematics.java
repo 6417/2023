@@ -52,7 +52,6 @@ public class ArmKinematics {
         
         // If x < 0 and y < 0 the angle should be > pi
         if (theta < -Math.PI / 2) {
-            System.out.println("alternate branch");
             theta = Math.PI * 2 + theta;
         }
 

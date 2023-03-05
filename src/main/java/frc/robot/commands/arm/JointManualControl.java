@@ -28,7 +28,8 @@ public class JointManualControl extends CommandBase {
                 Constants.Joysticks.armJoystickDeadZone);
         if (Arm.getInstance().isZeroed()) {
             if (!(Math.abs(percent) < 1e-5)) {
-                Arm.getInstance().jointGotoAngle(Arm.getInstance().getJointTargetAngle() + Arm.jointTicksToAngle(150) * percent);
+                Arm.getInstance()
+                        .jointGotoAngle(Arm.getInstance().getJointTargetAngle() + Arm.jointTicksToAngle(150) * percent);
             }
         } else {
             Arm.getInstance().setJointPercent(maxPercent * percent);

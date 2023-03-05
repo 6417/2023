@@ -8,7 +8,7 @@ public class BrakeCommand extends CommandBase {
   public BrakeCommand() {
     addRequirements(Drive.getInstance());
   }
-  
+
   @Override
   public void initialize() {
     Drive.getInstance().triggerBrake();
@@ -17,7 +17,8 @@ public class BrakeCommand extends CommandBase {
   // Called every time the scheduler runs while the command is scheduled.
   // (Aka .periodic())
   @Override
-  public void execute() { }
+  public void execute() {
+  }
 
   // Called once the command ends or is interrupted.
   @Override

@@ -7,7 +7,6 @@ package frc.robot.commands.autonomous;
 import frc.robot.subsystems.drive.Drive;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 
-
 public class TimedForward extends WaitCommand {
 
   public TimedForward(double secs) {

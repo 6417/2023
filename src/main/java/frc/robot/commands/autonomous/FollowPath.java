@@ -7,7 +7,6 @@ import frc.robot.autonomous_tools.PathviewerLoader;
 import frc.robot.autonomous_tools.RamseteCommandGenerator;
 import frc.robot.subsystems.drive.Drive;
 
-
 public class FollowPath extends Command {
     edu.wpi.first.wpilibj2.command.Command autonomousCommand;
     private Trajectory path;

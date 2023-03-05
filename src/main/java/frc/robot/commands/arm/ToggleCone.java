@@ -10,15 +10,15 @@ public class ToggleCone extends CommandBase {
         System.out.println("Init");
         if (Arm.getInstance().getModel().getCargo() != Cargo.Cone)
             Arm.getInstance().getModel().updateCargo(Cargo.Cone);
-        else 
+        else
             Arm.getInstance().getModel().updateCargo(Cargo.None);
-    } 
-    
+    }
+
     @Override
     public void end(boolean interrupted) {
         if (Arm.getInstance().getModel().getCargo() != Cargo.Cone)
             Arm.getInstance().getModel().updateCargo(Cargo.Cone);
-        else 
+        else
             Arm.getInstance().getModel().updateCargo(Cargo.None);
     }
 }

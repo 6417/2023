@@ -7,13 +7,13 @@ import frc.robot.subsystems.Arm;
 
 public class GotoPosNoChecks extends CommandBase {
     Vector2 target;
-    
+
     public GotoPosNoChecks(Vector2 target) {
         this.target = target;
-        
+
         addRequirements(Arm.getInstance());
     }
-    
+
     @Override
     public void initialize() {
         var solutions = ArmKinematics.posToAngles(target);
@@ -24,17 +24,17 @@ public class GotoPosNoChecks extends CommandBase {
         } else {
             angles = solutions.getSecond();
         }
-         
+
         Arm.getInstance().baseGotoAngle(angles.base);
         Arm.getInstance().jointGotoAngle(angles.joint);
     }
-    
+
     @Override
     public void end(boolean interrupted) {
         Arm.getInstance().stop();
         Arm.getInstance().hold();
     }
-    
+
     @Override
     public boolean isFinished() {
         return Arm.getInstance().isArmAtTarget();

@@ -7,7 +7,8 @@ import java.util.Set;
 public class ParallelDeadlineGroup extends edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup implements ICommand {
     private Command commandProxy;
 
-    public ParallelDeadlineGroup(edu.wpi.first.wpilibj2.command.Command deadlineCommand, edu.wpi.first.wpilibj2.command.Command... commands) {
+    public ParallelDeadlineGroup(edu.wpi.first.wpilibj2.command.Command deadlineCommand,
+            edu.wpi.first.wpilibj2.command.Command... commands) {
         super(deadlineCommand, commands);
         commandProxy = new Command();
     }

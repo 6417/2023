@@ -11,7 +11,7 @@ import edu.wpi.first.util.sendable.SendableRegistry;
 import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 
-public class PneumaticHandler implements IPneumaticHandler{
+public class PneumaticHandler implements IPneumaticHandler {
 
     private static IPneumaticHandler instance = null;
     private boolean initialized = false;
@@ -76,7 +76,7 @@ public class PneumaticHandler implements IPneumaticHandler{
     @Override
     public void init() {
         initialized = true;
-        
+
         compressor = new Compressor(compressorId, pcmType);
 
         SendableRegistry.addLW(this, "PneumaticHandler");
@@ -91,5 +91,5 @@ public class PneumaticHandler implements IPneumaticHandler{
     public void initSendable(SendableBuilder builder) {
         compressor.initSendable(builder);
     }
-    
+
 }

@@ -20,7 +20,8 @@ public class FridoDoubleSolenoid implements IDoubleSolenoid {
     @Override
     public void init() {
         initialized = true;
-        proxy = new DoubleSolenoid(PneumaticHandler.getInstance().getCompressorId(), PneumaticHandler.getInstance().getCompressorType(), lowerId, higherId);
+        proxy = new DoubleSolenoid(PneumaticHandler.getInstance().getCompressorId(),
+                PneumaticHandler.getInstance().getCompressorType(), lowerId, higherId);
     }
 
     @Override

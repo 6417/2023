@@ -4,7 +4,6 @@ import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.Drive.SteerMode;
 
-
 public class SetSteerMode extends CommandBase {
   private SteerMode mode;
 
@@ -18,13 +17,15 @@ public class SetSteerMode extends CommandBase {
   }
 
   @Override
-  public void execute() {}
+  public void execute() {
+  }
 
   @Override
-  public void end(boolean interrupted) { }
+  public void end(boolean interrupted) {
+  }
 
   @Override
   public boolean isFinished() {
     return true;
-   }
+  }
 }

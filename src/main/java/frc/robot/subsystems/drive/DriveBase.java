@@ -16,17 +16,22 @@ import frc.robot.subsystems.drive.Drive.SteerMode;
 
 public class DriveBase extends Module {
 
-    public void drive(double joystickInputY, double joystickInputX, double steerWheelInput) { }
+    public void drive(double joystickInputY, double joystickInputX, double steerWheelInput) {
+    }
 
-    public void init() { }
+    public void init() {
+    }
 
-    public void reverseDrivingDirection(boolean reverse) { }
+    public void reverseDrivingDirection(boolean reverse) {
+    }
 
-    public void setSteerMode(SteerMode mode) { }
-    
-    public void setDirection(int direction) { }
+    public void setSteerMode(SteerMode mode) {
+    }
 
-    public Pose2d getPosition() { 
+    public void setDirection(int direction) {
+    }
+
+    public Pose2d getPosition() {
         return null;
     }
 
@@ -34,7 +39,8 @@ public class DriveBase extends Module {
         return null;
     }
 
-    public void tankDriveVolts(Double leftSpeed, Double rightSpeed) { }
+    public void tankDriveVolts(Double leftSpeed, Double rightSpeed) {
+    }
 
     public ChassisSpeeds getChassisSpeeds() {
         return null;
@@ -56,20 +62,26 @@ public class DriveBase extends Module {
         return null;
     }
 
-    public void stop() { }
+    public void stop() {
+    }
 
-    public void resetOdometry(Pose2d initialPose) { }
+    public void resetOdometry(Pose2d initialPose) {
+    }
 
     public void setSpeedForSeconds(int i, int j) {
     }
 
-    public void triggerBrake() { }
+    public void triggerBrake() {
+    }
 
-    public void releaseBrake() { }
+    public void releaseBrake() {
+    }
 
-    public void balance(){};
+    public void balance() {
+    };
 
-    public void balancehandler(){}
+    public void balancehandler() {
+    }
 
     public void reset() {
     };

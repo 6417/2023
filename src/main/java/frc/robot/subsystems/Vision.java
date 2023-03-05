@@ -45,128 +45,126 @@ public class Vision extends SubsystemBase {
   private DoubleArrayEntry entryd;
   private DoubleArrayEntry entryp;
   private DoubleArrayEntry entryi;
-  private double[] doublearray = {0.0};
-  private double[] tagPos = {5.0, 1.07, 6.80, 6.0, 1.07,4.545, 7.0, 1.07, 2.75, 8.0,  1.07, 0.955, 4.0, 15.47, 6.80, 3.0, 15.47, 4.545, 2.0, 15.47, 2.75, 1.0, 115.47, 0.955}; 
+  private double[] doublearray = { 0.0 };
+  private double[] tagPos = { 5.0, 1.07, 6.80, 6.0, 1.07, 4.545, 7.0, 1.07, 2.75, 8.0, 1.07, 0.955, 4.0, 15.47, 6.80,
+      3.0, 15.47, 4.545, 2.0, 15.47, 2.75, 1.0, 115.47, 0.955 };
   // tagid, xcord, ycord
   private double time;
 
   public static Vision instance;
 
-    private Vision() {
+  private Vision() {
     NetworkTableInstance instance = NetworkTableInstance.getDefault();
     r = instance.getDoubleArrayTopic("/Vision/rotation");
     d = instance.getDoubleArrayTopic("/Vision/distance");
     p = instance.getDoubleArrayTopic("/Vision/position");
     i = instance.getDoubleArrayTopic("/Vision/tag_id");
-    entryr = r.getEntry(doublearray,PubSubOption.keepDuplicates(false));
+    entryr = r.getEntry(doublearray, PubSubOption.keepDuplicates(false));
     entryd = d.getEntry(doublearray, PubSubOption.keepDuplicates(false));
-    entryp = p.getEntry(doublearray,PubSubOption.keepDuplicates(false));
+    entryp = p.getEntry(doublearray, PubSubOption.keepDuplicates(false));
     entryi = i.getEntry(doublearray, PubSubOption.keepDuplicates(false));
   }
 
-  public double[] calculatePath(){
+  public double[] calculatePath() {
     Drive.getInstance().drive(0, 0, 0);
     double[] pos = getPos();
     double[] rot = getRot();
     double[] dis = getDis();
     int id = getTagId();
-    double[] zielpos = {1.07,1.9};
-    double[] drivelange = {pos[0], pos[2]};
+    double[] zielpos = { 1.07, 1.9 };
+    double[] drivelange = { pos[0], pos[2] };
     double angle = getAngle(rot, dis, pos, zielpos, id, drivelange);
-    double[] data = {drivelange[0], drivelange[1], angle};
+    double[] data = { drivelange[0], drivelange[1], angle };
     return data;
   }
 
-  public void test(){
-    DifferentialDriveVoltageConstraint autoVoltageConstraint =
-          new DifferentialDriveVoltageConstraint(
-              new SimpleMotorFeedforward(
-                  //DriveConstants.ksVolts,
-                  Constants.Drive.PathWeaver.kI,
-                  //DriveConstants.kvVoltSecondsPerMeter,
-                  Constants.Drive.PathWeaver.kvMetersPerSecoond,
-                  //DriveConstants.kaVoltSecondsSquaredPerMeter),
-                  Constants.Drive.PathWeaver.kvMetersPerSecoond* Constants.Drive.PathWeaver.kvMetersPerSecoond),
-              //DriveConstants.kDriveKinematics,
-              new DifferentialDriveKinematics(Constants.Drive.Odometry.trackWidthMeters),
-              10);
+  public void test() {
+    DifferentialDriveVoltageConstraint autoVoltageConstraint = new DifferentialDriveVoltageConstraint(
+        new SimpleMotorFeedforward(
+            // DriveConstants.ksVolts,
+            Constants.Drive.PathWeaver.kI,
+            // DriveConstants.kvVoltSecondsPerMeter,
+            Constants.Drive.PathWeaver.kvMetersPerSecoond,
+            // DriveConstants.kaVoltSecondsSquaredPerMeter),
+            Constants.Drive.PathWeaver.kvMetersPerSecoond * Constants.Drive.PathWeaver.kvMetersPerSecoond),
+        // DriveConstants.kDriveKinematics,
+        new DifferentialDriveKinematics(Constants.Drive.Odometry.trackWidthMeters),
+        10);
 
-    TrajectoryConfig config =
-          new TrajectoryConfig(
-                  Constants.Drive.PathWeaver.kvMetersPerSecoond,
-                  Constants.Drive.PathWeaver.kMaxAcceleration)
-                  //AutoConstants.kMaxAccelerationMetersPerSecondSquared)
-              // Add kinematics to ensure max speed is actually obeyed
-              .setKinematics(new DifferentialDriveKinematics(Constants.Drive.Odometry.trackWidthMeters))
-              // Apply the voltage constraint
-              .addConstraint(autoVoltageConstraint);
+    TrajectoryConfig config = new TrajectoryConfig(
+        Constants.Drive.PathWeaver.kvMetersPerSecoond,
+        Constants.Drive.PathWeaver.kMaxAcceleration)
+        // AutoConstants.kMaxAccelerationMetersPerSecondSquared)
+        // Add kinematics to ensure max speed is actually obeyed
+        .setKinematics(new DifferentialDriveKinematics(Constants.Drive.Odometry.trackWidthMeters))
+        // Apply the voltage constraint
+        .addConstraint(autoVoltageConstraint);
 
-    /* 
-    Trajectory exampleTrajectory =
-    TrajectoryGenerator.generateTrajectory(
-        // Start at the origin facing the +X direction
-        new Pose2d(0, 0, new Rotation2d(0)),
-        // Pass through these two interior waypoints, making an 's' curve path
-        List.of(new Translation2d(1, 1), new Translation2d(2, -1)),
-        // End 3 meters straight ahead of where we started, facing forward
-        new Pose2d(3, 0, new Rotation2d(0)),
-        // Pass config
-        config);
-
-    var cmd = RamseteCommandGenerator.generateRamseteCommand(exampleTrajectory);
-
-    CommandScheduler.getInstance().schedule(cmd);
-    */
+    /*
+     * Trajectory exampleTrajectory =
+     * TrajectoryGenerator.generateTrajectory(
+     * // Start at the origin facing the +X direction
+     * new Pose2d(0, 0, new Rotation2d(0)),
+     * // Pass through these two interior waypoints, making an 's' curve path
+     * List.of(new Translation2d(1, 1), new Translation2d(2, -1)),
+     * // End 3 meters straight ahead of where we started, facing forward
+     * new Pose2d(3, 0, new Rotation2d(0)),
+     * // Pass config
+     * config);
+     * 
+     * var cmd = RamseteCommandGenerator.generateRamseteCommand(exampleTrajectory);
+     * 
+     * CommandScheduler.getInstance().schedule(cmd);
+     */
   }
 
-  public double[] getPos(){
+  public double[] getPos() {
     return entryp.get();
   }
 
-  public double[] getRot(){
+  public double[] getRot() {
     return entryr.get();
   }
 
-  public double[] getDis(){
+  public double[] getDis() {
     return entryd.get();
   }
 
-  public int getTagId(){
+  public int getTagId() {
     double[] data = entryi.get();
     double d = data[0];
     return (int) Math.round(d);
   }
 
-  public double getl(double[] x, double[] y){
+  public double getl(double[] x, double[] y) {
     return Math.sqrt((x[0] - y[0]) * (x[0] - y[0]) + (x[1] - y[1]) * (x[1] - y[1]));
   }
 
-  public double[] getTagData(int id){
+  public double[] getTagData(int id) {
     double id2 = (double) id;
-    for (int i = 0; i < tagPos.length; i++){
-        if (id2 == tagPos[i]){
-            double[] data = {tagPos[i+1], tagPos[i+2]};
-            return data;
-        }
+    for (int i = 0; i < tagPos.length; i++) {
+      if (id2 == tagPos[i]) {
+        double[] data = { tagPos[i + 1], tagPos[i + 2] };
+        return data;
+      }
     }
-    double[] data = {0.0,0.0};
+    double[] data = { 0.0, 0.0 };
     return data;
-    }
+  }
 
-  public double getAngle(double[] rot, double[] dis, double[] pos, double[] zielpos, int tagId, double[] drivelange){
+  public double getAngle(double[] rot, double[] dis, double[] pos, double[] zielpos, int tagId, double[] drivelange) {
     double a = getl(zielpos, drivelange);
     double b = getl(zielpos, getTagData(tagId));
     double c = getl(getTagData(tagId), drivelange);
-    return Math.acos(a*a + b*b - c*c / 2 * a * b);
+    return Math.acos(a * a + b * b - c * c / 2 * a * b);
   }
 
-  public static Vision getInstance(){
-    if (instance == null){
-        instance = new Vision();
+  public static Vision getInstance() {
+    if (instance == null) {
+      instance = new Vision();
     }
     return instance;
   }
-
 
   @Override
   public void periodic() {

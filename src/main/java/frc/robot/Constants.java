@@ -32,9 +32,11 @@ public final class Constants {
         public static final int kDriverControllerPort = 0;
     }
 
-    public static final class Joystick {
+    public static final class Joysticks {
         public static final IJoystickId accelerator = () -> 0;
         public static final IJoystickId steeringWheel = () -> 1;
+        public static final IJoystickId armJoystick = () -> 2;
+        public static final double armJoystickDeadZone = 0.1;
     }
 
     public final static class Drive {
@@ -45,7 +47,7 @@ public final class Constants {
             public static final SteerMode steerMode = SteerMode.CARLIKE;
             public static final boolean steerWithJoystick = true;
         }
-        
+
         public static class Motors {
             public static final int BACKLEFT = 13;
             public static final int BACKRIGHT = 12;
@@ -55,11 +57,13 @@ public final class Constants {
 
         public static final class Odometry {
             public static final double wheelPerimeter = 0.47;
-            // The transmission denotes how many revolution the motor makes compared to the wheel
+            // The transmission denotes how many revolution the motor makes compared to the
+            // wheel
             public static final double transmission = 10.71;
             public static final int encoderResolution = 2048;
 
-            public static final double encoderToMetersConversion = 1 / ((1 / wheelPerimeter) * transmission * encoderResolution);
+            public static final double encoderToMetersConversion = 1
+                    / ((1 / wheelPerimeter) * transmission * encoderResolution);
             public static final double trackWidthMeters = 0.5;
         }
 
@@ -107,16 +111,10 @@ public final class Constants {
 
             public static final IJoystickButtonId activateBalancing = LogitechExtreme._5;
         }
-        
 
-        
     }
+
     public static final double gravity = 9.81; // m/s^2
-
-    public static class Joysticks {
-        public static final IJoystickId armJoystick = () -> 0;
-        public static final double armJoystickDeadZone = 0.1;
-    }
 
     public static class Arm {
         public static class PhysicalProperties {
@@ -208,7 +206,7 @@ public final class Constants {
         public static final double baseRightEncoderPosHallVelNegative = 0.0;
         public static final double baseLeftEncoderPosHallVelPositive = 0.0;
         public static final double baseLeftEncoderPosHallVelNegative = 0.0;
-        
+
         public static final double baseAllowableError = 300;
         public static final double jointAllowableError = 1000;
 

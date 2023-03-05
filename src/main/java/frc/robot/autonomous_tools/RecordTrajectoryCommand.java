@@ -5,7 +5,7 @@ import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.Constants;
 
-public class RecordTrajectoryCommand extends CommandBase{
+public class RecordTrajectoryCommand extends CommandBase {
     TrajectoryCreator logger;
     Timer timer;
     double cooldown = Constants.Drive.Autonomous.recordingCooldownSeconds;

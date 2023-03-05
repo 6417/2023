@@ -17,22 +17,23 @@ public class DriveCommand extends CommandBase {
 
     // Called when the command is initially scheduled.
     @Override
-    public void initialize() { }
+    public void initialize() {
+    }
 
     @Override
     public void execute() {
         // Get input
         double joystickInputY = JoystickHandler
                 .getInstance()
-                .getJoystick(Constants.Joystick.accelerator)
+                .getJoystick(Constants.Joysticks.accelerator)
                 .getY();
         double joystickTurnValue = JoystickHandler
                 .getInstance()
-                .getJoystick(Constants.Joystick.accelerator)
+                .getJoystick(Constants.Joysticks.accelerator)
                 .getX();
         double steerWheelInput = JoystickHandler
                 .getInstance()
-                .getJoystick(Constants.Joystick.steeringWheel)
+                .getJoystick(Constants.Joysticks.steeringWheel)
                 .getX();
 
         // Call Drive::drive with the input

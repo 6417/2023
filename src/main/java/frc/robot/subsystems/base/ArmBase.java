@@ -14,7 +14,7 @@ public class ArmBase extends Module {
     public double jointAngle() {
         return 0.0;
     }
-    
+
     public double getJointTargetAngle() {
         return jointAngle();
     }
@@ -22,9 +22,10 @@ public class ArmBase extends Module {
     public double getBaseTargetAngle() {
         return baseAngle();
     }
-    
+
     public ArmModel getModel() {
-        return new ArmModel(new ArmModel.ArmStateSupplier(this::baseAngle, this::jointAngle, () -> 0.0, () -> 0.0), Cargo.None);
+        return new ArmModel(new ArmModel.ArmStateSupplier(this::baseAngle, this::jointAngle, () -> 0.0, () -> 0.0),
+                Cargo.None);
     }
 
     public void setPercentBase(double percent) {
@@ -50,7 +51,7 @@ public class ArmBase extends Module {
     public boolean getBaseLimitSwitchRev() {
         return false;
     }
-    
+
     public void baseGotoAngle(double angle) {
 
     }
@@ -58,7 +59,7 @@ public class ArmBase extends Module {
     public void jointGotoAngle(double angle) {
 
     }
-    
+
     public void setBasePercent(double percent) {
 
     }
@@ -66,19 +67,19 @@ public class ArmBase extends Module {
     public void setJointPercent(double percent) {
 
     }
-    
+
     public boolean baseIsAtTarget() {
         return true;
     }
-    
+
     public void stop() {
-        
+
     }
-    
+
     public void hold() {
-        
+
     }
-    
+
     public boolean isZeroed() {
         return true;
     }
@@ -90,11 +91,11 @@ public class ArmBase extends Module {
     public boolean isBaseLeftHallActive() {
         return false;
     }
-    
+
     public double getBaseEncoderVelocity() {
         return 0.0;
     }
-    
+
     public boolean isBaseAtTarget() {
         return true;
     }
@@ -102,11 +103,11 @@ public class ArmBase extends Module {
     public boolean isJointAtTarget() {
         return true;
     }
-    
+
     public boolean isArmAtTarget() {
         return isBaseAtTarget() && isJointAtTarget();
     }
-    
+
     public Vector2 getPos() {
         return ArmKinematics.anglesToPos(baseAngle(), jointAngle());
     }

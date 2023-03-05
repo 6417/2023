@@ -368,36 +368,37 @@ public class Drive extends DriveBase {
     }
 
     @Override
-    public void simulationPeriodic() { }
+    public void simulationPeriodic() {
+    }
 
     @Override
     public List<Binding> getMappings() {
         Binding driveForward = new Binding(
-                Constants.Joystick.accelerator,
+                Constants.Joysticks.accelerator,
                 Constants.Drive.ButtonIds.driveForward,
                 Button::toggleOnTrue, new ReverseDrivingDirection(false));
 
-        Binding driveInverted = new Binding(Constants.Joystick.accelerator,
+        Binding driveInverted = new Binding(Constants.Joysticks.accelerator,
                 Constants.Drive.ButtonIds.driveBackward,
                 Button::toggleOnTrue, new ReverseDrivingDirection(true));
 
         Binding carMode = new Binding(
-                Constants.Joystick.accelerator,
+                Constants.Joysticks.accelerator,
                 Constants.Drive.ButtonIds.steerModeCarlike,
                 Button::toggleOnTrue, new SetSteerMode(SteerMode.CARLIKE));
 
         Binding bidirectionalMode = new Binding(
-                Constants.Joystick.accelerator,
+                Constants.Joysticks.accelerator,
                 Constants.Drive.ButtonIds.steerModeBidirectional,
                 Button::toggleOnTrue, new SetSteerMode(SteerMode.BIDIRECTIONAL));
 
         Binding activateBrake = new Binding(
-                Constants.Joystick.accelerator,
+                Constants.Joysticks.accelerator,
                 Constants.Drive.ButtonIds.activateBrake,
                 Button::toggleOnTrue, new BrakeCommand());
 
         Binding activateBalancing = new Binding(
-                Constants.Joystick.accelerator,
+                Constants.Joysticks.accelerator,
                 Constants.Drive.ButtonIds.activateBalancing,
                 Button::toggleOnTrue, new BalanceCommand());
 
@@ -413,8 +414,10 @@ public class Drive extends DriveBase {
         builder.addBooleanProperty("steer with joystick", () -> steerWithJoystick, (val) -> steerWithJoystick = val);
         builder.addStringProperty("steer mode", () -> steerMode.name(), null);
         builder.addDoubleProperty("drive driection", () -> driveDirection, null);
-        builder.addDoubleProperty("steering wheel sensibility", () -> steeringWheelSensibility, (val) -> steeringWheelSensibility = val);
-        builder.addDoubleProperty("joystick x (steering) sensibility", () -> joystickSteeringSensibility, (val) -> joystickSteeringSensibility = val);
+        builder.addDoubleProperty("steering wheel sensibility", () -> steeringWheelSensibility,
+                (val) -> steeringWheelSensibility = val);
+        builder.addDoubleProperty("joystick x (steering) sensibility", () -> joystickSteeringSensibility,
+                (val) -> joystickSteeringSensibility = val);
         builder.addDoubleProperty("speed", () -> speed, (val) -> speed = val);
         builder.addStringProperty("brake status", () -> isActive ? "not active" : "active", null);
         builder.addDoubleProperty("wheel speed right", () -> this.getWheelSpeeds().rightMetersPerSecond, null);
@@ -439,24 +442,26 @@ public class Drive extends DriveBase {
         brakeSolenoidLeft.set(Value.kReverse);
         isActive = true;
     }
+
     int testbalance = 0;
-    public void balance(){
-        float pitch = Navx.getInstance().getPitch();
-        //System.out.println(pitch);
+
+    public void balance() {
+        float pitch = FridoNavx.getInstance().getPitch();
+        // System.out.println(pitch);
         balancevalues.add(pitch);
-        if (balancevalues.size() == 3){
+        if (balancevalues.size() == 3) {
             balancevalues.remove(0);
-            System.out.println(balancevalues.get(1)-balancevalues.get(0));
-            if (balancevalues.get(1)-balancevalues.get(0) < -1){
-                Drive.getInstance().drive(0,0,0);
-                //Drive.getInstance().triggerBrake();
+            System.out.println(balancevalues.get(1) - balancevalues.get(0));
+            if (balancevalues.get(1) - balancevalues.get(0) < -1) {
+                Drive.getInstance().drive(0, 0, 0);
+                // Drive.getInstance().triggerBrake();
                 testbalance = 1;
                 System.out.println("balanced");
-            }else{
-                //Drive.getInstance().drive(0.4, 0,0);
+            } else {
+                // Drive.getInstance().drive(0.4, 0,0);
             }
         }
-        if (testbalance == 0){
+        if (testbalance == 0) {
             Drive.getInstance().drive(0.5, 0, 0);
         }
     }

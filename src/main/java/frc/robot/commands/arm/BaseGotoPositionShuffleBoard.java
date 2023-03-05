@@ -11,25 +11,24 @@ public class BaseGotoPositionShuffleBoard extends CommandBase {
     private BaseGotoPositionShuffleBoard() {
         addRequirements(Arm.getInstance());
     }
-    
+
     public static BaseGotoPositionShuffleBoard getInstance() {
-          if (instance == null) {
+        if (instance == null) {
             instance = new BaseGotoPositionShuffleBoard();
-          }
-          return instance;
+        }
+        return instance;
     }
-    
-    
+
     @Override
     public void initialize() {
         Arm.getInstance().baseGotoAngle(target);
     }
-    
+
     @Override
     public void end(boolean interrupted) {
-        Arm.getInstance().stop(); 
+        Arm.getInstance().stop();
     }
-    
+
     @Override
     public boolean isFinished() {
         return false;

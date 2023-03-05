@@ -7,15 +7,15 @@ import frc.robot.subsystems.Arm;
 public class ResetBaseEncodersOnLimitSwitch extends CommandBase {
     @Override
     public void execute() {
-        if (Arm.getInstance().getBaseLimitSwitchFwd())  {
+        if (Arm.getInstance().getBaseLimitSwitchFwd()) {
             Arm.getInstance().setEncoderTicksBase(Constants.Arm.baseEncoderPosFwdLimitSwitch);
         }
-        
-        if (Arm.getInstance().getBaseLimitSwitchRev())  {
+
+        if (Arm.getInstance().getBaseLimitSwitchRev()) {
             Arm.getInstance().setEncoderTicksBase(Constants.Arm.baseEncoderPosRevLimitSwitch);
         }
-    } 
-    
+    }
+
     @Override
     public boolean runsWhenDisabled() {
         return true;

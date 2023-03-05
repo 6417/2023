@@ -13,11 +13,12 @@ import frc.robot.subsystems.Arm;
 
 public class ManualControl extends CommandBase {
     private Vector2 target;
-    private LatchBooleanRising gettingZeroed; 
+    private LatchBooleanRising gettingZeroed;
+
     public ManualControl() {
         addRequirements(Arm.getInstance());
     }
-    
+
     @Override
     public void initialize() {
         target = Arm.getInstance().getPos();
@@ -39,7 +40,7 @@ public class ManualControl extends CommandBase {
                 Constants.Joysticks.armJoystickDeadZone);
 
         if (Arm.getInstance().isZeroed()) {
-            target  = target.add(new Vector2(px, py).smul(-0.005));
+            target = target.add(new Vector2(px, py).smul(-0.005));
             var solutions = ArmKinematics.posToAngles(target);
             ArmKinematics.Values<Double> angles;
 

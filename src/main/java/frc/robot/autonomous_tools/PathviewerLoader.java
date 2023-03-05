@@ -25,12 +25,11 @@ public class PathviewerLoader {
             } catch (IOException e) {
                 DriverStation.reportError("Wrong path: " + path, e.getStackTrace());
             }
-        }
-        catch (InvalidPathException e) {
+        } catch (InvalidPathException e) {
             // Throwing an exception in case it files
             DriverStation.reportError("Wrong path: " + path, e.getStackTrace());
         }
 
         return trajectory;
-    }    
+    }
 }

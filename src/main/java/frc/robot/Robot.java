@@ -98,7 +98,7 @@ public class Robot extends TimedRobot {
         Shuffleboard.getTab("debug").add("Base goto angle",
                 BaseGotoPositionShuffleBoard.getInstance());
 
-        JoystickHandler.getInstance().setupJoysticks(List.of(Constants.Joysticks.armJoystick, Constants.Joystick.accelerator, Constants.Joystick.steeringWheel));
+        JoystickHandler.getInstance().setupJoysticks(List.of(Constants.Joysticks.armJoystick, Constants.Joysticks.accelerator, Constants.Joysticks.steeringWheel));
         PneumaticHandler.getInstance().configureCompressor(61,
                 PneumaticsModuleType.CTREPCM);
         PneumaticHandler.getInstance().init();

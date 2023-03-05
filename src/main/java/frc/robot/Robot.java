@@ -89,8 +89,11 @@ public class Robot extends TimedRobot {
 
     @Override
     public void robotInit() {
+        
         Shuffleboard.getTab("debug").add("Base goto angle",
                 BaseGotoPositionShuffleBoard.getInstance());
+
+        Shuffleboard.getTab("debug").add(CommandScheduler.getInstance());
 
         JoystickHandler.getInstance().setupJoysticks(List.of(Constants.Joysticks.armJoystick,
                 Constants.Joysticks.accelerator, Constants.Joysticks.steeringWheel));
@@ -152,7 +155,6 @@ public class Robot extends TimedRobot {
     @Override
     public void robotPeriodic() {
         CommandScheduler.getInstance().run();
-        System.out.println(Arm.getInstance().isZeroed());
     }
 
     /** This function is called once each time the robot enters Disabled mode. */

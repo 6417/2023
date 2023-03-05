@@ -20,6 +20,11 @@ public class BaseManualControl extends CommandBase {
             }
         });
     }
+    
+    @Override
+    public void initialize() {
+        Arm.getInstance().baseGotoAngle(Arm.getInstance().baseAngle());
+    }
 
     @Override
     public void execute() {

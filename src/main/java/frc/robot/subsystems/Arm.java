@@ -36,9 +36,11 @@ import frc.fridowpi.utils.Vector2;
 import frc.robot.ArmKinematics;
 import frc.robot.ArmModel;
 import frc.robot.Constants;
+import frc.robot.commands.InstantCommandRunWhenDisabled;
 import frc.robot.commands.arm.BaseGotoPositionShuffleBoard;
 import frc.robot.commands.arm.BaseManualControl;
 import frc.robot.commands.arm.GotoPosNoChecks;
+import frc.robot.commands.arm.IndividualArmManualControl;
 import frc.robot.commands.arm.JointManualControl;
 import frc.robot.commands.arm.ManualPosControl;
 import frc.robot.commands.arm.RawManualControl;
@@ -53,16 +55,13 @@ public class Arm extends ArmBase {
 
     public static enum ManualControlMode {
         RAW(new RawManualControl()),
-        INDIVIDUAL_ARMS(new ParallelCommandGroup(new JointManualControl(), new BaseManualControl())),
+        INDIVIDUAL_ARMS(new IndividualArmManualControl()),
         POS(new ManualPosControl());
 
         public final Command command;
 
         private ManualControlMode(CommandBase cmd) {
             this.command = cmd;
-            if (!cmd.getRequirements().contains(Arm.getInstance())) {
-                cmd.addRequirements(Arm.getInstance());
-            }
         }
     }
 
@@ -146,7 +145,7 @@ public class Arm extends ArmBase {
     private PIDController jointPosController;
     private DigitalInput baseHallRight;
     private DigitalInput baseHallLeft;
-    private ManualControlMode currentManualControlMode = ManualControlMode.RAW;
+    private ManualControlMode currentManualControlMode;
 
     public static ArmBase getInstance() {
         if (instance == null) {
@@ -184,20 +183,20 @@ public class Arm extends ArmBase {
         Shuffleboard.getTab("Arm").add("Model", model);
         CommandScheduler.getInstance().schedule(new ResetBaseEncodersOnLimitSwitch(), new ResetBaseEncodersOnHall());
 
+        currentManualControlMode = ManualControlMode.RAW;
         setDefaultCommand(currentManualControlMode.command);
-        // setDefaultCommand(new ManualControl());
     }
 
     @Override
     public void setManualControlMode(ManualControlMode mode) {
-        if (!isZeroed()) {
+        if (!isZeroed() && mode != ManualControlMode.RAW) {
             mode = ManualControlMode.RAW;
             DriverStation.reportError("Can't use other mode then RAW if arm is not zeroed, mode will NOT be switched.",
                     false);
-            return;
         }
 
         CommandScheduler.getInstance().removeDefaultCommand(this);
+        CommandScheduler.getInstance().cancel(currentManualControlMode.command);
         currentManualControlMode = mode;
         setDefaultCommand(currentManualControlMode.command);
     }
@@ -213,7 +212,6 @@ public class Arm extends ArmBase {
             + Constants.Arm.baseEncoderPosRevLimitSwitch) / 2;
 
     private void setJointTargetPos(double pos) {
-        System.out.println("target pos set to: " + pos);
         motors.joint.set(ControlMode.MotionMagic, pos);
         targetPosJoint = pos;
     }
@@ -368,18 +366,19 @@ public class Arm extends ArmBase {
                                 new SequentialCommandGroup(new GotoPosNoChecks(new Vector2(-1.13, 0.8)),
                                         new GotoPosNoChecks(new Vector2(-1.45, 0.95)))),
                         new Binding(Constants.Joysticks.armJoystick, Logitech.start, Button::onTrue,
-                                new InstantCommand(() -> {
+                                new InstantCommandRunWhenDisabled(() -> {
                                     int modeIdx = List.of(ManualControlMode.values()).indexOf(currentManualControlMode);
+
                                     stop();
                                     setManualControlMode(
                                             ManualControlMode.values()[(modeIdx + 1)
                                                     % ManualControlMode.values().length]);
                                 })),
-                        
-                        new Binding(Constants.Joysticks.armJoystick, Logitech.y, Button::onTrue, new InstantCommand(() -> {
-                            isBaseZeroed = !(isZeroed());
-                            isJointZeroed = !(isZeroed());
-                        })),
+                        new Binding(Constants.Joysticks.armJoystick, Logitech.y, Button::onTrue,
+                                new InstantCommandRunWhenDisabled(() -> {
+                                    isBaseZeroed = !(isZeroed());
+                                    isJointZeroed = !(isZeroed());
+                                })),
 
                         new Binding(Constants.Joysticks.armJoystick, Logitech.back, Button::onTrue,
                                 new InstantCommand(() -> {
@@ -397,9 +396,8 @@ public class Arm extends ArmBase {
 
     @Override
     public void periodic() {
-        if (gettingZeroed.updateAndGet(isBaseZeroed && isJointZeroed)) {
-            setBaseTargetPos(motors.base.getEncoderTicks());
-            setJointTargetPos(motors.joint.getEncoderTicks());
+        if (gettingUnzeroed.updateAndGet(isZeroed())) {
+            setManualControlMode(ManualControlMode.RAW);
         }
 
         if (isJointZeroed && isBaseZeroed) {
@@ -477,6 +475,7 @@ public class Arm extends ArmBase {
         builder.addDoubleProperty("VelOut", () -> currentVelOut, null);
         builder.addDoubleProperty("joint target pos", () -> targetPosJoint, (target) -> targetPosJoint = target);
         builder.addBooleanProperty("Base is zeroed", () -> isBaseZeroed, null);
+        builder.addBooleanProperty("Joint is zeroed", () -> isJointZeroed, null);
         builder.addDoubleProperty("Arm pos x", () -> ArmKinematics.anglesToPos(baseAngle(), jointAngle()).x, null);
         builder.addDoubleProperty("Arm pos y", () -> ArmKinematics.anglesToPos(baseAngle(), jointAngle()).y, null);
         builder.addStringProperty("Manual Control Mode", () -> currentManualControlMode.toString(), null);

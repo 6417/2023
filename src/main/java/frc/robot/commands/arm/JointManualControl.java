@@ -20,6 +20,11 @@ public class JointManualControl extends CommandBase {
             }
         });
     }
+    
+    @Override
+    public void initialize() {
+        Arm.getInstance().jointGotoAngle(Arm.getInstance().jointAngle());
+    }
 
     @Override
     public void execute() {

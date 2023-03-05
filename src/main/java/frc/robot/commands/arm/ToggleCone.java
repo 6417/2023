@@ -7,7 +7,6 @@ import frc.robot.subsystems.Arm;
 public class ToggleCone extends CommandBase {
     @Override
     public void initialize() {
-        System.out.println("Init");
         if (Arm.getInstance().getModel().getCargo() != Cargo.Cone)
             Arm.getInstance().getModel().updateCargo(Cargo.Cone);
         else

@@ -40,12 +40,12 @@ public final class Constants {
     }
 
     public final static class Drive {
-        public static final boolean enabled = true;
+        public static final boolean enabled = false;
         public static final int movingAveragePrecision = 20;
 
         public static final class Defaults {
             public static final SteerMode steerMode = SteerMode.CARLIKE;
-            public static final boolean steerWithJoystick = true;
+            public static final boolean steerWithJoystick = false;
         }
 
         public static class Motors {

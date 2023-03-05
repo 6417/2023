@@ -28,12 +28,8 @@ public class BaseManualControl extends CommandBase {
                 Constants.Joysticks.armJoystickDeadZone);
 
         if (Arm.getInstance().isZeroed()) {
-            if (!(Math.abs(percent) < 1e-5)) {
-                Arm.getInstance()
-                        .baseGotoAngle(Arm.getInstance().getBaseTargetAngle() + Arm.baseTicksToAngle(150) * percent);
-            }
-        } else {
-            Arm.getInstance().setBasePercent(maxPercent * percent);
+            Arm.getInstance()
+                    .baseGotoAngle(Arm.getInstance().getBaseTargetAngle() + Arm.baseTicksToAngle(150) * percent);
         }
     }
 }

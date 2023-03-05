@@ -1,5 +1,6 @@
 package frc.robot.subsystems;
 
+import java.util.Arrays;
 import java.util.List;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
@@ -30,6 +31,7 @@ import frc.fridowpi.motors.FridolinsMotor.FridoFeedBackDevice;
 import frc.fridowpi.motors.FridolinsMotor.IdleMode;
 import frc.fridowpi.motors.FridolinsMotor.LimitSwitchPolarity;
 import frc.fridowpi.utils.LatchBooleanRising;
+import frc.fridowpi.utils.LatchedBooleanFalling;
 import frc.fridowpi.utils.Vector2;
 import frc.robot.ArmKinematics;
 import frc.robot.ArmModel;
@@ -38,7 +40,8 @@ import frc.robot.commands.arm.BaseGotoPositionShuffleBoard;
 import frc.robot.commands.arm.BaseManualControl;
 import frc.robot.commands.arm.GotoPosNoChecks;
 import frc.robot.commands.arm.JointManualControl;
-import frc.robot.commands.arm.ManualControl;
+import frc.robot.commands.arm.ManualPosControl;
+import frc.robot.commands.arm.RawManualControl;
 import frc.robot.commands.arm.ResetBaseEncodersOnHall;
 import frc.robot.commands.arm.ResetBaseEncodersOnLimitSwitch;
 import frc.robot.commands.arm.ToggleCone;
@@ -47,6 +50,21 @@ import jdk.jfr.Percentage;
 
 public class Arm extends ArmBase {
     private static ArmBase instance = null;
+
+    public static enum ManualControlMode {
+        RAW(new RawManualControl()),
+        INDIVIDUAL_ARMS(new ParallelCommandGroup(new JointManualControl(), new BaseManualControl())),
+        POS(new ManualPosControl());
+
+        public final Command command;
+
+        private ManualControlMode(CommandBase cmd) {
+            this.command = cmd;
+            if (!cmd.getRequirements().contains(Arm.getInstance())) {
+                cmd.addRequirements(Arm.getInstance());
+            }
+        }
+    }
 
     private class Motors {
         public FridoFalcon500 base;
@@ -128,6 +146,7 @@ public class Arm extends ArmBase {
     private PIDController jointPosController;
     private DigitalInput baseHallRight;
     private DigitalInput baseHallLeft;
+    private ManualControlMode currentManualControlMode = ManualControlMode.RAW;
 
     public static ArmBase getInstance() {
         if (instance == null) {
@@ -145,10 +164,12 @@ public class Arm extends ArmBase {
     double kD = 0.001; // 0.3
 
     LatchBooleanRising gettingZeroed;
+    LatchedBooleanFalling gettingUnzeroed;
 
     @Override
     public void init() {
         gettingZeroed = new LatchBooleanRising(isBaseZeroed && isJointZeroed);
+        gettingUnzeroed = new LatchedBooleanFalling(isBaseZeroed && isJointZeroed);
         motors = new Motors();
         model = new ArmModel(
                 new ArmModel.ArmStateSupplier(this::baseAngle, this::jointAngle, () -> 0.0, () -> 0.0),
@@ -163,9 +184,22 @@ public class Arm extends ArmBase {
         Shuffleboard.getTab("Arm").add("Model", model);
         CommandScheduler.getInstance().schedule(new ResetBaseEncodersOnLimitSwitch(), new ResetBaseEncodersOnHall());
 
-        CommandBase manualControl = new ParallelCommandGroup(new BaseManualControl(), new JointManualControl());
-        manualControl.addRequirements(this);
-        setDefaultCommand(new ManualControl());
+        setDefaultCommand(currentManualControlMode.command);
+        // setDefaultCommand(new ManualControl());
+    }
+
+    @Override
+    public void setManualControlMode(ManualControlMode mode) {
+        if (!isZeroed()) {
+            mode = ManualControlMode.RAW;
+            DriverStation.reportError("Can't use other mode then RAW if arm is not zeroed, mode will NOT be switched.",
+                    false);
+            return;
+        }
+
+        CommandScheduler.getInstance().removeDefaultCommand(this);
+        currentManualControlMode = mode;
+        setDefaultCommand(currentManualControlMode.command);
     }
 
     @Override
@@ -335,12 +369,25 @@ public class Arm extends ArmBase {
                                         new GotoPosNoChecks(new Vector2(-1.45, 0.95)))),
                         new Binding(Constants.Joysticks.armJoystick, Logitech.start, Button::onTrue,
                                 new InstantCommand(() -> {
-                                    isBaseZeroed = !(isBaseZeroed && isJointZeroed);
-                                    isJointZeroed = !(isBaseZeroed && isJointZeroed);
+                                    int modeIdx = List.of(ManualControlMode.values()).indexOf(currentManualControlMode);
+                                    stop();
+                                    setManualControlMode(
+                                            ManualControlMode.values()[(modeIdx + 1)
+                                                    % ManualControlMode.values().length]);
+                                })),
+                        
+                        new Binding(Constants.Joysticks.armJoystick, Logitech.y, Button::onTrue, new InstantCommand(() -> {
+                            isBaseZeroed = !(isZeroed());
+                            isJointZeroed = !(isZeroed());
+                        })),
 
-                                    if (!isBaseZeroed || !isJointZeroed) {
-                                        stop();
-                                    }
+                        new Binding(Constants.Joysticks.armJoystick, Logitech.back, Button::onTrue,
+                                new InstantCommand(() -> {
+                                    int modeIdx = List.of(ManualControlMode.values()).indexOf(currentManualControlMode);
+                                    stop();
+                                    setManualControlMode(
+                                            ManualControlMode.values()[(modeIdx - 1)
+                                                    % ManualControlMode.values().length]);
                                 })));
     }
 
@@ -432,6 +479,7 @@ public class Arm extends ArmBase {
         builder.addBooleanProperty("Base is zeroed", () -> isBaseZeroed, null);
         builder.addDoubleProperty("Arm pos x", () -> ArmKinematics.anglesToPos(baseAngle(), jointAngle()).x, null);
         builder.addDoubleProperty("Arm pos y", () -> ArmKinematics.anglesToPos(baseAngle(), jointAngle()).y, null);
+        builder.addStringProperty("Manual Control Mode", () -> currentManualControlMode.toString(), null);
 
         builder.addDoubleProperty("Arm angle calc alpha1", () -> Math.toDegrees(
                 ArmKinematics.posToAngles(ArmKinematics.anglesToPos(baseAngle(), jointAngle())).getFirst().base), null);

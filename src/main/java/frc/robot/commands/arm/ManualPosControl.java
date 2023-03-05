@@ -11,11 +11,11 @@ import frc.robot.ArmKinematics;
 import frc.robot.Constants;
 import frc.robot.subsystems.Arm;
 
-public class ManualControl extends CommandBase {
+public class ManualPosControl extends CommandBase {
     private Vector2 target;
     private LatchBooleanRising gettingZeroed;
 
-    public ManualControl() {
+    public ManualPosControl() {
         addRequirements(Arm.getInstance());
     }
 
@@ -52,9 +52,6 @@ public class ManualControl extends CommandBase {
 
             Arm.getInstance().baseGotoAngle(angles.base);
             Arm.getInstance().jointGotoAngle(angles.joint);
-        } else {
-            Arm.getInstance().setBasePercent(px * 0.3);
-            Arm.getInstance().setJointPercent(py * 0.3);
-        }
+        } 
     }
 }

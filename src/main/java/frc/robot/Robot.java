@@ -87,18 +87,13 @@ public class Robot extends TimedRobot {
 
     AnalogInput distanceSensor = new AnalogInput(0);
 
-    private static boolean floatComp(double a, double b, double epsilon) {
-        return Math.abs(a - b) < epsilon;
-    }
-
-    static final double epsilon = 0.001;
-
     @Override
     public void robotInit() {
         Shuffleboard.getTab("debug").add("Base goto angle",
                 BaseGotoPositionShuffleBoard.getInstance());
 
-        JoystickHandler.getInstance().setupJoysticks(List.of(Constants.Joysticks.armJoystick, Constants.Joysticks.accelerator, Constants.Joysticks.steeringWheel));
+        JoystickHandler.getInstance().setupJoysticks(List.of(Constants.Joysticks.armJoystick,
+                Constants.Joysticks.accelerator, Constants.Joysticks.steeringWheel));
         PneumaticHandler.getInstance().configureCompressor(61,
                 PneumaticsModuleType.CTREPCM);
         PneumaticHandler.getInstance().init();
@@ -142,11 +137,10 @@ public class Robot extends TimedRobot {
                         () -> Arm.getInstance().setEncoderTicksJoint(-167.0 / 360.0 /
                                 Constants.Arm.jointGearRatio * 2048))));
 
-
         FridoNavx.setup(Port.kMXP);
         FridoNavx.getInstance().init();
         JoystickHandler.getInstance()
-            .setupJoysticks(List.of());
+                .setupJoysticks(List.of());
         JoystickHandler.getInstance().bind(Drive.getInstance());
 
         Drive.getInstance().init();
@@ -158,6 +152,7 @@ public class Robot extends TimedRobot {
     @Override
     public void robotPeriodic() {
         CommandScheduler.getInstance().run();
+        System.out.println(Arm.getInstance().isZeroed());
     }
 
     /** This function is called once each time the robot enters Disabled mode. */
@@ -191,6 +186,7 @@ public class Robot extends TimedRobot {
 
     @Override
     public void teleopInit() {
+        CommandScheduler.getInstance().cancelAll();
         Arm.getInstance().stop();
         Arm.getInstance().hold();
         if (m_autonomousCommand != null) {
@@ -201,12 +197,6 @@ public class Robot extends TimedRobot {
 
     @Override
     public void teleopPeriodic() {
-        // double AnalogWert = analog.getValue();
-        // double volt = AnalogWert*(5.0/4096);
-        // double Distanz = 29.988 * Math.pow((volt), -1.173);
-        // System.out.println(Distanz);
-
-    Drive.getInstance().drive(0.2,0,0);
     }
 
     @Override
@@ -215,7 +205,6 @@ public class Robot extends TimedRobot {
         Arm.getInstance().stop();
         Arm.getInstance().hold();
     }
-
 
     @Override
     public void simulationPeriodic() {

@@ -5,6 +5,7 @@ import frc.fridowpi.utils.Vector2;
 import frc.robot.ArmKinematics;
 import frc.robot.ArmModel;
 import frc.robot.ArmModel.Cargo;
+import frc.robot.subsystems.Arm;
 
 public class ArmBase extends Module {
     public double baseAngle() {
@@ -110,5 +111,9 @@ public class ArmBase extends Module {
 
     public Vector2 getPos() {
         return ArmKinematics.anglesToPos(baseAngle(), jointAngle());
+    }
+    
+    public void setManualControlMode(Arm.ManualControlMode mode) {
+
     }
 }

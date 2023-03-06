@@ -15,9 +15,12 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.Pair;
 import edu.wpi.first.wpilibj.Relay.InvalidValueException;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.fridowpi.utils.Matrix2;
 import frc.fridowpi.utils.Vector2;
+import frc.robot.commands.arm.GotoPosNoChecks;
 import frc.robot.commands.arm.PickUpBackward;
+import frc.robot.subsystems.Arm;
 
 public class ArmPathGenerator {
     public static enum RobotPos {
@@ -101,7 +104,7 @@ public class ArmPathGenerator {
         }
     }
 
-    static final double coneHeight = Constants.Arm.baseArm.length - Constants.Arm.gripperArm.length;
+    public static final double coneHeight = Constants.Arm.baseArm.length - Constants.Arm.gripperArm.length;
     static final double robotHeight = 0.164;
 
     static Map<RobotPos, Map<RobotOrientation, Quadrant[]>> quadrants = new HashMap<>();
@@ -126,6 +129,9 @@ public class ArmPathGenerator {
             new Quadrant(new Vector2(-0.56, -0.05), new Vector2(-1.74, 0.05), null)
     };
 
+    public static Vector2 forwardOffset = new Vector2(0.26, 0.0);
+    public static Vector2 reverseOffset = new Vector2(0.61, 0.0);
+
     static {
 
         // ORDER MATTERS!
@@ -136,12 +142,10 @@ public class ArmPathGenerator {
 
         Quadrant[] quadrantsGrid = new Quadrant[] {
                 new Quadrant(new Vector2(0.75, 1.07), new Vector2(1.44, 1.74), null),
-                new Quadrant(new Vector2(0.30, 0.78), new Vector2(0.75, 1.74), new Vector2(0.6, 1.35)),
-                new Quadrant(new Vector2(0.0, 0.20), new Vector2(0.29, 1.74), new Vector2(0.25, 1.05 + coneHeight)),
+                new Quadrant(new Vector2(0.30, 0.78), new Vector2(0.75, 1.74), new Vector2(0.6, 1.07 + coneHeight)),
+                new Quadrant(new Vector2(0.0, 0.20), new Vector2(0.29, 1.74), new Vector2(0.25, 0.78 + coneHeight)),
         };
 
-        Vector2 forwardOffset = new Vector2(0.26, 0.0);
-        Vector2 reverseOffset = new Vector2(0.61, 0.0);
 
         Quadrant[] fieldForward = new Quadrant[] {
                 quadrantsField[2],
@@ -174,7 +178,7 @@ public class ArmPathGenerator {
                 concat(Quadrant.flip(Quadrant.offset(quadrantsGrid, reverseOffset)), fieldReverse));
         quadrants.put(RobotPos.GRID, quadrantsGridMap);
     }
-
+    
     public int getQuadrantIndexOfPoint(Vector2 point, RobotPos pos, RobotOrientation orientation)
             throws InvalidValueException {
         Quadrant[] quadrants = ArmPathGenerator.quadrants.get(pos).get(orientation);
@@ -206,9 +210,19 @@ public class ArmPathGenerator {
         return false;
     }
 
+    public static SequentialCommandGroup toCommand(Vector2[] path) {
+        SequentialCommandGroup cmd = new SequentialCommandGroup();
+
+        for (var p : path) {
+            cmd.addCommands(new GotoPosNoChecks(p));
+        }
+        cmd.addRequirements(Arm.getInstance());
+        return cmd; 
+    }
+
     public Vector2[] pathTo(Vector2 target, RobotPos pos, RobotOrientation orientation) {
         try {
-            int indexPos = getQuadrantIndexOfPoint(ArmKinematics.anglesToPos(baseAngle.get(), jointAngle.get()), pos,
+            int indexPos = getQuadrantIndexOfPoint(Arm.getInstance().getPos(), pos,
                     orientation);
             int indexTarget = getQuadrantIndexOfPoint(target, pos, orientation);
 
@@ -217,11 +231,13 @@ public class ArmPathGenerator {
             }
 
             int sign = signum(indexTarget - indexPos);
-            Vector2[] path = new Vector2[Math.abs(indexTarget - indexPos) + 1];
+            Vector2[] path = new Vector2[Math.abs(indexTarget - indexPos)];
 
+            System.out.println("path length: " + (Math.abs(indexTarget - indexPos)));
             int i = 0;
-            for (int quad = indexPos + sign; quad != indexTarget - sign; quad += sign) {
+            for (int quad = indexPos + sign; quad != indexTarget; quad += sign) {
                 path[i] = quadrants.get(pos).get(orientation)[quad].driveThrough;
+                System.out.printf("quad: %d, pos: %s, orientation: %s, driveThrough: %s\n", quad, pos.toString(), orientation.toString(), path[i]);
                 i++;
             }
 

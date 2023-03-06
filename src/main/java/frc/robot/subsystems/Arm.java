@@ -2,6 +2,8 @@ package frc.robot.subsystems;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.StatorCurrentLimitConfiguration;
@@ -37,12 +39,14 @@ import frc.fridowpi.utils.Vector2;
 import frc.robot.ArmKinematics;
 import frc.robot.ArmModel;
 import frc.robot.ArmPathGenerator;
+import frc.robot.ArmPosJoystick;
 import frc.robot.Constants;
 import frc.robot.ArmPathGenerator.RobotOrientation;
 import frc.robot.ArmPathGenerator.RobotPos;
 import frc.robot.commands.InstantCommandRunWhenDisabled;
 import frc.robot.commands.arm.BaseGotoPositionShuffleBoard;
 import frc.robot.commands.arm.BaseManualControl;
+import frc.robot.commands.arm.GotoPos;
 import frc.robot.commands.arm.GotoPosNoChecks;
 import frc.robot.commands.arm.IndividualArmManualControl;
 import frc.robot.commands.arm.JointManualControl;
@@ -137,7 +141,7 @@ public class Arm extends ArmBase {
             joint.config_kF(0, 0);
 
             joint.configMotionAcceleration(9000);
-            joint.configMotionCruiseVelocity(500); // TODO: change back to 3000
+            joint.configMotionCruiseVelocity(3000); // TODO: change back to 3000
         }
     }
 
@@ -363,7 +367,7 @@ public class Arm extends ArmBase {
         motors.base.stopMotor();
         motors.joint.stopMotor();
     }
-    
+
     @Override
     public boolean isPosValid(Vector2 pos) {
         return pathGenerator.isValidInField(pos);
@@ -371,12 +375,11 @@ public class Arm extends ArmBase {
 
     @Override
     public List<Binding> getMappings() {
-        return List
-                .of(new Binding(Constants.Joysticks.armJoystick, Logitech.b, Button::toggleOnTrue, new ToggleCone()),
-                        new Binding(Constants.Joysticks.armJoystick, Logitech.a, Button::onTrue,
-                                new SequentialCommandGroup(new GotoPosNoChecks(new Vector2(-1.13, 0.8)),
-                                        new GotoPosNoChecks(new Vector2(-1.45, 0.95)))),
-                        new Binding(Constants.Joysticks.armJoystick, Logitech.start, Button::onTrue,
+        List<Binding> posBindings = Arrays.stream(ArmPosJoystick.Ids.values()).map((id) -> {
+            return new Binding(Constants.Joysticks.armJoystick, id, Button::onTrue, new GotoPos(id.target, id.pos, id.orientation));
+        }).collect(Collectors.toList());
+        List<Binding> otherBindings = List
+                .of(new Binding(Constants.Joysticks.armJoystick, Logitech.start, Button::onTrue,
                                 new InstantCommandRunWhenDisabled(() -> {
                                     int modeIdx = List.of(ManualControlMode.values()).indexOf(currentManualControlMode);
 
@@ -385,7 +388,7 @@ public class Arm extends ArmBase {
                                             ManualControlMode.values()[(modeIdx + 1)
                                                     % ManualControlMode.values().length]);
                                 })),
-                        new Binding(Constants.Joysticks.armJoystick, Logitech.y, Button::onTrue,
+                        new Binding(Constants.Joysticks.armJoystick, Logitech.rb, Button::onTrue,
                                 new InstantCommandRunWhenDisabled(() -> {
                                     isBaseZeroed = !(isZeroed());
                                     isJointZeroed = !(isZeroed());
@@ -399,6 +402,8 @@ public class Arm extends ArmBase {
                                             ManualControlMode.values()[(modeIdx - 1)
                                                     % ManualControlMode.values().length]);
                                 })));
+        
+        return Stream.concat(posBindings.stream(), posBindings.stream()).toList();
     }
 
     double currentVelOut;

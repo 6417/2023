@@ -8,6 +8,8 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.RamseteCommand;
 import frc.fridowpi.joystick.JoystickHandler;
 import frc.fridowpi.sensors.FridoNavx;
+import frc.robot.ArmPathGenerator.RobotOrientation;
+import frc.robot.ArmPathGenerator.RobotPos;
 import frc.robot.Constants.Drive.Motors;
 import frc.robot.autonomous_tools.PathviewerLoader;
 import frc.robot.autonomous_tools.RamseteCommandGenerator;
@@ -89,7 +91,7 @@ public class Robot extends TimedRobot {
 
     @Override
     public void robotInit() {
-        
+        JoystickHandler.getInstance().setJoystickFactory(ArmPosJoystick::new);        
         Shuffleboard.getTab("debug").add("Base goto angle",
                 BaseGotoPositionShuffleBoard.getInstance());
 
@@ -112,7 +114,7 @@ public class Robot extends TimedRobot {
         Shuffleboard.getTab("debug").add("Analog In", distanceSensor);
 
         JoystickHandler.getInstance()
-                .bind(new Binding(Constants.Joysticks.armJoystick, Logitech.rt, Button::toggleOnTrue,
+                .bind(new Binding(Constants.Joysticks.armJoystick, Logitech.a, Button::toggleOnTrue,
                         new CommandBase() {
                             @Override
                             public void initialize() {
@@ -136,7 +138,7 @@ public class Robot extends TimedRobot {
                         }));
 
         JoystickHandler.getInstance()
-                .bind(new Binding(Constants.Joysticks.armJoystick, Logitech.x, Button::onFalse, new InstantCommand(
+                .bind(new Binding(Constants.Joysticks.armJoystick, Logitech.lb, Button::onFalse, new InstantCommand(
                         () -> Arm.getInstance().setEncoderTicksJoint(-167.0 / 360.0 /
                                 Constants.Arm.jointGearRatio * 2048))));
 
@@ -150,6 +152,13 @@ public class Robot extends TimedRobot {
         Shuffleboard.getTab("Debug").add(Drive.getInstance());
 
         JoystickHandler.getInstance().init();
+
+        ArmPathGenerator generator = new ArmPathGenerator();
+        
+        var path = generator.pathTo(new Vector2(1.34, 1.35), RobotPos.GRID, RobotOrientation.FORWARD);
+        for (Vector2 p : path) {
+            System.out.println(p.toString());
+        }
     }
 
     @Override

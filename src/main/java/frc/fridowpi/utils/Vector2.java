@@ -48,4 +48,8 @@ public class Vector2 {
     public double angleTo(Vector2 other) {
         return Math.acos(this.dot(other) / (other.magnitude() * this.magnitude()));
     }
+    @Override
+    public String toString() {
+        return String.format("{ %f, %f }", x, y);
+    }
 }

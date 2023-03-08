@@ -62,6 +62,10 @@ public class PneumaticHandler implements IPneumaticHandler {
         compressorId = id;
         this.pcmType = pcmType;
     }
+    
+    public boolean isCompressorPumping() {
+        return compressor.isEnabled();
+    }
 
     @Override
     public int getCompressorId() {

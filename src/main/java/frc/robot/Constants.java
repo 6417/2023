@@ -1,14 +1,18 @@
 package frc.robot;
 
 import frc.fridowpi.joystick.IJoystickId;
+import frc.fridowpi.joystick.joysticks.Logitech;
 import frc.fridowpi.joystick.joysticks.LogitechExtreme;
 import frc.robot.subsystems.drive.Drive.SteerMode;
+import edu.wpi.first.wpilibj.PneumaticsModuleType;
+import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import frc.fridowpi.joystick.IJoystickButtonId;
 
 import frc.fridowpi.joystick.IJoystickId;
 import frc.fridowpi.motors.FridolinsMotor.DirectionType;
 import frc.fridowpi.motors.FridolinsMotor.LimitSwitchPolarity;
 import frc.fridowpi.motors.utils.PidValues;
+import frc.fridowpi.pneumatics.FridoDoubleSolenoid;
 import frc.robot.ArmModel.Cargo;
 
 /**
@@ -36,7 +40,7 @@ public final class Constants {
     }
 
     public final static class Drive {
-        public static final boolean enabled = false;
+        public static final boolean enabled = true;
         public static final int movingAveragePrecision = 20;
 
         public static final class Defaults {
@@ -169,6 +173,7 @@ public final class Constants {
         public static final double baseGearRatio = 1.0 / 160.0;
         public static final double jointGearRatio = 1.0 / 30.0;
         public static final double encoderTicksPerMotorRevolution = 2048.0;
+        
 
         public static final double torqueToAmpsProportionality = 1 / 0.02076;
 
@@ -198,6 +203,7 @@ public final class Constants {
         public static final double baseEncoderPosFwdLimitSwitch = 150.0 / 360.0 / Constants.Arm.baseGearRatio * 2048.0;
         public static final double baseEncoderPosRevLimitSwitch = 30.0 / 360.0 / Constants.Arm.baseGearRatio * 2048.0;
 
+        // ﻿﻿﻿﻿﻿﻿ Right Falling vel > 0, pos [DEG]: 0.138192Right Rising vel < 0, pos [DEG]: 0.099555Right Falling vel < 0, pos [DEG]: -0.028935Right Rising vel > 0, pos [DEG]: -0.002934Right Falling vel > 0, pos [DEG]: 0.129142Right Rising vel < 0, pos [DEG]: 0.102700Right Falling vel < 0, pos [DEG]: -0.027477Right Rising vel > 0, pos [DEG]: -0.003509Right Falling vel > 0, pos [DEG]: 0.136869Right Rising vel < 0, pos [DEG]: 1.618005Right Falling vel < 0, pos [DEG]: 1.476514Right Rising vel > 0, pos [DEG]: 1.493541Right Falling vel > 0, pos [DEG]: 1.626441Right Rising vel < 0, pos [DEG]: 1.612310[Arm] going to target: HOME({ -0.000000, 0.260001 }) 
         public static final double baseRightEncoderPosHallVelPositive = 0.0;
         public static final double baseRightEncoderPosHallVelNegative = 0.0;
         public static final double baseLeftEncoderPosHallVelPositive = 0.0;
@@ -217,20 +223,19 @@ public final class Constants {
             public static final int jointFollowerMotor = 23;
         }
     }
-  public static class Gripper {
-    public static final boolean enabled = true;
 
-    public static class ButtonIds {
+    public static class Gripper {
+        public static final boolean enabled = true;
+
+        public static class ButtonIds {
+            public static final IJoystickButtonId openClose = Logitech.a;
+        }
+
+        public static final int idHigher = 3;
+        public static final int idLower = 2;
+        public static final PneumaticsModuleType type = PneumaticsModuleType.CTREPCM;
+        public static final int compressorId = 0;
+        public static final Value gripperClosed = Value.kReverse;
+        public static final Value gripperOpen = Value.kForward;
     }
-      public static final IJoystickButtonId openClose = Logitech.a;
-      public static final int idHigher = 1;
-    
-    public static class DoubleSolenoid {
-      public static final int idLower = 0;
-      public static final PneumaticsModuleType type = PneumaticsModuleType.CTREPCM;
-      public static final int compressorId = 0;
-      public static final Value gripperClosed = Value.kReverse;
-      public static final Value gripperOpen = Value.kForward;
-    }
-  }
-}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
+}

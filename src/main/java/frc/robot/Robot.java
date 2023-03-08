@@ -3,77 +3,44 @@ package frc.robot;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.BooleanSupplier;
 
-import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.RamseteCommand;
+import org.apache.logging.log4j.core.layout.SyslogLayout;
+
 import frc.fridowpi.joystick.JoystickHandler;
 import frc.fridowpi.sensors.FridoNavx;
 import frc.robot.ArmPathGenerator.RobotOrientation;
 import frc.robot.ArmPathGenerator.RobotPos;
-import frc.robot.Constants.Drive.Motors;
-import frc.robot.autonomous_tools.PathviewerLoader;
-import frc.robot.autonomous_tools.RamseteCommandGenerator;
-import frc.robot.commands.autonomous.ChargeAutonomous;
-import frc.robot.commands.autonomous.FollowPath;
-import frc.robot.commands.autonomous.TimedForward;
+import frc.robot.Constants.Gripper;
 import frc.robot.commands.driveCommands.BalanceCommand;
-import frc.robot.subsystems.Vision;
 import frc.robot.subsystems.drive.Drive;
-import edu.wpi.first.util.sendable.Sendable;
-import edu.wpi.first.util.sendable.SendableBuilder;
+import edu.wpi.first.networktables.BooleanSubscriber;
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
+import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
-import java.util.List;
-
-import javax.swing.JComboBox.KeySelectionManager;
-
-import com.ctre.phoenix.motorcontrol.ControlMode;
-import com.ctre.phoenix.motorcontrol.InvertType;
-import com.ctre.phoenix.motorcontrol.can.TalonFX;
-
-import edu.wpi.first.math.controller.SimpleMotorFeedforward;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
-import edu.wpi.first.math.trajectory.Trajectory;
-import edu.wpi.first.math.trajectory.TrajectoryConfig;
-import edu.wpi.first.math.trajectory.TrajectoryGenerator;
-import edu.wpi.first.math.trajectory.TrajectoryParameterizer.TrajectoryGenerationException;
-import edu.wpi.first.math.trajectory.constraint.DifferentialDriveVoltageConstraint;
-import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.util.sendable.SendableBuilder;
-import edu.wpi.first.wpilibj.AnalogInput;
-import edu.wpi.first.networktables.BooleanArrayEntry;
-import edu.wpi.first.networktables.BooleanArrayTopic;
-import edu.wpi.first.networktables.BooleanEntry;
-import edu.wpi.first.networktables.BooleanTopic;
-import edu.wpi.first.networktables.DoubleArrayEntry;
-import edu.wpi.first.networktables.DoubleArrayTopic;
-import edu.wpi.first.networktables.NetworkTableEntry;
-import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.networktables.PubSubOption;
-import edu.wpi.first.networktables.Topic;
-import edu.wpi.first.networktables.TopicInfo;
-import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj.SPI.Port;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.FunctionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.button.Button;
 import frc.fridowpi.joystick.Binding;
-import frc.fridowpi.joystick.JoystickHandler;
 import frc.fridowpi.joystick.joysticks.Logitech;
+import frc.fridowpi.joystick.joysticks.LogitechExtreme;
 import frc.fridowpi.pneumatics.FridoDoubleSolenoid;
 import frc.fridowpi.pneumatics.PneumaticHandler;
 import frc.fridowpi.utils.Vector2;
+import frc.robot.commands.ToggleCompressor;
 import frc.robot.commands.arm.BaseGotoPositionShuffleBoard;
+import frc.robot.commands.arm.Stop;
 import frc.robot.subsystems.Arm;
+import frc.robot.subsystems.GripperSubsystem;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -88,10 +55,11 @@ public class Robot extends TimedRobot {
     private Command m_autonomousCommand;
 
     AnalogInput distanceSensor = new AnalogInput(0);
+    PowerDistribution pdp = new PowerDistribution(62, ModuleType.kCTRE);
 
     @Override
     public void robotInit() {
-        JoystickHandler.getInstance().setJoystickFactory(ArmPosJoystick::new);        
+        JoystickHandler.getInstance().setJoystickFactory(ArmPosJoystick::new);
         Shuffleboard.getTab("debug").add("Base goto angle",
                 BaseGotoPositionShuffleBoard.getInstance());
 
@@ -106,41 +74,11 @@ public class Robot extends TimedRobot {
         Arm.getInstance().init();
 
         JoystickHandler.getInstance().bind(Arm.getInstance());
+        JoystickHandler.getInstance().bind(GripperSubsystem.getInstance());
 
-        FridoDoubleSolenoid gripper = new FridoDoubleSolenoid(2, 3);
-        gripper.init();
         // PneumaticHandler.getInstance().enableCompressor();
         // Shuffleboard.getTab("Arm").add(new ResetEncodersBase());
         Shuffleboard.getTab("debug").add("Analog In", distanceSensor);
-
-        JoystickHandler.getInstance()
-                .bind(new Binding(Constants.Joysticks.armJoystick, Logitech.a, Button::toggleOnTrue,
-                        new CommandBase() {
-                            @Override
-                            public void initialize() {
-                                gripper.set(Value.kForward);
-                            };
-
-                            @Override
-                            public boolean isFinished() {
-                                return false;
-                            }
-
-                            @Override
-                            public void end(boolean interrupted) {
-                                gripper.set(Value.kReverse);
-                            }
-
-                            @Override
-                            public Set<Subsystem> getRequirements() {
-                                return new HashSet<>();
-                            };
-                        }));
-
-        JoystickHandler.getInstance()
-                .bind(new Binding(Constants.Joysticks.armJoystick, Logitech.lb, Button::onFalse, new InstantCommand(
-                        () -> Arm.getInstance().setEncoderTicksJoint(-167.0 / 360.0 /
-                                Constants.Arm.jointGearRatio * 2048))));
 
         FridoNavx.setup(Port.kMXP);
         FridoNavx.getInstance().init();
@@ -149,21 +87,26 @@ public class Robot extends TimedRobot {
         JoystickHandler.getInstance().bind(Drive.getInstance());
 
         Drive.getInstance().init();
+        GripperSubsystem.getInstance().init();
         Shuffleboard.getTab("Debug").add(Drive.getInstance());
 
-        JoystickHandler.getInstance().init();
+        JoystickHandler.getInstance().bind(new Binding(Constants.Joysticks.accelerator, LogitechExtreme._8,
+                Button::toggleOnTrue, new ToggleCompressor()));
 
-        ArmPathGenerator generator = new ArmPathGenerator();
-        
-        var path = generator.pathTo(new Vector2(1.34, 1.35), RobotPos.GRID, RobotOrientation.FORWARD);
-        for (Vector2 p : path) {
-            System.out.println(p.toString());
-        }
+        JoystickHandler.getInstance().init();
     }
 
     @Override
     public void robotPeriodic() {
         CommandScheduler.getInstance().run();
+
+        if (pdp.getVoltage() < 8) {
+            System.out.println("Brown out!!!!!!!!!!!!!!!!!");
+        }
+
+        if (pdp.getVoltage() < 8  && PneumaticHandler.getInstance().isCompressorPumping()) {
+            PneumaticHandler.getInstance().disableCompressor();
+        }
     }
 
     /** This function is called once each time the robot enters Disabled mode. */
@@ -197,6 +140,7 @@ public class Robot extends TimedRobot {
 
     @Override
     public void teleopInit() {
+        CommandScheduler.getInstance().schedule(new Stop());
         Arm.getInstance().stop();
         Arm.getInstance().hold();
         if (m_autonomousCommand != null) {
@@ -220,4 +164,3 @@ public class Robot extends TimedRobot {
     public void simulationPeriodic() {
     }
 }
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      

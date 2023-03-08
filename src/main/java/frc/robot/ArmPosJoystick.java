@@ -30,28 +30,31 @@ public class ArmPosJoystick extends WPIJoystick {
     private static int idCounter = idCounterStart;
     private static final IJoystickButtonId forward = Logitech.rt;
     private static final IJoystickButtonId reverse = Logitech.lt;
+    public static final Vector2 homePos = ArmKinematics.anglesToPos(Math.PI / 2, 0).add(new Vector2(0, 0.000001));
+    
 
     public static enum Ids implements IJoystickButtonId {
         GRID_FORWARD_BOTTOM(POV.DOWN, forward, null,
-                new Vector2(0.927, 0.985).minus(ArmPathGenerator.reverseOffset).minus(ArmPathGenerator.forwardOffset),
+                new Vector2(0.54, 0.26),
                 RobotPos.GRID, RobotOrientation.FORWARD),
-        GRID_FORWARD_MIDDLE(POV.LEFT, forward, null, new Vector2(0.927, 0.985), RobotPos.GRID,
+        GRID_FORWARD_MIDDLE(POV.LEFT, forward, null, new Vector2(0.927, 0.85), RobotPos.GRID,
                 RobotOrientation.FORWARD),
-        GRID_FORWARD_TOP(POV.UP, forward, null, new Vector2(1.34, 1.349), RobotPos.GRID, RobotOrientation.FORWARD),
-        GRID_REVERSE_BOTTOM(POV.DOWN, reverse, null, new Vector2(-0.971, 0.26), RobotPos.GRID,
+        GRID_FORWARD_TOP(POV.UP, forward, null, new Vector2(1.234, 1.354), RobotPos.GRID, RobotOrientation.FORWARD),
+        GRID_REVERSE_BOTTOM(POV.DOWN, reverse, null, new Vector2(-0.89, 0.26), RobotPos.GRID,
                 RobotOrientation.REVERSE),
-        GRID_REVERSE_MIDDLE(POV.LEFT, reverse, null, new Vector2(-1.155, 1.118), RobotPos.GRID,
+        GRID_REVERSE_MIDDLE(POV.LEFT, reverse, null, new Vector2(-1.214, 1.156), RobotPos.GRID,
                 RobotOrientation.REVERSE),
-        HOME(null, Logitech.b, null, new Vector2(0.0, ArmPathGenerator.coneHeight), RobotPos.FIELD,
+        HOME(null, Logitech.b, null, homePos, RobotPos.FIELD,
                 RobotOrientation.FORWARD),
-        LOADING_ZONE_FORWARD_CUBE(null, forward, Logitech.x, new Vector2(0.506, 0.875), RobotPos.LOADING_ZONE,
+        LOADING_ZONE_FORWARD_CUBE(null, reverse, Logitech.x, new Vector2(0.46, 0.88), RobotPos.LOADING_ZONE,
                 RobotOrientation.FORWARD),
-        LOADING_ZONE_FORWARD_CONE(null, forward, Logitech.y, new Vector2(0.454, 0.993), RobotPos.LOADING_ZONE,
+        LOADING_ZONE_FORWARD_CONE(null, reverse, Logitech.y, new Vector2(0.46, 0.937), RobotPos.LOADING_ZONE,
                 RobotOrientation.FORWARD),
-        LOADING_ZONE_REVERSE_CUBE(null, reverse, Logitech.x, new Vector2(-0.862, 0.992), RobotPos.LOADING_ZONE,
+        LOADING_ZONE_REVERSE_CUBE(null, forward, Logitech.x, new Vector2(-0.772, 1.08), RobotPos.LOADING_ZONE,
                 RobotOrientation.REVERSE),
-        LOADING_ZONE_REVERSE_CONE(null, reverse, Logitech.y, new Vector2(-0.80, 1.065), RobotPos.LOADING_ZONE,
-                RobotOrientation.REVERSE),
+        LOADING_ZONE_REVERSE_CONE(null, forward, Logitech.y, new Vector2(-0.799, 1.128), RobotPos.LOADING_ZONE,
+
+            RobotOrientation.REVERSE),
         PICKUP_FORWARD(POV.RIGHT, forward, null, new Vector2(0.465, 0.208), RobotPos.FIELD, RobotOrientation.FORWARD),
         PICKUP_REVERSE(POV.RIGHT, reverse, null,
                 new Vector2(0.465, 0.208).minus(ArmPathGenerator.reverseOffset).minus(ArmPathGenerator.forwardOffset),
@@ -116,9 +119,9 @@ public class ArmPosJoystick extends WPIJoystick {
 
     @Override
     public Button getButton(IJoystickButtonId id) {
-        if (id.getButtonId() > idCounterStart) {
+        if (id.getButtonId() >= idCounterStart) {
             return ((Ids) id).toButtonOnJoystick(this);
         }
-        return getButton(id);
+        return super.getButton(id);
     }
 }

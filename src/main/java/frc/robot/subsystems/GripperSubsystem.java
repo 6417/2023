@@ -17,11 +17,9 @@ public class GripperSubsystem extends GripperSubsystemBase {
   private static GripperSubsystemBase instance;
 
   public GripperSubsystem() {
-    gripperSolenoid =
-      new FridoDoubleSolenoid(
-        Constants.Gripper.DoubleSolenoid.idLower,
-        Constants.Gripper.DoubleSolenoid.idHigher
-      );
+    gripperSolenoid = new FridoDoubleSolenoid(
+        Constants.Gripper.idLower,
+        Constants.Gripper.idHigher);
   }
 
   @Override
@@ -33,23 +31,21 @@ public class GripperSubsystem extends GripperSubsystemBase {
 
   public List<Binding> getMappings() {
     return List.of(
-      new Binding(
-        Constants.Joysticks.drive,
-        Constants.Gripper.ButtonIds.openClose,
-        Button::toggleOnTrue,
-        new GripperCommand()
-      )
-    );
+        new Binding(
+            Constants.Joysticks.armJoystick,
+            Constants.Gripper.ButtonIds.openClose,
+            Button::toggleOnTrue,
+            new GripperCommand()));
   }
 
   @Override
   public void openGripper() {
-    gripperSolenoid.set(Constants.Gripper.DoubleSolenoid.gripperOpen);
+    gripperSolenoid.set(Constants.Gripper.gripperOpen);
   }
 
   @Override
   public void closeGripper() {
-    gripperSolenoid.set(Constants.Gripper.DoubleSolenoid.gripperClosed);
+    gripperSolenoid.set(Constants.Gripper.gripperClosed);
   }
 
   private static Logger logger = LogManager.getLogger(GripperSubsystem.class);
@@ -58,9 +54,9 @@ public class GripperSubsystem extends GripperSubsystemBase {
   public boolean isGripperOpen() {
     Value gripperState = gripperSolenoid.get();
 
-    if (gripperState == Constants.Gripper.DoubleSolenoid.gripperOpen) {
+    if (gripperState == Constants.Gripper.gripperOpen) {
       return true;
-    } else if (gripperState == Constants.Gripper.DoubleSolenoid.gripperClosed) {
+    } else if (gripperState == Constants.Gripper.gripperClosed) {
       return false;
     } else {
       logger.warn("DoubleSolenoid on Gripper is kOff");

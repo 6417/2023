@@ -4,7 +4,10 @@ import frc.fridowpi.module.Module;
 import frc.fridowpi.utils.Vector2;
 import frc.robot.ArmKinematics;
 import frc.robot.ArmModel;
+import frc.robot.ArmPathGenerator;
 import frc.robot.ArmModel.Cargo;
+import frc.robot.ArmPathGenerator.RobotOrientation;
+import frc.robot.ArmPathGenerator.RobotPos;
 import frc.robot.subsystems.Arm;
 
 public class ArmBase extends Module {
@@ -89,14 +92,6 @@ public class ArmBase extends Module {
         return true;
     }
 
-    public boolean isBaseRightHallActive() {
-        return false;
-    }
-
-    public boolean isBaseLeftHallActive() {
-        return false;
-    }
-
     public double getBaseEncoderVelocity() {
         return 0.0;
     }
@@ -119,5 +114,20 @@ public class ArmBase extends Module {
     
     public void setManualControlMode(Arm.ManualControlMode mode) {
 
+    }
+    
+    public ArmPathGenerator.RobotOrientation getRobotOrientation() {
+        return RobotOrientation.FORWARD;
+    }
+    
+    public ArmPathGenerator.RobotPos getRobotPos() {
+        return RobotPos.FIELD;
+    }
+
+    public void setRobotOrientation(ArmPathGenerator.RobotOrientation orientation) {
+
+    }
+    
+    public void setRobotPos(ArmPathGenerator.RobotPos pos) {
     }
 }

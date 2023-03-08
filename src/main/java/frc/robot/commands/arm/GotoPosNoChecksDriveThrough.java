@@ -5,10 +5,10 @@ import frc.fridowpi.utils.Vector2;
 import frc.robot.ArmKinematics;
 import frc.robot.subsystems.Arm;
 
-public class GotoPosNoChecks extends CommandBase {
+public class GotoPosNoChecksDriveThrough extends CommandBase {
     Vector2 target;
 
-    public GotoPosNoChecks(Vector2 target) {
+    public GotoPosNoChecksDriveThrough(Vector2 target) {
         this.target = target;
 
         addRequirements(Arm.getInstance());

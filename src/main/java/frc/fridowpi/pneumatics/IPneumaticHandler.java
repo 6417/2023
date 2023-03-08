@@ -14,4 +14,6 @@ public interface IPneumaticHandler extends Initialisable, Sendable {
     int getCompressorId();
 
     PneumaticsModuleType getCompressorType();
+    
+    boolean isCompressorPumping();
 }

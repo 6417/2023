@@ -9,6 +9,7 @@ import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.StatorCurrentLimitConfiguration;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
 
+import edu.wpi.first.hal.InterruptJNI;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.util.sendable.SendableBuilder;
@@ -47,7 +48,7 @@ import frc.robot.commands.InstantCommandRunWhenDisabled;
 import frc.robot.commands.arm.BaseGotoPositionShuffleBoard;
 import frc.robot.commands.arm.BaseManualControl;
 import frc.robot.commands.arm.GotoPos;
-import frc.robot.commands.arm.GotoPosNoChecks;
+import frc.robot.commands.arm.GotoPosNoChecksDriveThrough;
 import frc.robot.commands.arm.IndividualArmManualControl;
 import frc.robot.commands.arm.JointManualControl;
 import frc.robot.commands.arm.ManualPosControl;
@@ -151,10 +152,10 @@ public class Arm extends ArmBase {
     private boolean isJointZeroed = false;
     private boolean holdJoint = true;
     private PIDController jointPosController;
-    private DigitalInput baseHallRight;
-    private DigitalInput baseHallLeft;
     private ManualControlMode currentManualControlMode;
     private ArmPathGenerator pathGenerator;
+    private ArmPathGenerator.RobotOrientation orientation;
+    private ArmPathGenerator.RobotPos pos;
 
     public static ArmBase getInstance() {
         if (instance == null) {
@@ -176,6 +177,8 @@ public class Arm extends ArmBase {
 
     @Override
     public void init() {
+        pos = RobotPos.FIELD;
+        orientation = RobotOrientation.FORWARD;
         pathGenerator = new ArmPathGenerator();
         gettingZeroed = new LatchBooleanRising(isBaseZeroed && isJointZeroed);
         gettingUnzeroed = new LatchedBooleanFalling(isBaseZeroed && isJointZeroed);
@@ -185,13 +188,32 @@ public class Arm extends ArmBase {
                 Constants.Arm.initialCargo);
         jointPosController = new PIDController(kP, kI, kD, 10);
 
-        baseHallRight = new DigitalInput(Constants.Arm.dioIdHallBaseRight);
-        baseHallLeft = new DigitalInput(Constants.Arm.dioIdHallBaseLeft);
-
         Shuffleboard.getTab("Arm").add(this);
         Shuffleboard.getTab("Arm").add("PID", jointPosController);
         Shuffleboard.getTab("Arm").add("Model", model);
-        CommandScheduler.getInstance().schedule(new ResetBaseEncodersOnLimitSwitch(), new ResetBaseEncodersOnHall());
+        CommandScheduler.getInstance().schedule(new ResetBaseEncodersOnLimitSwitch());
+
+        Thread resetOnHall = new Thread(() -> {
+            DigitalInput baseHallRight = new DigitalInput(Constants.Arm.dioIdHallBaseRight);
+            DigitalInput baseHallLeft = new DigitalInput(Constants.Arm.dioIdHallBaseLeft);
+            Command cmd = new ResetBaseEncodersOnHall(baseHallRight::get, baseHallLeft::get);
+
+            cmd.initialize();
+            while (!cmd.isFinished()) {
+                cmd.execute();
+                try {
+                    Thread.sleep(1);
+                } catch (Exception e) {
+
+                }
+            }
+            cmd.end(false);
+            baseHallRight.close();
+            baseHallLeft.close();
+        });
+
+        resetOnHall.start();
+        System.out.println("done starting thread");
 
         currentManualControlMode = ManualControlMode.RAW;
         setDefaultCommand(currentManualControlMode.command);
@@ -374,12 +396,36 @@ public class Arm extends ArmBase {
     }
 
     @Override
+    public ArmPathGenerator.RobotOrientation getRobotOrientation() {
+        return orientation;
+    }
+
+    @Override
+    public RobotPos getRobotPos() {
+        return pos;
+    }
+
+    @Override
+    public void setRobotOrientation(RobotOrientation orientation) {
+        this.orientation = orientation;
+    }
+
+    @Override
+    public void setRobotPos(RobotPos pos) {
+        this.pos = pos;
+    }
+
+    @Override
     public List<Binding> getMappings() {
         List<Binding> posBindings = Arrays.stream(ArmPosJoystick.Ids.values()).map((id) -> {
-            return new Binding(Constants.Joysticks.armJoystick, id, Button::onTrue, new GotoPos(id.target, id.pos, id.orientation));
+            return new Binding(Constants.Joysticks.armJoystick, id, Button::onTrue,
+                    new GotoPos(id.target, id.pos, id.orientation, id.toString()));
         }).collect(Collectors.toList());
         List<Binding> otherBindings = List
-                .of(new Binding(Constants.Joysticks.armJoystick, Logitech.start, Button::onTrue,
+                .of(new Binding(Constants.Joysticks.armJoystick, Logitech.lb, Button::onFalse, new InstantCommand(
+                        () -> Arm.getInstance().setEncoderTicksJoint(-167.0 / 360.0 /
+                                Constants.Arm.jointGearRatio * 2048))),
+                        new Binding(Constants.Joysticks.armJoystick, Logitech.start, Button::onTrue,
                                 new InstantCommandRunWhenDisabled(() -> {
                                     int modeIdx = List.of(ManualControlMode.values()).indexOf(currentManualControlMode);
 
@@ -395,15 +441,15 @@ public class Arm extends ArmBase {
                                 })),
 
                         new Binding(Constants.Joysticks.armJoystick, Logitech.back, Button::onTrue,
-                                new InstantCommand(() -> {
+                                new InstantCommandRunWhenDisabled(() -> {
                                     int modeIdx = List.of(ManualControlMode.values()).indexOf(currentManualControlMode);
                                     stop();
                                     setManualControlMode(
-                                            ManualControlMode.values()[(modeIdx - 1)
+                                            ManualControlMode.values()[(modeIdx + ManualControlMode.values().length - 1)
                                                     % ManualControlMode.values().length]);
                                 })));
-        
-        return Stream.concat(posBindings.stream(), posBindings.stream()).toList();
+
+        return Stream.concat(posBindings.stream(), otherBindings.stream()).toList();
     }
 
     double currentVelOut;
@@ -416,6 +462,14 @@ public class Arm extends ArmBase {
             setManualControlMode(ManualControlMode.RAW);
         }
 
+        if (Math.abs(jointAngle()) < Math.abs(jointTicksToAngle(motors.joint.getEncoderVelocity()) * 10)
+                + Math.toRadians(5)) {
+            if (Math.signum(motors.joint.getEncoderVelocity()) != Math.signum(jointAngle())
+                    && motors.joint.getEncoderVelocity() != 0) {
+                GripperSubsystem.getInstance().closeGripper();
+            }
+        }
+
         if (isJointZeroed && isBaseZeroed) {
             double torque = model.torqueToHoldState().getSecond();
 
@@ -426,16 +480,6 @@ public class Arm extends ArmBase {
     @Override
     public boolean isZeroed() {
         return isBaseZeroed && isJointZeroed;
-    }
-
-    @Override
-    public boolean isBaseLeftHallActive() {
-        return !baseHallRight.get();
-    }
-
-    @Override
-    public boolean isBaseRightHallActive() {
-        return !baseHallLeft.get();
     }
 
     @Override
@@ -484,8 +528,6 @@ public class Arm extends ArmBase {
         // builder.addDoubleProperty("Joint Current Stator",
         // motors.joint::getTemperature, null);
         builder.addDoubleProperty("Joint encoder velocity", motors.joint::getEncoderVelocity, null);
-        builder.addBooleanProperty("Base hall right", this::isBaseRightHallActive, null);
-        builder.addBooleanProperty("Base hall left", this::isBaseLeftHallActive, null);
         builder.addDoubleProperty("Base CurrentStator", motors.base::getStatorCurrent, null);
         builder.addDoubleProperty("out hold", () -> kF * model.torqueToHoldState().getSecond(), null);
         builder.addDoubleProperty("VelOut", () -> currentVelOut, null);
@@ -493,6 +535,8 @@ public class Arm extends ArmBase {
         builder.addBooleanProperty("Joint is zeroed", () -> isJointZeroed, null);
         builder.addDoubleProperty("Arm pos x", () -> ArmKinematics.anglesToPos(baseAngle(), jointAngle()).x, null);
         builder.addDoubleProperty("Arm pos y", () -> ArmKinematics.anglesToPos(baseAngle(), jointAngle()).y, null);
+        builder.addStringProperty("Robot Pos", () -> pos.toString(), null);
+        builder.addStringProperty("Robot Orientation", () -> orientation.toString(), null);
         builder.addStringProperty("Manual Control Mode", () -> currentManualControlMode.toString(), null);
         builder.addDoubleProperty("Pos Quadrant idx", () -> {
             try {

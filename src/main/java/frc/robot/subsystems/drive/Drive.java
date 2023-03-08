@@ -4,6 +4,7 @@
 
 package frc.robot.subsystems.drive;
 
+import java.text.BreakIterator;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,8 +30,12 @@ import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.SPI.Port;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj2.command.FunctionalCommand;
+import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.button.Button;
+import frc.fridowpi.command.Command;
 import frc.fridowpi.joystick.Binding;
+import frc.fridowpi.joystick.joysticks.LogitechExtreme;
 import frc.fridowpi.pneumatics.FridoDoubleSolenoid;
 import frc.fridowpi.sensors.FridoNavx;
 import frc.robot.Constants;
@@ -52,8 +57,11 @@ public class Drive extends DriveBase {
     private DifferentialDrive tankDrive;
     private LinearFilter driveFilter;
 
-    private double driveDirection = 1;
-    private double speed = 0.8;
+    private double driveDirection = -1;
+    private static final double defaultDriveSpeed = 0.8;
+    private static final double fastSpeed = 1;
+    private static final double slowSpeed = 0.15;
+    private double speed = defaultDriveSpeed;
 
     private double steerDirection = -1;
     private double steeringWheelSensibility = 1;
@@ -62,8 +70,7 @@ public class Drive extends DriveBase {
     private PIDController rightVelocityController;
     private PIDController leftVelocityController;
 
-    private FridoDoubleSolenoid brakeSolenoidRight;
-    private FridoDoubleSolenoid brakeSolenoidLeft;
+    private FridoDoubleSolenoid brakeSolenoid;
 
     private ArrayList<Float> balancevalues = new ArrayList();
 
@@ -81,6 +88,10 @@ public class Drive extends DriveBase {
     private DifferentialDriveVoltageConstraint voltageConstraint;
     private DifferentialDriveKinematicsConstraint kinematicsConstraint;
     private CentripetalAccelerationConstraint centripetalAccelerationConstraint;
+    // Functions as a requirement no functionality
+    private Subsystem speedRequirement = new Subsystem() {
+
+    };
 
     // Config
     private TrajectoryConfig trajectoryConfig;
@@ -128,6 +139,9 @@ public class Drive extends DriveBase {
         configSimpleMotorFeedforward();
         configConstrains();
         configTrajectoryConfig();
+
+        brakeSolenoid = new FridoDoubleSolenoid(0, 1);
+        brakeSolenoid.init();
 
         rightVelocityController = new PIDController(Constants.Drive.PathWeaver.kP, Constants.Drive.PathWeaver.kI,
                 Constants.Drive.PathWeaver.kD);
@@ -397,15 +411,54 @@ public class Drive extends DriveBase {
                 Constants.Drive.ButtonIds.activateBrake,
                 Button::toggleOnTrue, new BrakeCommand());
 
-        Binding activateBalancing = new Binding(
-                Constants.Joysticks.accelerator,
-                Constants.Drive.ButtonIds.activateBalancing,
-                Button::toggleOnTrue, new BalanceCommand());
+        Binding slow = new Binding(Constants.Joysticks.accelerator, LogitechExtreme._1, Button::whileTrue,
+                new Command() {
+                    {
+                        addRequirements(speedRequirement);
+                    }
+
+                    public void initialize() {
+                        speed = slowSpeed;
+                    }
+
+                    public void end(boolean interrupted) {
+                        speed = defaultDriveSpeed;
+                    }
+
+                    public void execute() {
+                    }
+
+                    public boolean isFinished() {
+                        return false;
+                    }
+                });
+
+        Binding fast = new Binding(Constants.Joysticks.accelerator, LogitechExtreme._2, Button::whileTrue,
+                new Command() {
+                    {
+                        addRequirements(speedRequirement);
+                    }
+
+                    public void initialize() {
+                        speed = fastSpeed;
+                    }
+
+                    public void end(boolean interrupted) {
+                        speed = defaultDriveSpeed;
+                    }
+
+                    public void execute() {
+                    }
+
+                    public boolean isFinished() {
+                        return false;
+                    }
+                });
 
         return List.of(
                 driveForward, driveInverted,
                 carMode, bidirectionalMode,
-                activateBrake, activateBalancing);
+                activateBrake, slow, fast);
     }
 
     @Override
@@ -432,14 +485,12 @@ public class Drive extends DriveBase {
     public void triggerBrake() {
         isActive = false;
         tankDrive.stopMotor();
-        brakeSolenoidRight.set(Value.kForward);
-        brakeSolenoidLeft.set(Value.kForward);
+        brakeSolenoid.set(Value.kForward);
     }
 
     @Override
     public void releaseBrake() {
-        brakeSolenoidRight.set(Value.kReverse);
-        brakeSolenoidLeft.set(Value.kReverse);
+        brakeSolenoid.set(Value.kReverse);
         isActive = true;
     }
 

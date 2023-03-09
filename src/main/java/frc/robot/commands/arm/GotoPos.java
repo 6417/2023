@@ -1,9 +1,11 @@
 package frc.robot.commands.arm;
 
+import edu.wpi.first.hal.simulation.ConstBufferCallback;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.fridowpi.utils.Vector2;
 import frc.robot.ArmPathGenerator;
+import frc.robot.Constants;
 import frc.robot.ArmPathGenerator.RobotPos;
 import frc.robot.subsystems.Arm;
 
@@ -31,10 +33,16 @@ public class GotoPos extends CommandBase {
             generatedPath = ArmPathGenerator.toCommand(new ArmPathGenerator().pathTo(target,
                     Arm.getInstance().getRobotPos(), Arm.getInstance().getRobotOrientation()));
         } else {
-            generatedPath = ArmPathGenerator.toCommand(new ArmPathGenerator().pathTo(target, pos, orientation));
+            Vector2[] generatedTargets = new ArmPathGenerator().pathTo(target, pos, orientation);
+            if (generatedTargets.length == 0) {
+                return;
+            }
+            generatedPath = ArmPathGenerator.toCommand(generatedTargets);
+            
         }
         CommandScheduler.getInstance().schedule(generatedPath);
         System.out.println("[Arm] going to target: " + name + "(" + target + ")");
+       
         Arm.getInstance().setRobotOrientation(orientation);
         Arm.getInstance().setRobotPos(pos);
     }

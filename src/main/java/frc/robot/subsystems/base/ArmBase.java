@@ -60,12 +60,21 @@ public class ArmBase extends Module {
         return false;
     }
 
+    public void baseGotoAngle(double angle, boolean fine) {
+
+    }
+
     public void baseGotoAngle(double angle) {
+        baseGotoAngle(angle, true);
+    }
+
+
+    public void jointGotoAngle(double angle, boolean fine) {
 
     }
 
     public void jointGotoAngle(double angle) {
-
+        jointGotoAngle(angle, true);
     }
 
     public void setBasePercent(double percent) {
@@ -129,5 +138,25 @@ public class ArmBase extends Module {
     }
     
     public void setRobotPos(ArmPathGenerator.RobotPos pos) {
+    }
+    
+    public double getGripperArmDistanceSensor() {
+        return 0.0;
+    }
+    
+    public double getJointEncoderVelocity() {
+        return 0.0;
+    }
+    
+    public int getLastValidQuadrant() {
+        return -1;
+    }
+    
+    public void setJointPidTolerance(double ticks) {
+
+    }
+
+    public void setBasePidTolerance(double ticks) {
+
     }
 }

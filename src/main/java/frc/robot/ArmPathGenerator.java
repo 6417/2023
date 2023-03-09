@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Vector;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.Pair;
@@ -20,6 +21,7 @@ import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.fridowpi.utils.Matrix2;
 import frc.fridowpi.utils.Vector2;
 import frc.robot.commands.arm.GotoPosNoChecksDriveThrough;
+import frc.robot.commands.arm.GotoPosNoChecksTarget;
 import frc.robot.subsystems.Arm;
 
 public class ArmPathGenerator {
@@ -99,18 +101,19 @@ public class ArmPathGenerator {
                 return new Quadrant(matFlip.vmul(from), matFlip.vmul(to), null);
             }
         }
-        
+
         private String vecMaybeNullToString(Vector2 vec) {
             if (vec == null) {
                 return "null";
             }
-            
+
             return vec.toString();
         }
-        
+
         @Override
         public String toString() {
-            return String.format("Quadrant { from: %s, to: %s, driveThrough: %s }", from.toString(), to.toString(), vecMaybeNullToString(driveThrough));
+            return String.format("Quadrant { from: %s, to: %s, driveThrough: %s }", from.toString(), to.toString(),
+                    vecMaybeNullToString(driveThrough));
         }
     }
 
@@ -131,33 +134,35 @@ public class ArmPathGenerator {
     }
 
     static Quadrant[] quadrantsField = new Quadrant[] {
-            new Quadrant(new Vector2(0.26, -0.05), new Vector2(1.44, 0.05), null),
+            new Quadrant(new Vector2(0.26, -0.05), new Vector2(1.44, 0.05), new Vector2(0.442, -0.02)),
             new Quadrant(new Vector2(0.26, 0.05), new Vector2(1.44, 1.78), new Vector2(0.29, coneHeight + 0.01)),
             new Quadrant(new Vector2(0.26, 0.05), new Vector2(-0.61, 1.78),
                     ArmPosJoystick.homePos),
             new Quadrant(new Vector2(-0.56, 0.05), new Vector2(-1.74, 1.78), new Vector2(-0.75, coneHeight + 0.01)),
-            new Quadrant(new Vector2(-0.56, -0.05), new Vector2(-1.74, 0.05), null)
+            new Quadrant(new Vector2(-0.56, -0.05), new Vector2(-1.74, 0.05), new Vector2(-0.885, -0.02))
     };
 
-    public static Vector2 forwardOffset = new Vector2(0.26, 0.0);
-    public static Vector2 reverseOffset = new Vector2(0.61, 0.0);
+    private static Vector2 forwardOffset = Constants.Arm.armPathGenForwardOffset;
+    private static Vector2 reverseOffset = Constants.Arm.armPathGenReverseOffset;
 
     static {
-
-        // ORDER MATTERS!
+        // ORDER IN ARRAYS MATTERS!
         Quadrant[] quadrantsLoadingZone = new Quadrant[] {
-                new Quadrant(new Vector2(0, 1.0 - robotHeight), new Vector2(0.3, 1.78), null),
+                new Quadrant(new Vector2(0, 1.0 - robotHeight), new Vector2(0.3, 1.78),
+                        new Vector2(0.15, ArmPosJoystick.Ids.LOADING_ZONE_FORWARD_CONE.target.y)),
                 new Quadrant(new Vector2(-0.05, -0.05), new Vector2(0.0, 1.78), new Vector2(-0.15, 1.2)),
                 new Quadrant(new Vector2(-0.22, 0.39), new Vector2(-0.24, 0.41), new Vector2(-0.23, 0.4)),
         };
 
         Quadrant[] quadrantsGrid = new Quadrant[] {
-                new Quadrant(new Vector2(0.75, 1.07), new Vector2(1.44, 1.74), null),
+                new Quadrant(new Vector2(0.75, 1.07), new Vector2(1.44, 1.74),
+                        ArmPosJoystick.Ids.GRID_FORWARD_TOP.target.minus(forwardOffset)),
                 new Quadrant(new Vector2(0.75, 1.07), new Vector2(1.44, 1.74), new Vector2(0.6, 1.20 + coneHeight)),
                 new Quadrant(new Vector2(0.30, 0.78), new Vector2(0.75, 1.74), new Vector2(0.6, 1.20 + coneHeight)),
                 new Quadrant(new Vector2(0.30, 0.78), new Vector2(0.75, 1.74), new Vector2(0.25, 0.78 + coneHeight)),
                 new Quadrant(new Vector2(0.0, 0.20), new Vector2(0.29, 1.74), new Vector2(0.25, 0.78 + coneHeight)),
-                new Quadrant(new Vector2(-0.124, 0.78 / 2 + coneHeight - 0.1), new Vector2(-0.126, 0.78 / 2 + coneHeight + 0.1), new Vector2(-0.125, 0.78 / 2 + coneHeight))
+                new Quadrant(new Vector2(-0.124, 0.78 / 2 + coneHeight - 0.1),
+                        new Vector2(-0.126, 0.78 / 2 + coneHeight + 0.1), new Vector2(-0.125, 0.78 / 2 + coneHeight))
         };
 
         Quadrant[] fieldForward = new Quadrant[] {
@@ -224,17 +229,25 @@ public class ArmPathGenerator {
 
     public static SequentialCommandGroup toCommand(Vector2[] path) {
         SequentialCommandGroup cmd = new SequentialCommandGroup();
-
-        for (var p : path) {
-            cmd.addCommands(new GotoPosNoChecksDriveThrough(p));
-        }
         cmd.addRequirements(Arm.getInstance());
+        if (path.length == 0) {
+            return cmd;
+        }
+
+        for (int i = 0; i < path.length - 1; i++) {
+            cmd.addCommands(new GotoPosNoChecksDriveThrough(path[i]));
+        }
+        cmd.addCommands(new GotoPosNoChecksTarget(path[path.length - 1]));
         return cmd;
     }
 
     public Vector2[] pathTo(Vector2 target, RobotPos pos, RobotOrientation orientation) {
+        return pathTo(Arm.getInstance().getPos(), target, pos, orientation, false);
+    }
+
+    private Vector2[] pathTo(Vector2 start, Vector2 target, RobotPos pos, RobotOrientation orientation, boolean recursive) {
         try {
-            int indexPos = getQuadrantIndexOfPoint(Arm.getInstance().getPos(), pos,
+            int indexPos = getQuadrantIndexOfPoint(start, pos,
                     orientation);
             int indexTarget = getQuadrantIndexOfPoint(target, pos, orientation);
 
@@ -254,7 +267,14 @@ public class ArmPathGenerator {
             path[path.length - 1] = target;
             return path;
         } catch (InvalidValueException e) {
-            return new Vector2[] {};
+            int lastValidQuadrant = Arm.getInstance().getLastValidQuadrant();
+            if (lastValidQuadrant < 0 || recursive) {
+                DriverStation.reportError("Failed to calculate path into valid position, because driveThrough itself is invalid", false);
+                return new Vector2[] {};
+            }
+            Vector2 driveThrough = quadrants.get(pos).get(orientation)[lastValidQuadrant].driveThrough;
+            return Stream.concat(List.of(driveThrough).stream(),
+                    Arrays.stream(pathTo(driveThrough, target, pos, orientation, true))).toArray(Vector2[]::new);
         }
     }
 }

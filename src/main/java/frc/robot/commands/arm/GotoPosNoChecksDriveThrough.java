@@ -25,8 +25,8 @@ public class GotoPosNoChecksDriveThrough extends CommandBase {
             angles = solutions.getSecond();
         }
 
-        Arm.getInstance().baseGotoAngle(angles.base);
-        Arm.getInstance().jointGotoAngle(angles.joint);
+        Arm.getInstance().baseGotoAngle(angles.base, false);
+        Arm.getInstance().jointGotoAngle(angles.joint, false);
     }
 
     @Override

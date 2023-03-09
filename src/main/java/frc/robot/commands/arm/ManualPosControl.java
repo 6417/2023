@@ -5,7 +5,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.fridowpi.joystick.JoystickHandler;
-import frc.fridowpi.utils.LatchBooleanRising;
+import frc.fridowpi.utils.LatchedBooleanRising;
 import frc.fridowpi.utils.LatchedBoolean;
 import frc.fridowpi.utils.Vector2;
 import frc.robot.ArmKinematics;
@@ -14,7 +14,7 @@ import frc.robot.subsystems.Arm;
 
 public class ManualPosControl extends CommandBase {
     private Vector2 target;
-    private LatchBooleanRising gettingZeroed;
+    private LatchedBooleanRising gettingZeroed;
 
     public ManualPosControl() {
         addRequirements(Arm.getInstance());
@@ -23,7 +23,7 @@ public class ManualPosControl extends CommandBase {
     @Override
     public void initialize() {
         target = Arm.getInstance().getPos();
-        gettingZeroed = new LatchBooleanRising(Arm.getInstance().isZeroed());
+        gettingZeroed = new LatchedBooleanRising(Arm.getInstance().isZeroed());
     }
 
     @Override

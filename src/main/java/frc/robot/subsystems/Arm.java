@@ -13,6 +13,7 @@ import edu.wpi.first.hal.InterruptJNI;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.util.sendable.SendableBuilder;
+import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Joystick;
@@ -34,7 +35,7 @@ import frc.fridowpi.motors.FridolinsMotor;
 import frc.fridowpi.motors.FridolinsMotor.FridoFeedBackDevice;
 import frc.fridowpi.motors.FridolinsMotor.IdleMode;
 import frc.fridowpi.motors.FridolinsMotor.LimitSwitchPolarity;
-import frc.fridowpi.utils.LatchBooleanRising;
+import frc.fridowpi.utils.LatchedBooleanRising;
 import frc.fridowpi.utils.LatchedBooleanFalling;
 import frc.fridowpi.utils.Vector2;
 import frc.robot.ArmKinematics;
@@ -55,6 +56,7 @@ import frc.robot.commands.arm.ManualPosControl;
 import frc.robot.commands.arm.RawManualControl;
 import frc.robot.commands.arm.ResetBaseEncodersOnHall;
 import frc.robot.commands.arm.ResetBaseEncodersOnLimitSwitch;
+import frc.robot.commands.arm.ResetJointEncodersOnDistanceSensor;
 import frc.robot.commands.arm.ToggleCone;
 import frc.robot.subsystems.base.ArmBase;
 import jdk.jfr.Percentage;
@@ -172,15 +174,18 @@ public class Arm extends ArmBase {
     double kI = 0.00001; // 25; // 0.000025 * factor;
     double kD = 0.001; // 0.3
 
-    LatchBooleanRising gettingZeroed;
+    LatchedBooleanRising gettingZeroed;
     LatchedBooleanFalling gettingUnzeroed;
+    
+    AnalogInput distanceSensorGripperArm;
 
     @Override
     public void init() {
+        distanceSensorGripperArm = new AnalogInput(Constants.Arm.gripperArmDistanceSensorAnalogInputPin);
         pos = RobotPos.FIELD;
         orientation = RobotOrientation.FORWARD;
         pathGenerator = new ArmPathGenerator();
-        gettingZeroed = new LatchBooleanRising(isBaseZeroed && isJointZeroed);
+        gettingZeroed = new LatchedBooleanRising(isBaseZeroed && isJointZeroed);
         gettingUnzeroed = new LatchedBooleanFalling(isBaseZeroed && isJointZeroed);
         motors = new Motors();
         model = new ArmModel(
@@ -191,7 +196,7 @@ public class Arm extends ArmBase {
         Shuffleboard.getTab("Arm").add(this);
         Shuffleboard.getTab("Arm").add("PID", jointPosController);
         Shuffleboard.getTab("Arm").add("Model", model);
-        CommandScheduler.getInstance().schedule(new ResetBaseEncodersOnLimitSwitch());
+        CommandScheduler.getInstance().schedule(new ResetBaseEncodersOnLimitSwitch(), new ResetJointEncodersOnDistanceSensor());
 
         Thread resetOnHall = new Thread(() -> {
             DigitalInput baseHallRight = new DigitalInput(Constants.Arm.dioIdHallBaseRight);
@@ -264,6 +269,16 @@ public class Arm extends ArmBase {
                 Constants.Arm.encoderTicksPerMotorRevolution
                 * Constants.Arm.jointGearRatio * Math.PI * 2.0;
     }
+    
+    @Override
+    public void setBasePidTolerance(double ticks) {
+        motors.base.configAllowableClosedloopError(0, ticks, 1);
+    }
+
+    @Override
+    public void setJointPidTolerance(double ticks) {
+        motors.joint.configAllowableClosedloopError(0, ticks, 1);
+    }
 
     @Override
     public ArmModel getModel() {
@@ -334,7 +349,15 @@ public class Arm extends ArmBase {
     }
 
     @Override
-    public void baseGotoAngle(double angle) {
+    public void baseGotoAngle(double angle, boolean fine) {
+        if (fine)  {
+            setBasePidTolerance(Constants.Arm.baseAllowableError); 
+            setJointPidTolerance(Constants.Arm.jointAllowableError); 
+        } else {
+            setBasePidTolerance(Constants.Arm.jointAllowableErrorDriveThrough); 
+            setJointPidTolerance(Constants.Arm.jointAllowableErrorDriveThrough); 
+        }
+
         if (Double.isFinite(angle) && !Double.isNaN(angle)) {
             if (isBaseZeroed && isJointZeroed) {
                 setBaseTargetPos(baseAngleToTicks(angle));
@@ -455,11 +478,26 @@ public class Arm extends ArmBase {
     double currentVelOut;
     final double kF = 0.002;
     double iZone = 1000;
+    
+    int lastValidQuadrant = -1; 
+    
+    @Override
+    public int getLastValidQuadrant() {
+        return lastValidQuadrant;
+    }
 
     @Override
     public void periodic() {
         if (gettingUnzeroed.updateAndGet(isZeroed())) {
             setManualControlMode(ManualControlMode.RAW);
+        }
+        
+        if (isZeroed()) {
+            try {
+                lastValidQuadrant = pathGenerator.getQuadrantIndexOfPoint(getPos(), pos, orientation);
+            } catch (InvalidValueException ignored) {
+                // Invalid position not updating                
+            }
         }
 
         if (Math.abs(jointAngle()) < Math.abs(jointTicksToAngle(motors.joint.getEncoderVelocity()) * 10)
@@ -484,12 +522,12 @@ public class Arm extends ArmBase {
 
     @Override
     public boolean isBaseAtTarget() {
-        return Math.abs(motors.base.getEncoderTicks() - targetPosBase) < Constants.Arm.baseAllowableError;
+        return Math.abs(motors.base.getEncoderTicks() - targetPosBase) < Constants.Arm.baseAllowableErrorDriveThrough;
     }
 
     @Override
     public boolean isJointAtTarget() {
-        return Math.abs(motors.joint.getEncoderTicks() - targetPosJoint) < Constants.Arm.jointAllowableError;
+        return Math.abs(motors.joint.getEncoderTicks() - targetPosJoint) < Constants.Arm.jointAllowableErrorDriveThrough;
     }
 
     @Override
@@ -500,6 +538,16 @@ public class Arm extends ArmBase {
     @Override
     public Vector2 getPos() {
         return ArmKinematics.anglesToPos(baseAngle(), jointAngle());
+    }
+    
+    @Override
+    public double getGripperArmDistanceSensor() {
+        return distanceSensorGripperArm.getVoltage();
+    }
+    
+    @Override
+    public double getJointEncoderVelocity() {
+        return motors.joint.getEncoderVelocity();
     }
 
     @Override
@@ -563,5 +611,6 @@ public class Arm extends ArmBase {
         builder.addDoubleProperty("base shuffle board target",
                 () -> Math.toDegrees(BaseGotoPositionShuffleBoard.getInstance().target),
                 (newTarget) -> BaseGotoPositionShuffleBoard.getInstance().target = Math.toRadians(newTarget));
+        builder.addDoubleProperty("Distance sensor [RAW]", distanceSensorGripperArm::getVoltage, null);
     }
 }

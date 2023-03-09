@@ -54,7 +54,6 @@ import frc.robot.subsystems.GripperSubsystem;
 public class Robot extends TimedRobot {
     private Command m_autonomousCommand;
 
-    AnalogInput distanceSensor = new AnalogInput(0);
     PowerDistribution pdp = new PowerDistribution(62, ModuleType.kCTRE);
 
     @Override
@@ -78,7 +77,6 @@ public class Robot extends TimedRobot {
 
         // PneumaticHandler.getInstance().enableCompressor();
         // Shuffleboard.getTab("Arm").add(new ResetEncodersBase());
-        Shuffleboard.getTab("debug").add("Analog In", distanceSensor);
 
         FridoNavx.setup(Port.kMXP);
         FridoNavx.getInstance().init();

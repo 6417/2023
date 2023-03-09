@@ -31,7 +31,6 @@ public class ArmPosJoystick extends WPIJoystick {
     private static final IJoystickButtonId forward = Logitech.rt;
     private static final IJoystickButtonId reverse = Logitech.lt;
     public static final Vector2 homePos = ArmKinematics.anglesToPos(Math.PI / 2, 0).add(new Vector2(0, 0.000001));
-    
 
     public static enum Ids implements IJoystickButtonId {
         GRID_FORWARD_BOTTOM(POV.DOWN, forward, null,
@@ -53,12 +52,10 @@ public class ArmPosJoystick extends WPIJoystick {
         LOADING_ZONE_REVERSE_CUBE(null, forward, Logitech.x, new Vector2(-0.772, 1.08), RobotPos.LOADING_ZONE,
                 RobotOrientation.REVERSE),
         LOADING_ZONE_REVERSE_CONE(null, forward, Logitech.y, new Vector2(-0.799, 1.128), RobotPos.LOADING_ZONE,
-
-            RobotOrientation.REVERSE),
+                RobotOrientation.REVERSE),
         PICKUP_FORWARD(POV.RIGHT, forward, null, new Vector2(0.465, 0.208), RobotPos.FIELD, RobotOrientation.FORWARD),
-        PICKUP_REVERSE(POV.RIGHT, reverse, null,
-                new Vector2(0.465, 0.208).minus(ArmPathGenerator.reverseOffset).minus(ArmPathGenerator.forwardOffset),
-                RobotPos.FIELD, RobotOrientation.REVERSE);
+        PICKUP_REVERSE(POV.RIGHT, reverse, null, new Vector2(0.465 - 0.82, 0.208), RobotPos.FIELD,
+                RobotOrientation.REVERSE);
 
         private final int id;
         public final POV pov;
@@ -71,6 +68,7 @@ public class ArmPosJoystick extends WPIJoystick {
         private Ids(POV pov, IJoystickButtonId button1, IJoystickButtonId button2, Vector2 targetPos,
                 ArmPathGenerator.RobotPos pos,
                 ArmPathGenerator.RobotOrientation orientation) {
+            System.out.println("initializing pos joystick ids");
             id = idCounter;
             idCounter++;
 

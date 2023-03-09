@@ -13,6 +13,7 @@ import frc.fridowpi.motors.FridolinsMotor.DirectionType;
 import frc.fridowpi.motors.FridolinsMotor.LimitSwitchPolarity;
 import frc.fridowpi.motors.utils.PidValues;
 import frc.fridowpi.pneumatics.FridoDoubleSolenoid;
+import frc.fridowpi.utils.Vector2;
 import frc.robot.ArmModel.Cargo;
 
 /**
@@ -187,8 +188,8 @@ public final class Constants {
         public static final MotionMagic baseMotionMagic = new MotionMagic(9500, 5000, 1); // TODO: set vel back to 9500
 
         public static final LimitSwitchPolarity limitSwitchPolarity = LimitSwitchPolarity.kNormallyClosed;
-        public static final int dioIdHallBaseRight = 8;
-        public static final int dioIdHallBaseLeft = 9;
+        public static final int dioIdHallBaseRight = 9;
+        public static final int dioIdHallBaseLeft = 8;
         public static final PhysicalProperties baseArm = new PhysicalProperties(0.782, 7.083, 1.10, 2747698.280 / 1e6);
 
         public static final PhysicalProperties gripperArm = new PhysicalProperties(0.55,
@@ -203,14 +204,33 @@ public final class Constants {
         public static final double baseEncoderPosFwdLimitSwitch = 150.0 / 360.0 / Constants.Arm.baseGearRatio * 2048.0;
         public static final double baseEncoderPosRevLimitSwitch = 30.0 / 360.0 / Constants.Arm.baseGearRatio * 2048.0;
 
-        // ﻿﻿﻿﻿﻿﻿ Right Falling vel > 0, pos [DEG]: 0.138192Right Rising vel < 0, pos [DEG]: 0.099555Right Falling vel < 0, pos [DEG]: -0.028935Right Rising vel > 0, pos [DEG]: -0.002934Right Falling vel > 0, pos [DEG]: 0.129142Right Rising vel < 0, pos [DEG]: 0.102700Right Falling vel < 0, pos [DEG]: -0.027477Right Rising vel > 0, pos [DEG]: -0.003509Right Falling vel > 0, pos [DEG]: 0.136869Right Rising vel < 0, pos [DEG]: 1.618005Right Falling vel < 0, pos [DEG]: 1.476514Right Rising vel > 0, pos [DEG]: 1.493541Right Falling vel > 0, pos [DEG]: 1.626441Right Rising vel < 0, pos [DEG]: 1.612310[Arm] going to target: HOME({ -0.000000, 0.260001 }) 
-        public static final double baseRightEncoderPosHallVelPositive = 0.0;
-        public static final double baseRightEncoderPosHallVelNegative = 0.0;
+        public static final Vector2 armPathGenForwardOffset = new Vector2(0.26, 0.0);
+        public static final Vector2 armPathGenReverseOffset = new Vector2(0.61, 0.0);
+
+// Right Falling vel < 0, pos [DEG]: 92.515869 
+// Right Rising vel < 0, pos [DEG]: 84.469482 
+// Right Falling vel > 0, pos [DEG]: 85.904297
+// Right Rising vel > 0, pos [DEG]: 93.795776 
+//
+// Right Falling vel < 0, pos [DEG]: 92.514771 
+// Right Rising vel < 0, pos [DEG]: 84.471680
+        public static final double baseRightFallingEncoderPosHallVelNegative = frc.robot.subsystems.Arm.baseAngleToTicks(Math.toRadians(92.515869));
+        public static final double baseRightRisingEncoderPosHallVelNegative = frc.robot.subsystems.Arm.baseAngleToTicks(Math.toRadians(84.469482));
+        public static final double baseRightFallingEncoderPosHallVelPositive = frc.robot.subsystems.Arm.baseAngleToTicks(Math.toRadians(85.90429));
+        public static final double baseRightRisingEncoderPosHallVelPositive  = frc.robot.subsystems.Arm.baseAngleToTicks(Math.toRadians(93.795776));
+        
+        public static final int gripperArmDistanceSensorAnalogInputPin = 0;
+        public static final double gripperArmDistanceSensorThreshold = 1.2;
+        
+        
         public static final double baseLeftEncoderPosHallVelPositive = 0.0;
         public static final double baseLeftEncoderPosHallVelNegative = 0.0;
 
-        public static final double baseAllowableError = 300;
-        public static final double jointAllowableError = 1000;
+        public static final double baseAllowableErrorDriveThrough = 300;
+        public static final double jointAllowableErrorDriveThrough = 1000;
+
+        public static final double baseAllowableError = 150;
+        public static final double jointAllowableError = 400;
 
         public static final double baseDefaultManualMaxPercent = 0.3;
         public static final double jointDefaultManualMaxPercent = 0.3;

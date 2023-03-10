@@ -37,8 +37,7 @@ public class DriveCommand extends CommandBase {
                 .getX();
 
         // Call Drive::drive with the input
-        m_subsystem.drive(joystickInputY, joystickTurnValue, steerWheelInput);
-
+        m_subsystem.driveJoystick(joystickInputY, joystickTurnValue, steerWheelInput);
     }
 
     // Called once the command ends or is interrupted.

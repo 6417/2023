@@ -1,6 +1,7 @@
-// Copyright (c) FIRST and other WPILib contributors.
-// Open Source Software; you can modify and/or share it under the terms of
-// the WPILib BSD license file in the root directory of this project.
+// Refactoring ideas:
+//  organizing methods && fields
+//  check @Override
+//  sync DriveBase
 
 package frc.robot.subsystems.drive;
 
@@ -29,12 +30,13 @@ import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.SPI.Port;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.button.Button;
 import frc.fridowpi.joystick.Binding;
 import frc.fridowpi.pneumatics.FridoDoubleSolenoid;
 import frc.fridowpi.sensors.FridoNavx;
 import frc.robot.Constants;
-import frc.robot.commands.driveCommands.BalanceCommand;
+import frc.robot.commands.balance.PIDBalanceCommand;
 import frc.robot.commands.driveCommands.BrakeCommand;
 import frc.robot.commands.driveCommands.DriveCommand;
 import frc.robot.commands.driveCommands.ReverseDrivingDirection;
@@ -54,6 +56,7 @@ public class Drive extends DriveBase {
 
     private double driveDirection = 1;
     private double speed = 0.8;
+    private double motorspeed;
 
     private double steerDirection = -1;
     private double steeringWheelSensibility = 1;
@@ -117,7 +120,7 @@ public class Drive extends DriveBase {
 
     @Override
     public void init() {
-        setDefaultCommand(new DriveCommand());
+        // setDefaultCommand(new DriveCommand());
 
         motors.init();
 
@@ -149,7 +152,7 @@ public class Drive extends DriveBase {
     }
 
     @Override
-    public void drive(double joystickInputY, double joystickInputX, double steerWheelInput) {
+    public void driveJoystick(double joystickInputY, double joystickInputX, double steerWheelInput) {
         // System.out.println(joystickInputY + " | " + joystickInputX + " | " +
         // steerWheelInput);
 
@@ -194,11 +197,26 @@ public class Drive extends DriveBase {
             steerInput = -steerInput;
 
         if (steerWithJoystick) {
-            tankDrive.arcadeDrive(-xInput, yInput, false);
+            this.driveRaw(yInput, xInput);
         } else {
             Pair<Double, Double> pair = joystickToChassisSpeed(yInput, steerInput);
-            tankDrive.arcadeDrive(pair.getSecond(), pair.getFirst(), false);
+            this.driveRaw(pair.getFirst(), pair.getSecond());
         }
+    }
+
+    public void driveRaw(double speed, double rotation) {
+        // if (speed > 0.2)
+        // System.out.println("speed:" + speed);
+        // if (rotation > 0.2)
+        // System.out.println("steer:" + rotation);
+        motorspeed = speed;
+        tankDrive.arcadeDrive(-rotation, speed);
+    }
+
+    @Override
+    public void setMotorPercent(double right, double left) {
+        motors.left().set(-left);
+        motors.right().set(right);
     }
 
     private Pair<Double, Double> joystickToChassisSpeed(double accelerationInput, double steerInput) {
@@ -245,6 +263,15 @@ public class Drive extends DriveBase {
         driveDirection = direction;
     }
 
+    @Override
+    public void tankDriveVolts(Double leftSpeed, Double rightSpeed) {
+        motors.left().setVoltage(leftSpeed * driveDirection);
+        motors.right().setVoltage(-rightSpeed * driveDirection);
+        tankDrive.feed();
+        voltsLeft = leftSpeed * driveDirection;
+        voltsRight = rightSpeed * driveDirection;
+    }
+
     /* Getter Methods */
 
     @Override
@@ -264,15 +291,6 @@ public class Drive extends DriveBase {
 
     double voltsRight;
     double voltsLeft;
-
-    @Override
-    public void tankDriveVolts(Double leftSpeed, Double rightSpeed) {
-        motors.left().setVoltage(leftSpeed * driveDirection);
-        motors.right().setVoltage(-rightSpeed * driveDirection);
-        tankDrive.feed();
-        voltsLeft = leftSpeed * driveDirection;
-        voltsRight = rightSpeed * driveDirection;
-    }
 
     @Override
     public ChassisSpeeds getChassisSpeeds() {
@@ -376,7 +394,8 @@ public class Drive extends DriveBase {
     }
 
     @Override
-    public void simulationPeriodic() { }
+    public void simulationPeriodic() {
+    }
 
     @Override
     public List<Binding> getMappings() {
@@ -407,7 +426,7 @@ public class Drive extends DriveBase {
         Binding activateBalancing = new Binding(
                 Constants.Joystick.accelerator,
                 Constants.Drive.ButtonIds.activateBalancing,
-                Button::toggleOnTrue, new BalanceCommand());
+                Button::toggleOnTrue, new PIDBalanceCommand());
 
         return List.of(
                 driveForward, driveInverted,
@@ -421,9 +440,12 @@ public class Drive extends DriveBase {
         builder.addBooleanProperty("steer with joystick", () -> steerWithJoystick, (val) -> steerWithJoystick = val);
         builder.addStringProperty("steer mode", () -> steerMode.name(), null);
         builder.addDoubleProperty("drive driection", () -> driveDirection, null);
-        builder.addDoubleProperty("steering wheel sensibility", () -> steeringWheelSensibility, (val) -> steeringWheelSensibility = val);
-        builder.addDoubleProperty("joystick x (steering) sensibility", () -> joystickSteeringSensibility, (val) -> joystickSteeringSensibility = val);
+        builder.addDoubleProperty("steering wheel sensibility", () -> steeringWheelSensibility,
+                (val) -> steeringWheelSensibility = val);
+        builder.addDoubleProperty("joystick x (steering) sensibility", () -> joystickSteeringSensibility,
+                (val) -> joystickSteeringSensibility = val);
         builder.addDoubleProperty("speed", () -> speed, (val) -> speed = val);
+        builder.addDoubleProperty("motorspeed", () -> motorspeed, (val) -> motorspeed = val);
         builder.addStringProperty("brake status", () -> isActive ? "not active" : "active", null);
         builder.addDoubleProperty("wheel speed right", () -> this.getWheelSpeeds().rightMetersPerSecond, null);
         builder.addDoubleProperty("wheel speed left", () -> this.getWheelSpeeds().leftMetersPerSecond, null);
@@ -431,6 +453,8 @@ public class Drive extends DriveBase {
         builder.addDoubleProperty("position_y", () -> this.getPosition().getY(), null);
         builder.addDoubleProperty("volts right", () -> voltsRight, null);
         builder.addDoubleProperty("volts left", () -> voltsLeft, null);
+        builder.addDoubleProperty("Output", () -> motors.right().get(), null);
+        builder.addDoubleProperty("Pitch", this::getPitch, null);
     }
 
     @Override
@@ -454,24 +478,25 @@ public class Drive extends DriveBase {
     }
 
     int testbalance = 0;
-    public void balance(){
+
+    public void balance() {
         float pitch = FridoNavx.getInstance().getPitch();
-        //System.out.println(pitch);
+        // System.out.println(pitch);
         balancevalues.add(pitch);
-        if (balancevalues.size() == 3){
+        if (balancevalues.size() == 3) {
             balancevalues.remove(0);
-            System.out.println(balancevalues.get(1)-balancevalues.get(0));
-            if (balancevalues.get(1)-balancevalues.get(0) < -1){
-                Drive.getInstance().drive(0,0,0);
-                //Drive.getInstance().triggerBrake();
+            System.out.println(balancevalues.get(1) - balancevalues.get(0));
+            if (balancevalues.get(1) - balancevalues.get(0) < -1) {
+                // Drive.getInstance().driveRaw(0,0);
+                // Drive.getInstance().triggerBrake();
                 testbalance = 1;
                 System.out.println("balanced");
-            }else{
-                //Drive.getInstance().drive(0.4, 0,0);
+            } else {
+                // Drive.getInstance().drive(0.4, 0,0);
             }
         }
-        if (testbalance == 0){
-            Drive.getInstance().drive(0.5, 0, 0);
+        if (testbalance == 0) {
+            // Drive.getInstance().driveRaw(0.5, 0);
         }
     }
 }

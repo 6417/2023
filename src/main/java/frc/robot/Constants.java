@@ -62,16 +62,16 @@ public final class Constants {
             public static final double kvMetersPerSecoond = 2.3501;
             public static final double ka = 0.21997;
 
-            public static final double kMaxSpeed = 0;
-            public static final double kMaxAcceleration = 0;
-            public static final double kMaxCentripetalAcceleration = 0;
+            public static final double kMaxSpeed = 3.3;
+            public static final double kMaxAcceleration = 1.2;
+            public static final double kMaxCentripetalAcceleration = 0.1;
 
-            public static final double kRamseteB = 0;
-            public static final double kRamseteZeta = 0;
+            public static final double kRamseteB = 0.1;
+            public static final double kRamseteZeta = 0.1;
 
             public static final double kP = 0.36205;
-            public static final double kI = 0;
-            public static final double kD = 0;
+            public static final double kI = 0.1;
+            public static final double kD = 0.1;
         }
 
         public static class Autonomous {
@@ -96,6 +96,10 @@ public final class Constants {
             public static final IJoystickButtonId driveBackward = LogitechExtreme._12;
             public static final IJoystickButtonId steerModeCarlike = LogitechExtreme._7;
             public static final IJoystickButtonId steerModeBidirectional = LogitechExtreme._9;
+
+            public static final IJoystickButtonId driveStationLeft = LogitechExtreme._8;
+            public static final IJoystickButtonId driveStationMiddle = LogitechExtreme._10;
+            public static final IJoystickButtonId driveStationRight = LogitechExtreme._11;
 
             public static final IJoystickButtonId activateBrake = LogitechExtreme._4;
 

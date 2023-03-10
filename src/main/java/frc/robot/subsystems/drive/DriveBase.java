@@ -7,6 +7,7 @@ package frc.robot.subsystems.drive;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
 import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
@@ -29,6 +30,8 @@ public class DriveBase extends Module {
     public Pose2d getPosition() { 
         return null;
     }
+
+    public void setPosition(double xpos, double ypos, Rotation2d r){}
 
     public DifferentialDriveWheelSpeeds getWheelSpeeds() {
         return null;
@@ -72,5 +75,7 @@ public class DriveBase extends Module {
     public void balancehandler(){}
 
     public void reset() {
-    };
+    }
+
+    public void disable_drive_command() { };
 }

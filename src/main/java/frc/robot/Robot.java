@@ -39,15 +39,19 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.RamseteCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.fridowpi.joystick.JoystickHandler;
 import frc.fridowpi.sensors.FridoNavx;
 import frc.robot.Constants.Drive.Motors;
 import frc.robot.autonomous_tools.PathviewerLoader;
 import frc.robot.autonomous_tools.RamseteCommandGenerator;
+import frc.robot.commands.aimalignment.RotateToFindApriltag;
 import frc.robot.commands.autonomous.ChargeAutonomous;
 import frc.robot.commands.autonomous.FollowPath;
 import frc.robot.commands.autonomous.TimedForward;
+import frc.robot.commands.driveCommands.AimeLineCommand;
 import frc.robot.commands.driveCommands.BalanceCommand;
+import frc.robot.commands.driveCommands.TurnCommand;
 import frc.robot.subsystems.Vision;
 import frc.robot.subsystems.drive.Drive;
 
@@ -62,9 +66,10 @@ public class Robot extends TimedRobot {
         JoystickHandler.getInstance()
             .setupJoysticks(List.of(Constants.Joystick.accelerator, Constants.Joystick.steeringWheel));
         JoystickHandler.getInstance().bind(Drive.getInstance());
-        JoystickHandler.getInstance().init();
+        
 
         Drive.getInstance().init();
+        JoystickHandler.getInstance().init();
         Shuffleboard.getTab("Debug").add(Drive.getInstance());
         // NetworkTableInstance.getDefault()
         //     .getTable("tools")
@@ -82,28 +87,33 @@ public class Robot extends TimedRobot {
     }
 
     @Override
-    public void autonomousInit() {
-        // m_autonomousCommand = new ChargeAutonomous(StartingPosition.LEFT);
-        m_autonomousCommand = new BalanceCommand();
+    public void autonomousInit() {}
+        //double r = 0;
+        //Drive.getInstance().setPosition(2.0,4.55,new Rotation2d(Math.cos(r), Math.sin(r)));
+        //FridoNavx.setYawOffset(Math.PI); // achtung bei raspberry py muss beachtet werden das die eine tag gruppe eine positive rotation giebt und die andere eine negative
 
+        //Vision.getInstance().selectstation(0);
+        // m_autonomousCommand = new ChargeAutonomous(StartingPosition.LEFT);
+        //m_autonomousCommand = new BalanceCommand();
+        
         // var cmd = RamseteCommandGenerator.generateRamseteCommand(path);
         // CommandScheduler.getInstance().schedule(cmd);
 
-        if (m_autonomousCommand != null) {
-            m_autonomousCommand.schedule();
-        }
-    }
-
     @Override
     public void autonomousPeriodic() {
+        //Vision.getInstance().selectstationcomand();
+
     }
 
     @Override
     public void teleopInit() {
         if (m_autonomousCommand != null) {
-            m_autonomousCommand.cancel();
+            //m_autonomousCommand.cancel();
         }
-        Drive.getInstance().reset();
+        //Vision.getInstance().drive();
+        
+        //Drive.getInstance().reset();
+        //Drive.getInstance().disable_drive_command();
     }
 
     @Override
@@ -112,20 +122,14 @@ public class Robot extends TimedRobot {
         // double volt = AnalogWert*(5.0/4096);
         // double Distanz = 29.988 * Math.pow((volt), -1.173);
         // System.out.println(Distanz);
-
+        //Drive.getInstance().balance();
+        
     }
 
     @Override
     public void testInit() {
         CommandScheduler.getInstance().cancelAll();
     }
-
-  /** This function is called periodically during operator control. */
-  @Override
-  public void teleopPeriodic() {
-    //Drive.getInstance().balance();
-    Drive.getInstance().drive(0.2,0,0);
-  }
 
     @Override
     public void simulationInit() {

@@ -39,6 +39,7 @@ import frc.robot.commands.driveCommands.BrakeCommand;
 import frc.robot.commands.driveCommands.DriveCommand;
 import frc.robot.commands.driveCommands.ReverseDrivingDirection;
 import frc.robot.commands.driveCommands.SetSteerMode;
+import frc.robot.commands.driveCommands.VisionCommand;
 
 public class Drive extends DriveBase {
     private static DriveBase instance;
@@ -65,7 +66,7 @@ public class Drive extends DriveBase {
     private FridoDoubleSolenoid brakeSolenoidRight;
     private FridoDoubleSolenoid brakeSolenoidLeft;
 
-    private ArrayList<Float> balancevalues = new ArrayList();
+    private ArrayList<Float> balancevalues = new ArrayList<Float>();
 
     private double maxVel = 0;
     private double maxAcc = 0;
@@ -251,6 +252,11 @@ public class Drive extends DriveBase {
         return odometry.getPoseMeters();
     }
 
+    @Override 
+    public void setPosition(double xpos, double ypos, Rotation2d r){
+        odometry.update(r, xpos, ypos);
+    }
+
     @Override
     public DifferentialDriveWheelSpeeds getWheelSpeeds() {
         return new DifferentialDriveWheelSpeeds(
@@ -401,10 +407,18 @@ public class Drive extends DriveBase {
                 Constants.Drive.ButtonIds.activateBalancing,
                 Button::toggleOnTrue, new BalanceCommand());
 
+        Binding activateAutoDrivePortLeft = new Binding(
+            Constants.Joystick.accelerator,
+            Constants.Drive.ButtonIds.driveStationLeft, 
+            Button::toggleOnTrue, new VisionCommand(0));
+        Binding activateAutoDrivePortMiddle = new Binding(Constants.Joystick.accelerator, Constants.Drive.ButtonIds.driveStationMiddle, Button::toggleOnTrue, new VisionCommand(1));
+        Binding activateAutoDrivePortRigth = new Binding(Constants.Joystick.accelerator, Constants.Drive.ButtonIds.driveStationRight, Button::toggleOnTrue, new VisionCommand(2));
+
         return List.of(
                 driveForward, driveInverted,
                 carMode, bidirectionalMode,
-                activateBrake, activateBalancing);
+                activateBrake, activateBalancing,
+                activateAutoDrivePortLeft, activateAutoDrivePortMiddle, activateAutoDrivePortRigth);
     }
 
     @Override
@@ -438,26 +452,5 @@ public class Drive extends DriveBase {
         brakeSolenoidRight.set(Value.kReverse);
         brakeSolenoidLeft.set(Value.kReverse);
         isActive = true;
-    }
-    int testbalance = 0;
-    public void balance(){
-        float pitch = Navx.getInstance().getPitch();
-        //System.out.println(pitch);
-        balancevalues.add(pitch);
-        if (balancevalues.size() == 3){
-            balancevalues.remove(0);
-            System.out.println(balancevalues.get(1)-balancevalues.get(0));
-            if (balancevalues.get(1)-balancevalues.get(0) < -1){
-                Drive.getInstance().drive(0,0,0);
-                //Drive.getInstance().triggerBrake();
-                testbalance = 1;
-                System.out.println("balanced");
-            }else{
-                //Drive.getInstance().drive(0.4, 0,0);
-            }
-        }
-        if (testbalance == 0){
-            Drive.getInstance().drive(0.5, 0, 0);
-        }
     }
 }

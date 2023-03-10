@@ -1,6 +1,7 @@
 package frc.robot.commands.driveCommands;
 
 import edu.wpi.first.wpilibj2.command.CommandBase;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.fridowpi.joystick.JoystickHandler;
 import frc.robot.Constants;
 import frc.robot.subsystems.drive.Drive;
@@ -8,13 +9,13 @@ import frc.robot.subsystems.drive.DriveBase;
 
 public class DriveCommand extends CommandBase {
     private final DriveBase m_subsystem;
-
+    
     public DriveCommand() {
         m_subsystem = Drive.getInstance();
         // Declare subsystem dependencies.
         addRequirements(m_subsystem);
     }
-
+    
     // Called when the command is initially scheduled.
     @Override
     public void initialize() { }
@@ -36,8 +37,7 @@ public class DriveCommand extends CommandBase {
                 .getX();
 
         // Call Drive::drive with the input
-        m_subsystem.drive(joystickInputY, joystickTurnValue, steerWheelInput);
-
+        m_subsystem.driveJoystick(joystickInputY, joystickTurnValue, steerWheelInput);
     }
 
     // Called once the command ends or is interrupted.

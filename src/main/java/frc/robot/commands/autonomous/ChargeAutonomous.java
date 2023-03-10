@@ -2,12 +2,12 @@
 package frc.robot.commands.autonomous;
 
 import frc.fridowpi.command.SequentialCommandGroup;
-import frc.robot.StartingPosition;
+import frc.robot.Utils;
 
 
 public class ChargeAutonomous extends SequentialCommandGroup {
 
-  public ChargeAutonomous(StartingPosition startingPosition) {
+  public ChargeAutonomous(Utils startingPosition) {
     addCommands(
     //   new TimedForward(1),
       new FollowPath("forward_speed2")

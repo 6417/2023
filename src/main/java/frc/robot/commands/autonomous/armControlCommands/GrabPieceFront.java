@@ -1,6 +1,5 @@
-package frc.robot.commands.autonomous;
+package frc.robot.commands.autonomous.armControlCommands;
 
-import frc.robot.subsystems.ExampleSubsystem;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 
 public class GrabPieceFront extends CommandBase {

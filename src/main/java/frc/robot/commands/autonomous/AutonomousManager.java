@@ -3,7 +3,6 @@ package frc.robot.commands.autonomous;
 import java.util.List;
 
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.util.datalog.FloatLogEntry;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.fridowpi.command.Command;

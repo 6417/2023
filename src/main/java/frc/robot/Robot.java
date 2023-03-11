@@ -2,54 +2,16 @@ package frc.robot;
 
 import java.util.List;
 
-import javax.swing.JComboBox.KeySelectionManager;
-
-import com.ctre.phoenix.motorcontrol.ControlMode;
-import com.ctre.phoenix.motorcontrol.InvertType;
-import com.ctre.phoenix.motorcontrol.can.TalonFX;
-
-import edu.wpi.first.math.controller.SimpleMotorFeedforward;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
 import edu.wpi.first.math.trajectory.Trajectory;
-import edu.wpi.first.math.trajectory.TrajectoryConfig;
-import edu.wpi.first.math.trajectory.TrajectoryGenerator;
-import edu.wpi.first.math.trajectory.TrajectoryParameterizer.TrajectoryGenerationException;
-import edu.wpi.first.math.trajectory.constraint.DifferentialDriveVoltageConstraint;
-import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.util.sendable.SendableBuilder;
-import edu.wpi.first.wpilibj.AnalogInput;
-import edu.wpi.first.networktables.BooleanArrayEntry;
-import edu.wpi.first.networktables.BooleanArrayTopic;
-import edu.wpi.first.networktables.BooleanEntry;
-import edu.wpi.first.networktables.BooleanTopic;
-import edu.wpi.first.networktables.DoubleArrayEntry;
-import edu.wpi.first.networktables.DoubleArrayTopic;
-import edu.wpi.first.networktables.NetworkTableEntry;
-import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.networktables.PubSubOption;
-import edu.wpi.first.networktables.Topic;
-import edu.wpi.first.networktables.TopicInfo;
-import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.SPI.Port;
+import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.RamseteCommand;
 import frc.fridowpi.joystick.JoystickHandler;
 import frc.fridowpi.sensors.FridoNavx;
-import frc.robot.Constants.Drive.Motors;
-import frc.robot.autonomous_tools.PathviewerLoader;
-import frc.robot.autonomous_tools.RamseteCommandGenerator;
-import frc.robot.commands.autonomous.ChargeAutonomous;
-import frc.robot.commands.autonomous.FollowPath;
-import frc.robot.commands.autonomous.TimedForward;
-import frc.robot.commands.balance.PIDBalanceCommand;
+import frc.robot.commands.autonomous.AutonomousManager;
 import frc.robot.commands.driveCommands.DriveCommand;
-import frc.robot.subsystems.Vision;
 import frc.robot.subsystems.drive.Drive;
 
 public class Robot extends TimedRobot {
@@ -84,8 +46,8 @@ public class Robot extends TimedRobot {
 
     @Override
     public void autonomousInit() {
-        // m_autonomousCommand = new ChargeAutonomous(StartingPosition.LEFT);
-        m_autonomousCommand = new PIDBalanceCommand();
+        // m_autonomousCommand = new PIDBalanceCommand();
+        m_autonomousCommand = AutonomousManager.getCommand_DriveOnCharginStation();
 
         // var cmd = RamseteCommandGenerator.generateRamseteCommand(path);
         // CommandScheduler.getInstance().schedule(cmd);

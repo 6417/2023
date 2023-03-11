@@ -271,16 +271,6 @@ public class Arm extends ArmBase {
     }
     
     @Override
-    public void setBasePidTolerance(double ticks) {
-        motors.base.configAllowableClosedloopError(0, ticks, 1);
-    }
-
-    @Override
-    public void setJointPidTolerance(double ticks) {
-        motors.joint.configAllowableClosedloopError(0, ticks, 1);
-    }
-
-    @Override
     public ArmModel getModel() {
         return model;
     }
@@ -350,14 +340,6 @@ public class Arm extends ArmBase {
 
     @Override
     public void baseGotoAngle(double angle, boolean fine) {
-        if (fine)  {
-            setBasePidTolerance(Constants.Arm.baseAllowableError); 
-            setJointPidTolerance(Constants.Arm.jointAllowableError); 
-        } else {
-            setBasePidTolerance(Constants.Arm.jointAllowableErrorDriveThrough); 
-            setJointPidTolerance(Constants.Arm.jointAllowableErrorDriveThrough); 
-        }
-
         if (Double.isFinite(angle) && !Double.isNaN(angle)) {
             if (isBaseZeroed && isJointZeroed) {
                 setBaseTargetPos(baseAngleToTicks(angle));
@@ -500,7 +482,7 @@ public class Arm extends ArmBase {
             }
         }
 
-        if (Math.abs(jointAngle()) < Math.abs(jointTicksToAngle(motors.joint.getEncoderVelocity()) * 10)
+        if (Math.abs(jointAngle()) < Math.abs(jointTicksToAngle(motors.joint.getEncoderVelocity()) * 7.5)
                 + Math.toRadians(5)) {
             if (Math.signum(motors.joint.getEncoderVelocity()) != Math.signum(jointAngle())
                     && motors.joint.getEncoderVelocity() != 0) {
@@ -521,13 +503,38 @@ public class Arm extends ArmBase {
     }
 
     @Override
-    public boolean isBaseAtTarget() {
+    public boolean isBaseAtTargetDriveThrough() {
         return Math.abs(motors.base.getEncoderTicks() - targetPosBase) < Constants.Arm.baseAllowableErrorDriveThrough;
     }
 
     @Override
-    public boolean isJointAtTarget() {
+    public boolean isJointAtTargetDriveThrough() {
         return Math.abs(motors.joint.getEncoderTicks() - targetPosJoint) < Constants.Arm.jointAllowableErrorDriveThrough;
+    }
+
+    @Override
+    public boolean isBaseAtTarget() {
+        return Math.abs(motors.base.getEncoderTicks() - targetPosBase) < Constants.Arm.baseAllowableError;
+    }
+
+    @Override
+    public boolean isJointAtTarget() {
+        return Math.abs(motors.joint.getEncoderTicks() - targetPosJoint) < Constants.Arm.jointAllowableError;
+    }
+
+    @Override
+    public boolean isArmAtTargetDriveThrough() {
+        return isBaseAtTargetDriveThrough() && isJointAtTargetDriveThrough();
+    }
+
+    @Override
+    public boolean isJointZeroed() {
+        return isJointZeroed;
+    }
+
+    @Override
+    public boolean isBaseZeroed() {
+        return isBaseZeroed;
     }
 
     @Override
@@ -542,7 +549,7 @@ public class Arm extends ArmBase {
     
     @Override
     public double getGripperArmDistanceSensor() {
-        return distanceSensorGripperArm.getVoltage();
+        return distanceSensorGripperArm.getAverageVoltage();
     }
     
     @Override
@@ -611,6 +618,6 @@ public class Arm extends ArmBase {
         builder.addDoubleProperty("base shuffle board target",
                 () -> Math.toDegrees(BaseGotoPositionShuffleBoard.getInstance().target),
                 (newTarget) -> BaseGotoPositionShuffleBoard.getInstance().target = Math.toRadians(newTarget));
-        builder.addDoubleProperty("Distance sensor [RAW]", distanceSensorGripperArm::getVoltage, null);
+        builder.addDoubleProperty("Distance sensor [RAW]", this::getGripperArmDistanceSensor, null);
     }
 }

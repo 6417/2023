@@ -30,12 +30,21 @@ public class GotoPos extends CommandBase {
     @Override
     public void initialize() {
         if (pos == RobotPos.FIELD) {
-            generatedPath = ArmPathGenerator.toCommand(new ArmPathGenerator().pathTo(target,
-                    Arm.getInstance().getRobotPos(), Arm.getInstance().getRobotOrientation()));
+            Vector2[] generatedTargets = new ArmPathGenerator().pathTo(target,
+                    Arm.getInstance().getRobotPos(), Arm.getInstance().getRobotOrientation());
+
+            for (var p : generatedTargets) {
+                System.out.println(p);
+            }
+
+            generatedPath = ArmPathGenerator.toCommand(generatedTargets);
         } else {
             Vector2[] generatedTargets = new ArmPathGenerator().pathTo(target, pos, orientation);
             if (generatedTargets.length == 0) {
                 return;
+            }
+            for (var p : generatedTargets) {
+                System.out.println(p);
             }
             generatedPath = ArmPathGenerator.toCommand(generatedTargets);
             
@@ -58,6 +67,6 @@ public class GotoPos extends CommandBase {
             return true;
         }
 
-        return CommandScheduler.getInstance().isScheduled(generatedPath);
+        return CommandScheduler.getInstance().isScheduled(generatedPath) || !Arm.getInstance().isZeroed();
     }
 }

@@ -105,6 +105,14 @@ public class ArmBase extends Module {
         return 0.0;
     }
 
+    public boolean isBaseAtTargetDriveThrough() {
+        return true;
+    }
+
+    public boolean isJointAtTargetDriveThrough() {
+        return true;
+    }
+
     public boolean isBaseAtTarget() {
         return true;
     }
@@ -115,6 +123,10 @@ public class ArmBase extends Module {
 
     public boolean isArmAtTarget() {
         return isBaseAtTarget() && isJointAtTarget();
+    }
+
+    public boolean isArmAtTargetDriveThrough() {
+        return isBaseAtTargetDriveThrough() && isJointAtTargetDriveThrough();
     }
 
     public Vector2 getPos() {
@@ -142,6 +154,14 @@ public class ArmBase extends Module {
     
     public double getGripperArmDistanceSensor() {
         return 0.0;
+    }
+
+    public boolean isJointZeroed() {
+        return true;
+    }
+
+    public boolean isBaseZeroed() {
+        return true;
     }
     
     public double getJointEncoderVelocity() {

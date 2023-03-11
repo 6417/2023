@@ -25,17 +25,25 @@ public class ResetJointEncodersOnDistanceSensor extends CommandBase {
 
     @Override
     public void execute() {
+
         velSign = !(velSign && (velSign ? Arm.getInstance().getJointEncoderVelocity() < 0
                 : Arm.getInstance().getJointEncoderVelocity() > 0));
 
         if (falling.updateAndGet(sensorOverThreshold()) && Arm.getInstance().getJointEncoderVelocity() < 0) {
             System.out.println("Joint distance sensor FALLING, joint angle [DEG]: "
                     + Math.toDegrees(Arm.getInstance().jointAngle()));
+
+            // if (!Arm.getInstance().isJointZeroed()) {
+            //     Arm.getInstance().setEncoderTicksJoint(Arm.jointAngleToTicks(Math.toRadians(9.64)));
+            // }
         }
 
         if (rising.updateAndGet(sensorOverThreshold()) && Arm.getInstance().getJointEncoderVelocity() > 0) {
             System.out.println("Joint distance sensor RISING, joint angle [DEG]: "
                     + Math.toDegrees(Arm.getInstance().jointAngle()));
+            // if (!Arm.getInstance().isJointZeroed()) {
+            //     Arm.getInstance().setEncoderTicksJoint(Arm.jointAngleToTicks(Math.toRadians(11.5)));
+            // }
         }
     }
 

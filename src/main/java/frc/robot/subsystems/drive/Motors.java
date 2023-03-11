@@ -29,6 +29,11 @@ public class Motors {
         masterLeft.setIdleMode(FridolinsMotor.IdleMode.kBrake);
         followerRight.setIdleMode(FridolinsMotor.IdleMode.kBrake);
         followerLeft.setIdleMode(FridolinsMotor.IdleMode.kBrake);
+        
+        // masterRight.setIdleMode(FridolinsMotor.IdleMode.kCoast);
+        // masterLeft.setIdleMode(FridolinsMotor.IdleMode.kCoast);
+        // followerRight.setIdleMode(FridolinsMotor.IdleMode.kCoast);
+        // followerLeft.setIdleMode(FridolinsMotor.IdleMode.kCoast);
 
         followerRight.follow(masterRight);
         followerLeft.follow(masterLeft);

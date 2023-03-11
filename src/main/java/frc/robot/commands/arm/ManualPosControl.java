@@ -4,6 +4,7 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj2.command.CommandBase;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.fridowpi.joystick.JoystickHandler;
 import frc.fridowpi.utils.LatchedBooleanRising;
 import frc.fridowpi.utils.LatchedBoolean;
@@ -49,7 +50,6 @@ public class ManualPosControl extends CommandBase {
             target = newTarget;
             var solutions = ArmKinematics.posToAngles(target);
             ArmKinematics.Values<Double> angles;
-
 
             if (target.x >= 0) {
                 angles = solutions.getFirst();

@@ -26,9 +26,6 @@ public class GotoPosNoChecksTarget extends CommandBase {
             angles = solutions.getSecond();
         }
 
-        Arm.getInstance().setBasePidTolerance(Constants.Arm.baseAllowableError);  
-        Arm.getInstance().setJointPidTolerance(Constants.Arm.jointAllowableError);  
-
         Arm.getInstance().baseGotoAngle(angles.base);
         Arm.getInstance().jointGotoAngle(angles.joint);
     }

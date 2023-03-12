@@ -2,6 +2,7 @@ package frc.robot.commands.arm;
 
 import edu.wpi.first.hal.simulation.ConstBufferCallback;
 import edu.wpi.first.wpilibj2.command.CommandBase;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.fridowpi.utils.LatchedBooleanRising;
 import frc.fridowpi.utils.LatchedBooleanFalling;
 import frc.robot.Constants;
@@ -32,7 +33,7 @@ public class ResetJointEncodersOnDistanceSensor extends CommandBase {
         if (falling.updateAndGet(sensorOverThreshold()) && Arm.getInstance().getJointEncoderVelocity() < 0) {
             System.out.println("Joint distance sensor FALLING, joint angle [DEG]: "
                     + Math.toDegrees(Arm.getInstance().jointAngle()));
-
+            
             // if (!Arm.getInstance().isJointZeroed()) {
             //     Arm.getInstance().setEncoderTicksJoint(Arm.jointAngleToTicks(Math.toRadians(9.64)));
             // }

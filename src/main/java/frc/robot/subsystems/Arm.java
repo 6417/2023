@@ -58,8 +58,9 @@ import frc.robot.commands.arm.ResetBaseEncodersOnHall;
 import frc.robot.commands.arm.ResetBaseEncodersOnLimitSwitch;
 import frc.robot.commands.arm.ResetJointEncodersOnDistanceSensor;
 import frc.robot.commands.arm.ToggleCone;
+import frc.robot.commands.arm.ZeroBase;
+import frc.robot.commands.arm.ZeroJoint;
 import frc.robot.subsystems.base.ArmBase;
-import jdk.jfr.Percentage;
 
 public class Arm extends ArmBase {
     private static ArmBase instance = null;
@@ -150,8 +151,8 @@ public class Arm extends ArmBase {
 
     private Motors motors;
     private ArmModel model;
-    private boolean isBaseZeroed = false;
-    private boolean isJointZeroed = false;
+    private boolean baseZeroed = false;
+    private boolean jointZeroed = false;
     private boolean holdJoint = true;
     private PIDController jointPosController;
     private ManualControlMode currentManualControlMode;
@@ -176,7 +177,7 @@ public class Arm extends ArmBase {
 
     LatchedBooleanRising gettingZeroed;
     LatchedBooleanFalling gettingUnzeroed;
-    
+
     AnalogInput distanceSensorGripperArm;
 
     @Override
@@ -185,8 +186,8 @@ public class Arm extends ArmBase {
         pos = RobotPos.FIELD;
         orientation = RobotOrientation.FORWARD;
         pathGenerator = new ArmPathGenerator();
-        gettingZeroed = new LatchedBooleanRising(isBaseZeroed && isJointZeroed);
-        gettingUnzeroed = new LatchedBooleanFalling(isBaseZeroed && isJointZeroed);
+        gettingZeroed = new LatchedBooleanRising(baseZeroed && jointZeroed);
+        gettingUnzeroed = new LatchedBooleanFalling(baseZeroed && jointZeroed);
         motors = new Motors();
         model = new ArmModel(
                 new ArmModel.ArmStateSupplier(this::baseAngle, this::jointAngle, () -> 0.0, () -> 0.0),
@@ -195,8 +196,11 @@ public class Arm extends ArmBase {
 
         Shuffleboard.getTab("Arm").add(this);
         Shuffleboard.getTab("Arm").add("PID", jointPosController);
+        Shuffleboard.getTab("Arm").add("ZeroBase", new ZeroBase());
+        Shuffleboard.getTab("Arm").add("ZeroJoint", new ZeroJoint());
         Shuffleboard.getTab("Arm").add("Model", model);
-        CommandScheduler.getInstance().schedule(new ResetBaseEncodersOnLimitSwitch(), new ResetJointEncodersOnDistanceSensor());
+        CommandScheduler.getInstance().schedule(new ResetBaseEncodersOnLimitSwitch(),
+                new ResetJointEncodersOnDistanceSensor());
 
         Thread resetOnHall = new Thread(() -> {
             DigitalInput baseHallRight = new DigitalInput(Constants.Arm.dioIdHallBaseRight);
@@ -218,7 +222,6 @@ public class Arm extends ArmBase {
         });
 
         resetOnHall.start();
-        System.out.println("done starting thread");
 
         currentManualControlMode = ManualControlMode.RAW;
         setDefaultCommand(currentManualControlMode.command);
@@ -269,7 +272,7 @@ public class Arm extends ArmBase {
                 Constants.Arm.encoderTicksPerMotorRevolution
                 * Constants.Arm.jointGearRatio * Math.PI * 2.0;
     }
-    
+
     @Override
     public ArmModel getModel() {
         return model;
@@ -292,13 +295,13 @@ public class Arm extends ArmBase {
 
     @Override
     public void setEncoderTicksBase(double ticks) {
-        isBaseZeroed = true;
+        baseZeroed = true;
         motors.base.setEncoderPosition(ticks);
     }
 
     @Override
     public void setEncoderTicksJoint(double ticks) {
-        isJointZeroed = true;
+        jointZeroed = true;
         motors.joint.setEncoderPosition(ticks);
     }
 
@@ -341,20 +344,33 @@ public class Arm extends ArmBase {
     @Override
     public void baseGotoAngle(double angle, boolean fine) {
         if (Double.isFinite(angle) && !Double.isNaN(angle)) {
-            if (isBaseZeroed && isJointZeroed) {
+            if (baseZeroed && jointZeroed) {
                 setBaseTargetPos(baseAngleToTicks(angle));
             } else {
                 DriverStation.reportError("Can't go to an angle if base arm is not zeroed", false);
             }
         } else {
-            DriverStation.reportError("[Arm::jointGotoAngle] received angle: " + angle, false);
+            DriverStation.reportError("[Arm::baseGotoAngle] received angle: " + angle, false);
+        }
+    }
+
+    @Override
+    public void baseGotoAngleNoZeroedCheckOfJoint(double angle) {
+        if (Double.isFinite(angle) && !Double.isNaN(angle)) {
+            if (baseZeroed) {
+                setBaseTargetPos(baseAngleToTicks(angle));
+            } else {
+                DriverStation.reportError("Can't go to an angle if base arm is not zeroed", false);
+            }
+        } else {
+            DriverStation.reportError("[Arm::baseGotoAngle] received angle: " + angle, false);
         }
     }
 
     @Override
     public void jointGotoAngle(double angle) {
         if (Double.isFinite(angle) && !Double.isNaN(angle)) {
-            if (isBaseZeroed && isJointZeroed) {
+            if (baseZeroed && jointZeroed) {
                 setJointTargetPos(jointAngleToTicks(angle));
             } else {
                 DriverStation.reportError("Can't go to an angle if base arm is not zeroed", false);
@@ -441,8 +457,9 @@ public class Arm extends ArmBase {
                                 })),
                         new Binding(Constants.Joysticks.armJoystick, Logitech.rb, Button::onTrue,
                                 new InstantCommandRunWhenDisabled(() -> {
-                                    isBaseZeroed = !(isZeroed());
-                                    isJointZeroed = !(isZeroed());
+                                    boolean zeroed = !(isJointZeroed() || isBaseZeroed());
+                                    baseZeroed = zeroed;
+                                    jointZeroed = zeroed;
                                 })),
 
                         new Binding(Constants.Joysticks.armJoystick, Logitech.back, Button::onTrue,
@@ -460,12 +477,24 @@ public class Arm extends ArmBase {
     double currentVelOut;
     final double kF = 0.002;
     double iZone = 1000;
-    
-    int lastValidQuadrant = -1; 
-    
+
+    int lastValidQuadrant = -1;
+
     @Override
     public int getLastValidQuadrant() {
         return lastValidQuadrant;
+    }
+
+    @Override
+    public void enableBreakModeJoint() {
+        motors.joint.setIdleMode(IdleMode.kBrake);
+        motors.jointFollower.setIdleMode(IdleMode.kBrake);
+    }
+
+    @Override
+    public void disableBreakModeJoint() {
+        motors.joint.setIdleMode(IdleMode.kCoast);
+        motors.jointFollower.setIdleMode(IdleMode.kCoast);
     }
 
     @Override
@@ -473,12 +502,12 @@ public class Arm extends ArmBase {
         if (gettingUnzeroed.updateAndGet(isZeroed())) {
             setManualControlMode(ManualControlMode.RAW);
         }
-        
+
         if (isZeroed()) {
             try {
                 lastValidQuadrant = pathGenerator.getQuadrantIndexOfPoint(getPos(), pos, orientation);
             } catch (InvalidValueException ignored) {
-                // Invalid position not updating                
+                // Invalid position not updating
             }
         }
 
@@ -490,7 +519,7 @@ public class Arm extends ArmBase {
             }
         }
 
-        if (isJointZeroed && isBaseZeroed) {
+        if (jointZeroed && baseZeroed) {
             double torque = model.torqueToHoldState().getSecond();
 
             motors.joint.config_kF(0, MathUtil.clamp(torque * kF, -0.1, 0.1), 0);
@@ -499,7 +528,7 @@ public class Arm extends ArmBase {
 
     @Override
     public boolean isZeroed() {
-        return isBaseZeroed && isJointZeroed;
+        return baseZeroed && jointZeroed;
     }
 
     @Override
@@ -509,7 +538,8 @@ public class Arm extends ArmBase {
 
     @Override
     public boolean isJointAtTargetDriveThrough() {
-        return Math.abs(motors.joint.getEncoderTicks() - targetPosJoint) < Constants.Arm.jointAllowableErrorDriveThrough;
+        return Math
+                .abs(motors.joint.getEncoderTicks() - targetPosJoint) < Constants.Arm.jointAllowableErrorDriveThrough;
     }
 
     @Override
@@ -529,12 +559,12 @@ public class Arm extends ArmBase {
 
     @Override
     public boolean isJointZeroed() {
-        return isJointZeroed;
+        return jointZeroed;
     }
 
     @Override
     public boolean isBaseZeroed() {
-        return isBaseZeroed;
+        return baseZeroed;
     }
 
     @Override
@@ -546,12 +576,12 @@ public class Arm extends ArmBase {
     public Vector2 getPos() {
         return ArmKinematics.anglesToPos(baseAngle(), jointAngle());
     }
-    
+
     @Override
     public double getGripperArmDistanceSensor() {
         return distanceSensorGripperArm.getAverageVoltage();
     }
-    
+
     @Override
     public double getJointEncoderVelocity() {
         return motors.joint.getEncoderVelocity();
@@ -586,8 +616,8 @@ public class Arm extends ArmBase {
         builder.addDoubleProperty("Base CurrentStator", motors.base::getStatorCurrent, null);
         builder.addDoubleProperty("out hold", () -> kF * model.torqueToHoldState().getSecond(), null);
         builder.addDoubleProperty("VelOut", () -> currentVelOut, null);
-        builder.addBooleanProperty("Base is zeroed", () -> isBaseZeroed, null);
-        builder.addBooleanProperty("Joint is zeroed", () -> isJointZeroed, null);
+        builder.addBooleanProperty("Base is zeroed", () -> baseZeroed, null);
+        builder.addBooleanProperty("Joint is zeroed", () -> jointZeroed, null);
         builder.addDoubleProperty("Arm pos x", () -> ArmKinematics.anglesToPos(baseAngle(), jointAngle()).x, null);
         builder.addDoubleProperty("Arm pos y", () -> ArmKinematics.anglesToPos(baseAngle(), jointAngle()).y, null);
         builder.addStringProperty("Robot Pos", () -> pos.toString(), null);

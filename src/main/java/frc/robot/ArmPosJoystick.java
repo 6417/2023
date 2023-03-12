@@ -35,11 +35,11 @@ public class ArmPosJoystick extends WPIJoystick {
     public static enum Ids implements IJoystickButtonId {
         GRID_FORWARD_BOTTOM(POV.DOWN, forward, null,
                 new Vector2(0.54, 0.26),
-                RobotPos.GRID, RobotOrientation.FORWARD),
+                RobotPos.FIELD, RobotOrientation.FORWARD),
         GRID_FORWARD_MIDDLE(POV.LEFT, forward, null, new Vector2(0.968, 0.934), RobotPos.GRID,
                 RobotOrientation.FORWARD),
         GRID_FORWARD_TOP(POV.UP, forward, null, new Vector2(1.214, 1.364), RobotPos.GRID, RobotOrientation.FORWARD),
-        GRID_REVERSE_BOTTOM(POV.DOWN, reverse, null, new Vector2(-0.89, 0.26), RobotPos.GRID,
+        GRID_REVERSE_BOTTOM(POV.DOWN, reverse, null, new Vector2(-0.89, 0.26), RobotPos.FIELD,
                 RobotOrientation.REVERSE),
         GRID_REVERSE_MIDDLE(POV.LEFT, reverse, null, new Vector2(-1.214, 1.156), RobotPos.GRID,
                 RobotOrientation.REVERSE),
@@ -53,8 +53,8 @@ public class ArmPosJoystick extends WPIJoystick {
                 RobotOrientation.REVERSE),
         LOADING_ZONE_REVERSE_CONE(null, forward, Logitech.y, new Vector2(-0.799, 1.128), RobotPos.LOADING_ZONE,
                 RobotOrientation.REVERSE),
-        PICKUP_FORWARD(POV.RIGHT, forward, null, new Vector2(0.465, 0.208), RobotPos.FIELD, RobotOrientation.FORWARD),
-        PICKUP_REVERSE(POV.RIGHT, reverse, null, new Vector2(-0.70, 0.16), RobotPos.FIELD,
+        PICKUP_FORWARD(POV.RIGHT, reverse, null, new Vector2(0.465, 0.208), RobotPos.FIELD, RobotOrientation.FORWARD),
+        PICKUP_REVERSE(POV.RIGHT, forward, null, new Vector2(-0.70, 0.16), RobotPos.FIELD,
                 RobotOrientation.REVERSE);
 
         private final int id;

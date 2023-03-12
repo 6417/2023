@@ -476,7 +476,7 @@ public class Drive extends DriveBase {
         builder.addDoubleProperty("wheel speed right", () -> this.getWheelSpeeds().rightMetersPerSecond, null);
         builder.addDoubleProperty("wheel speed left", () -> this.getWheelSpeeds().leftMetersPerSecond, null);
 
-        builder.addDoubleProperty("wheel speed diff right - left [m/s]", () -> this.getWheelSpeeds().rightMetersPerSecond - this.getWheelSpeeds().leftMetersPerSecond, null);
+        builder.addDoubleProperty("wheel speed diff right - left [m per s]", () -> this.getWheelSpeeds().rightMetersPerSecond - this.getWheelSpeeds().leftMetersPerSecond, null);
         builder.addDoubleProperty("wheel speed left", () -> this.getWheelSpeeds().leftMetersPerSecond, null);
         builder.addDoubleProperty("position_x", () -> this.getPosition().getX(), null);
         builder.addDoubleProperty("position_y", () -> this.getPosition().getY(), null);

@@ -98,19 +98,20 @@ public class Robot extends TimedRobot {
     public void robotPeriodic() {
         CommandScheduler.getInstance().run();
 
-        if (pdp.getVoltage() < 8) {
-            System.out.println("Brown out!!!!!!!!!!!!!!!!!");
-        }
-
-        if (pdp.getVoltage() < 8  && PneumaticHandler.getInstance().isCompressorPumping()) {
-            PneumaticHandler.getInstance().disableCompressor();
-        }
+        // if (pdp.getVoltage() < 8) {
+        //     System.out.println("Brown out!!!!!!!!!!!!!!!!!");
+        // }
+        //
+        // if (pdp.getVoltage() < 8  && PneumaticHandler.getInstance().isCompressorPumping()) {
+        //     PneumaticHandler.getInstance().disableCompressor();
+        // }
     }
 
     /** This function is called once each time the robot enters Disabled mode. */
     @Override
     public void disabledInit() {
         Arm.getInstance().stop();
+        Arm.getInstance().enableBreakModeJoint();
     }
 
     @Override
@@ -141,6 +142,7 @@ public class Robot extends TimedRobot {
         CommandScheduler.getInstance().schedule(new Stop());
         Arm.getInstance().stop();
         Arm.getInstance().hold();
+        Arm.getInstance().enableBreakModeJoint();
         if (m_autonomousCommand != null) {
             m_autonomousCommand.cancel();
         }

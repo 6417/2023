@@ -60,6 +60,10 @@ public class ArmBase extends Module {
         return false;
     }
 
+    public void baseGotoAngleNoZeroedCheckOfJoint(double angle) {
+
+    }
+
     public void baseGotoAngle(double angle, boolean fine) {
 
     }
@@ -167,6 +171,15 @@ public class ArmBase extends Module {
     public double getJointEncoderVelocity() {
         return 0.0;
     }
+
+    public void enableBreakModeJoint() {
+
+    }
+
+    public void disableBreakModeJoint() {
+
+    }
+
     
     public int getLastValidQuadrant() {
         return -1;

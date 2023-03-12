@@ -5,8 +5,8 @@ import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
+import frc.robot.subsystems.base.DriveBase;
 import frc.robot.subsystems.drive.Drive;
-import frc.robot.subsystems.drive.DriveBase;
 
 public class NaiveBalanceCommand extends CommandBase {
     public DriveBase subsystem;

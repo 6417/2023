@@ -2,7 +2,6 @@ package frc.fridowpi.sensors;
 
 
 import frc.fridowpi.initializer.Initializer;
-import frc.fridowpi.initializer.Initialisable;
 import frc.fridowpi.sensors.base.INavx;
 import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.math.geometry.Rotation2d;

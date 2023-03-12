@@ -5,11 +5,8 @@
 
 package frc.robot.subsystems.drive;
 
-import java.text.BreakIterator;
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.print.attribute.standard.MediaSize.NA;
 
 import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.controller.PIDController;
@@ -28,11 +25,7 @@ import edu.wpi.first.math.trajectory.constraint.DifferentialDriveKinematicsConst
 import edu.wpi.first.math.trajectory.constraint.DifferentialDriveVoltageConstraint;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
-import edu.wpi.first.wpilibj.SPI.Port;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
-import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj2.command.FunctionalCommand;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.button.Button;
 import frc.fridowpi.command.Command;
@@ -43,9 +36,9 @@ import frc.fridowpi.sensors.FridoNavx;
 import frc.robot.Constants;
 import frc.robot.commands.balance.PIDBalanceCommand;
 import frc.robot.commands.driveCommands.BrakeCommand;
-import frc.robot.commands.driveCommands.DriveCommand;
 import frc.robot.commands.driveCommands.ReverseDrivingDirection;
 import frc.robot.commands.driveCommands.SetSteerMode;
+import frc.robot.subsystems.base.DriveBase;
 
 public class Drive extends DriveBase {
     private static DriveBase instance;
@@ -75,16 +68,12 @@ public class Drive extends DriveBase {
 
     private FridoDoubleSolenoid brakeSolenoid;
 
-    private ArrayList<Float> balancevalues = new ArrayList();
-
-    private double maxVel = 0;
-    private double maxAcc = 0;
+    private ArrayList<Float> balancevalues = new ArrayList<>();
 
     private boolean steerWithJoystick = Constants.Drive.Defaults.steerWithJoystick;
 
     private double joystickSteeringSensibility = 1.0;
 
-    private Pose2d pose;
 
     // Constrains
     private SimpleMotorFeedforward motorFeedForward;
@@ -392,11 +381,6 @@ public class Drive extends DriveBase {
 
     @Override
     public void periodic() {
-        var gyroAngle = FridoNavx.getInstance().getRotation2d();
-
-        pose = odometry.update(gyroAngle,
-                -getRightEncoderDistance(),
-                getLeftEncoderDistance());
     }
 
     public double getRightEncoderDistance() {

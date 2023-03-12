@@ -1,11 +1,9 @@
 package frc.robot.commands.arm;
 
-import edu.wpi.first.hal.simulation.ConstBufferCallback;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.fridowpi.utils.Vector2;
 import frc.robot.ArmPathGenerator;
-import frc.robot.Constants;
 import frc.robot.ArmPathGenerator.RobotPos;
 import frc.robot.subsystems.Arm;
 

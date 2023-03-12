@@ -8,11 +8,8 @@ import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import frc.fridowpi.joystick.IJoystickButtonId;
 
-import frc.fridowpi.joystick.IJoystickId;
 import frc.fridowpi.motors.FridolinsMotor.DirectionType;
 import frc.fridowpi.motors.FridolinsMotor.LimitSwitchPolarity;
-import frc.fridowpi.motors.utils.PidValues;
-import frc.fridowpi.pneumatics.FridoDoubleSolenoid;
 import frc.fridowpi.utils.Vector2;
 import frc.robot.ArmModel.Cargo;
 

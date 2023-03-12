@@ -1,6 +1,5 @@
 package frc.robot;
 
-import java.awt.Container;
 import java.util.function.Supplier;
 
 import edu.wpi.first.math.Pair;
@@ -8,11 +7,7 @@ import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.CommandBase;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.fridowpi.command.Command;
-import frc.fridowpi.utils.Matrix2;
-import frc.fridowpi.utils.Vector2;
 
 public class ArmModel implements Sendable {
     public static enum Cargo {

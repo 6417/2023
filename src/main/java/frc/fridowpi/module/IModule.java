@@ -1,7 +1,6 @@
 package frc.fridowpi.module;
 
 import frc.fridowpi.initializer.Initialisable;
-import frc.fridowpi.initializer.Initializer;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 
 import java.util.Collection;

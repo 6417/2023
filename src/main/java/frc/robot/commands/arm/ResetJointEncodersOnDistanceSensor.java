@@ -1,8 +1,6 @@
 package frc.robot.commands.arm;
 
-import edu.wpi.first.hal.simulation.ConstBufferCallback;
 import edu.wpi.first.wpilibj2.command.CommandBase;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.fridowpi.utils.LatchedBooleanRising;
 import frc.fridowpi.utils.LatchedBooleanFalling;
 import frc.robot.Constants;

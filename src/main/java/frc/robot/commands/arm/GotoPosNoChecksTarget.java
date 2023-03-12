@@ -3,7 +3,6 @@ package frc.robot.commands.arm;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.fridowpi.utils.Vector2;
 import frc.robot.ArmKinematics;
-import frc.robot.Constants;
 import frc.robot.subsystems.Arm;
 
 public class GotoPosNoChecksTarget extends CommandBase {

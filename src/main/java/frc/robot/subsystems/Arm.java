@@ -7,31 +7,22 @@ import java.util.stream.Stream;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.StatorCurrentLimitConfiguration;
-import com.ctre.phoenix.motorcontrol.can.TalonFX;
-
-import edu.wpi.first.hal.InterruptJNI;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.Relay.InvalidValueException;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
-import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.Button;
 import frc.fridowpi.joystick.Binding;
 import frc.fridowpi.joystick.joysticks.Logitech;
 import frc.fridowpi.motors.FridoFalcon500;
-import frc.fridowpi.motors.FridolinsMotor;
 import frc.fridowpi.motors.FridolinsMotor.FridoFeedBackDevice;
 import frc.fridowpi.motors.FridolinsMotor.IdleMode;
 import frc.fridowpi.motors.FridolinsMotor.LimitSwitchPolarity;
@@ -46,18 +37,13 @@ import frc.robot.Constants;
 import frc.robot.ArmPathGenerator.RobotOrientation;
 import frc.robot.ArmPathGenerator.RobotPos;
 import frc.robot.commands.InstantCommandRunWhenDisabled;
-import frc.robot.commands.arm.BaseGotoPositionShuffleBoard;
-import frc.robot.commands.arm.BaseManualControl;
 import frc.robot.commands.arm.GotoPos;
-import frc.robot.commands.arm.GotoPosNoChecksDriveThrough;
 import frc.robot.commands.arm.IndividualArmManualControl;
-import frc.robot.commands.arm.JointManualControl;
 import frc.robot.commands.arm.ManualPosControl;
 import frc.robot.commands.arm.RawManualControl;
 import frc.robot.commands.arm.ResetBaseEncodersOnHall;
 import frc.robot.commands.arm.ResetBaseEncodersOnLimitSwitch;
 import frc.robot.commands.arm.ResetJointEncodersOnDistanceSensor;
-import frc.robot.commands.arm.ToggleCone;
 import frc.robot.commands.arm.ZeroBase;
 import frc.robot.commands.arm.ZeroJoint;
 import frc.robot.subsystems.base.ArmBase;
@@ -645,9 +631,6 @@ public class Arm extends ArmBase {
         builder.addDoubleProperty("Arm angle calc beta2", () -> Math.toDegrees(
                 ArmKinematics.posToAngles(ArmKinematics.anglesToPos(baseAngle(), jointAngle())).getSecond().joint),
                 null);
-        builder.addDoubleProperty("base shuffle board target",
-                () -> Math.toDegrees(BaseGotoPositionShuffleBoard.getInstance().target),
-                (newTarget) -> BaseGotoPositionShuffleBoard.getInstance().target = Math.toRadians(newTarget));
         builder.addDoubleProperty("Distance sensor [RAW]", this::getGripperArmDistanceSensor, null);
     }
 }

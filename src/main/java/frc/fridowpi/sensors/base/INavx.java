@@ -1,7 +1,6 @@
 package frc.fridowpi.sensors.base;
 
 import frc.fridowpi.initializer.Initialisable;
-import frc.fridowpi.initializer.Initializer;
 import com.kauailabs.navx.frc.AHRS;
 import com.kauailabs.navx.frc.ITimestampedDataSubscriber;
 import edu.wpi.first.wpilibj.interfaces.Gyro;

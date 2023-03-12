@@ -1,49 +1,24 @@
 package frc.robot;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.function.BooleanSupplier;
-
-import org.apache.logging.log4j.core.layout.SyslogLayout;
-
 import frc.fridowpi.joystick.JoystickHandler;
 import frc.fridowpi.sensors.FridoNavx;
-import frc.robot.ArmPathGenerator.RobotOrientation;
-import frc.robot.ArmPathGenerator.RobotPos;
-import frc.robot.Constants.Gripper;
-import frc.robot.commands.driveCommands.BalanceCommand;
 import frc.robot.subsystems.drive.Drive;
-import edu.wpi.first.networktables.BooleanSubscriber;
-import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj.SPI.Port;
-import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import frc.fridowpi.joystick.JoystickHandler;
-import frc.fridowpi.sensors.FridoNavx;
 import frc.robot.commands.autonomous.AutonomousManager;
 import frc.robot.commands.driveCommands.DriveCommand;
-import frc.robot.subsystems.drive.Drive;
-import edu.wpi.first.wpilibj2.command.FunctionalCommand;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.button.Button;
 import frc.fridowpi.joystick.Binding;
-import frc.fridowpi.joystick.joysticks.Logitech;
 import frc.fridowpi.joystick.joysticks.LogitechExtreme;
-import frc.fridowpi.pneumatics.FridoDoubleSolenoid;
 import frc.fridowpi.pneumatics.PneumaticHandler;
-import frc.fridowpi.utils.Vector2;
 import frc.robot.commands.ToggleCompressor;
-import frc.robot.commands.arm.BaseGotoPositionShuffleBoard;
 import frc.robot.commands.arm.Stop;
 import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.GripperSubsystem;
@@ -56,9 +31,6 @@ public class Robot extends TimedRobot {
     @Override
     public void robotInit() {
         JoystickHandler.getInstance().setJoystickFactory(ArmPosJoystick::new);
-        Shuffleboard.getTab("debug").add("Base goto angle",
-                BaseGotoPositionShuffleBoard.getInstance());
-
         Shuffleboard.getTab("debug").add(CommandScheduler.getInstance());
 
         JoystickHandler.getInstance().setupJoysticks(List.of(Constants.Joysticks.armJoystick,

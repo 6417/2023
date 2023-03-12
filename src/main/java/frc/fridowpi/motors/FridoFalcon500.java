@@ -14,7 +14,6 @@ import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
 
-import edu.wpi.first.hal.SimDevice.Direction;
 import frc.fridowpi.module.IModule;
 import frc.fridowpi.module.Module;
 

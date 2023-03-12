@@ -2,12 +2,9 @@ package frc.robot.commands.arm;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj2.command.CommandBase;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.fridowpi.joystick.JoystickHandler;
 import frc.fridowpi.utils.LatchedBooleanRising;
-import frc.fridowpi.utils.LatchedBoolean;
 import frc.fridowpi.utils.Vector2;
 import frc.robot.ArmKinematics;
 import frc.robot.Constants;

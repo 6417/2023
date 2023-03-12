@@ -28,6 +28,7 @@ public class ExampleCommand extends CommandBase {
   public void initialize() {}
 
   // Called every time the scheduler runs while the command is scheduled.
+  // (Aka .periodic())
   @Override
   public void execute() {}
 

@@ -12,13 +12,13 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.function.Function;
 
-public class Navx extends AHRS implements INavx {
-    private static Function<SPI.Port, INavx> factory = Navx::new;
+public class FridoNavx extends AHRS implements INavx {
+    private static Function<SPI.Port, INavx> factory = FridoNavx::new;
 
     private static SPI.Port port;
 
     public static void setup(SPI.Port port) {
-        Navx.port = port;
+        FridoNavx.port = port;
     }
 
     private static float yawOffset = 0.f;
@@ -91,10 +91,10 @@ public class Navx extends AHRS implements INavx {
     }
 
     public static void setFactory(Function<SPI.Port, INavx> factory) {
-        Navx.factory = factory;
+        FridoNavx.factory = factory;
     }
 
-    private Navx(SPI.Port port) {
+    private FridoNavx(SPI.Port port) {
         super(port);
         Initializer.getInstance().addInitialisable(this);
     }
@@ -135,7 +135,7 @@ public class Navx extends AHRS implements INavx {
         return Rotation2d.fromDegrees(super.getRotation2d().getDegrees() + yawOffset);
     }
 
-    private static Logger logger = LogManager.getLogger(Navx.class);
+    private static Logger logger = LogManager.getLogger(FridoNavx.class);
     private boolean initialized = false;
 
     @Override

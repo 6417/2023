@@ -12,6 +12,9 @@ import edu.wpi.first.wpilibj.SPI.Port;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.fridowpi.command.SequentialCommandGroup;
+import frc.fridowpi.joystick.JoystickHandler;
+import frc.fridowpi.sensors.FridoNavx;
 import frc.robot.commands.autonomous.AutonomousManager;
 import frc.robot.commands.driveCommands.DriveCommand;
 import edu.wpi.first.wpilibj2.command.button.Button;
@@ -99,6 +102,8 @@ public class Robot extends TimedRobot {
 
         if (m_autonomousCommand != null) {
             m_autonomousCommand.schedule();
+            CommandScheduler.getInstance().onCommandFinish(
+                (cmd) -> CommandScheduler.getInstance().schedule(new DriveCommand()));
         }
     }
 

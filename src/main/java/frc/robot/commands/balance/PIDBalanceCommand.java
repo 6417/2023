@@ -5,7 +5,7 @@ import frc.robot.commands.autonomous.TimedForward;
 import frc.robot.subsystems.drive.Drive;
 
 public class PIDBalanceCommand extends SequentialCommandGroup {
-    private static final double BASE_VELOCITY = 0.5;
+    private static final double BASE_VELOCITY = 0.6;
 
     public PIDBalanceCommand() {
         super(

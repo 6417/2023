@@ -15,7 +15,6 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import frc.robot.Constants.Drive.Autonomous;
 
-
 public class TrajectoryCreator {
     private static class Datapoint {
         private double acceleration;
@@ -160,7 +159,7 @@ public class TrajectoryCreator {
             builder = new GsonBuilder();
             builder.setPrettyPrinting();
 
-            gson = builder.create(); 
+            gson = builder.create();
 
             datapoints = new ArrayList<Datapoint>();
 
@@ -170,7 +169,7 @@ public class TrajectoryCreator {
 
             previousTime = 0;
             previousVelocity = 0;
-            
+
         } catch (IOException e) {
             DriverStation.reportError("Failed to open file: " + file.getAbsolutePath(), e.getStackTrace());
         }

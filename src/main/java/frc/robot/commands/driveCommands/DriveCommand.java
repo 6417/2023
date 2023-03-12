@@ -1,5 +1,7 @@
 package frc.robot.commands.driveCommands;
 
+import edu.wpi.first.math.MathUsageId;
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.fridowpi.joystick.JoystickHandler;
 import frc.robot.Constants;
@@ -17,24 +19,26 @@ public class DriveCommand extends CommandBase {
     
     // Called when the command is initially scheduled.
     @Override
-    public void initialize() { }
+    public void initialize() {
+    }
 
     @Override
     public void execute() {
         // Get input
         double joystickInputY = JoystickHandler
                 .getInstance()
-                .getJoystick(Constants.Joystick.accelerator)
+                .getJoystick(Constants.Joysticks.accelerator)
                 .getY();
         double joystickTurnValue = JoystickHandler
                 .getInstance()
-                .getJoystick(Constants.Joystick.accelerator)
+                .getJoystick(Constants.Joysticks.accelerator)
                 .getX();
         double steerWheelInput = JoystickHandler
                 .getInstance()
-                .getJoystick(Constants.Joystick.steeringWheel)
+                .getJoystick(Constants.Joysticks.steeringWheel)
                 .getX();
-
+        
+        joystickInputY = MathUtil.applyDeadband(joystickInputY, 0.05);
         // Call Drive::drive with the input
         m_subsystem.driveJoystick(joystickInputY, joystickTurnValue, steerWheelInput);
     }

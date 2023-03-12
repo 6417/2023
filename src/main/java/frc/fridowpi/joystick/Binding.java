@@ -11,7 +11,8 @@ public class Binding {
     public IJoystickId joystickId;
     public Command command;
 
-    public Binding(IJoystickId joystickId, IJoystickButtonId buttonId, BiConsumer<Button, Command> action, Command command) {
+    public Binding(IJoystickId joystickId, IJoystickButtonId buttonId, BiConsumer<Button, Command> action,
+            Command command) {
         this.action = action;
         this.buttonId = buttonId;
         this.joystickId = joystickId;

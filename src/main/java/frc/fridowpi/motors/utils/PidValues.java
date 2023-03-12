@@ -6,7 +6,7 @@ public class PidValues {
     public Optional<Double> kF = Optional.empty();
     public Optional<Integer> slotIdX = Optional.empty();
     public Optional<Double> upperSpeedLimit = Optional.empty();
-    public Optional<Double> lowerSpeedLimit = Optional.empty(); 
+    public Optional<Double> lowerSpeedLimit = Optional.empty();
     public double kP;
     public double kI;
     public double kD;
@@ -70,8 +70,13 @@ public class PidValues {
         } catch (CloneNotSupportedException e) {
             PidValues copy = new PidValues(kP, kI, kD, peakOutputReverse, peakOutputForward);
             kF.ifPresent((Double kF) -> copy.kF = Optional.of((double) kF)); // deep copying optional
-            cruiseVelocity.ifPresent((Double cruiseVelocity) -> copy.cruiseVelocity = Optional.of((double) cruiseVelocity)); // deep copying optional
-            acceleration.ifPresent((Double acceleration) -> copy.acceleration = Optional.of((double) acceleration)); // deep copying optional
+            cruiseVelocity
+                    .ifPresent((Double cruiseVelocity) -> copy.cruiseVelocity = Optional.of((double) cruiseVelocity)); // deep
+                                                                                                                       // copying
+                                                                                                                       // optional
+            acceleration.ifPresent((Double acceleration) -> copy.acceleration = Optional.of((double) acceleration)); // deep
+                                                                                                                     // copying
+                                                                                                                     // optional
             return copy;
         }
     }

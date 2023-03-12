@@ -54,8 +54,7 @@ public class Initializer implements IInitializer {
 
         if (subQueues.size() == 1) {
             toInitialize.addAll(
-                    subQueues.get(0).stream().map((n) -> n.initialisable).collect(Collectors.toList())
-            );
+                    subQueues.get(0).stream().map((n) -> n.initialisable).collect(Collectors.toList()));
         } else {
             subQueues = List.of(subQueues.stream().flatMap(Collection::stream).collect(Collectors.toList()));
             for (var subQueue : subQueues) {

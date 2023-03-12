@@ -51,7 +51,6 @@ public class JoystickHandler implements IJoystickHandler {
         instance = null;
     }
 
-
     @Override
     public void init() {
         toInitialize.forEach((binding) -> {

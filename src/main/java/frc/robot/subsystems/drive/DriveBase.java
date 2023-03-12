@@ -22,13 +22,16 @@ public class DriveBase extends Module {
 
     public void init() { }
 
-    public void reverseDrivingDirection(boolean reverse) { }
+    public void reverseDrivingDirection(boolean reverse) {
+    }
 
-    public void setSteerMode(SteerMode mode) { }
-    
-    public void setDirection(int direction) { }
+    public void setSteerMode(SteerMode mode) {
+    }
 
-    public Pose2d getPosition() { 
+    public void setDirection(int direction) {
+    }
+
+    public Pose2d getPosition() {
         return null;
     }
 
@@ -36,7 +39,8 @@ public class DriveBase extends Module {
         return null;
     }
 
-    public void tankDriveVolts(Double leftSpeed, Double rightSpeed) { }
+    public void tankDriveVolts(Double leftSpeed, Double rightSpeed) {
+    }
 
     public ChassisSpeeds getChassisSpeeds() {
         return null;
@@ -62,7 +66,8 @@ public class DriveBase extends Module {
 
     public void triggerBrake() { }
 
-    public void releaseBrake() { }
+    public void releaseBrake() {
+    }
 
     public void stopAndBreak() { }
 

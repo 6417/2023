@@ -1,9 +1,9 @@
 package frc.fridowpi.utils;
 
-public class LatchBooleanRising implements LatchedBoolean{
+public class LatchedBooleanRising implements LatchedBoolean{
     private boolean previous;
     private boolean currentState = false;
-    public LatchBooleanRising(boolean initial) {
+    public LatchedBooleanRising(boolean initial) {
         previous = initial;
     }
 

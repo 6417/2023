@@ -40,7 +40,7 @@ public class DriveCommand extends CommandBase {
         
         joystickInputY = MathUtil.applyDeadband(joystickInputY, 0.05);
         // Call Drive::drive with the input
-        m_subsystem.driveJoystick(joystickInputY, joystickTurnValue, steerWheelInput);
+        m_subsystem.driveJoystick(joystickInputY, -joystickTurnValue, steerWheelInput);
     }
 
     // Called once the command ends or is interrupted.

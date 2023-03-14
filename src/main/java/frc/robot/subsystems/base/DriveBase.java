@@ -10,6 +10,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
 import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
+import edu.wpi.first.math.trajectory.TrajectoryConfig;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.fridowpi.module.Module;
 import frc.robot.subsystems.drive.Drive;
@@ -61,6 +62,10 @@ public class DriveBase extends Module {
 
     public SimpleMotorFeedforward getMotorFeedforward() {
         return null;
+    }
+
+    public TrajectoryConfig getTrajectoryConfig() {
+        return new TrajectoryConfig(0, 0);
     }
 
     public void stopMotors() { }

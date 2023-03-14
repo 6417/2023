@@ -3,11 +3,46 @@ package frc.robot.commands.autonomous;
 import java.util.function.Supplier;
 
 import edu.wpi.first.wpilibj2.command.CommandBase;
+import frc.fridowpi.utils.Vector2;
 import frc.robot.ArmPosJoystick;
+import frc.robot.ArmPathGenerator.RobotOrientation;
+import frc.robot.ArmPathGenerator.RobotPos;
 import frc.robot.ArmPosJoystick.Ids;
 import frc.robot.commands.arm.GotoPos;
+import frc.robot.subsystems.Arm;
 
 public class ArmControllCommands {
+    private static class GotoPosAutonomous extends GotoPos {
+
+        public GotoPosAutonomous(Vector2 target, RobotPos pos, RobotOrientation orientation, String name) {
+            super(target, pos, orientation, name);
+            System.out.println("[GotoPosAutonomous::new]");
+        }
+
+        @Override
+        public void initialize() {
+            super.initialize();
+            System.out.println("[GotoPosAutonomous::initialize]");
+        }
+
+        @Override
+        public boolean isFinished() {
+            boolean superFinished = super.isFinished();
+
+            System.out.println("[GotoPosAutonomous::isFinished] generatedPath: " + super.generatedPath
+                    + ", super isFinished: " + superFinished + ", this isFinished: "
+                    + (Arm.getInstance().getPos().minus(target).magnitude() < 3.0));
+            System.out.println("[GotoPosAutonomous::isFinished] current pos: " + Arm.getInstance().getPos()
+                    + ", target: " + super.target + ", error: " + Arm.getInstance().getPos().minus(target).magnitude());
+            if (super.generatedPath == null) {
+                return true;
+            }
+
+            return Arm.getInstance().getPos().minus(target).magnitude() < 0.03 || !Arm.getInstance().isZeroed();
+        }
+
+    }
+
     public static interface CommandFactory {
         CommandBase construct();
     }
@@ -32,37 +67,44 @@ public class ArmControllCommands {
 
     // ################################################################################################################
 
-    public static CommandFactory home = () -> new GotoPos(homeParams.target, homeParams.pos, homeParams.orientation,
+    public static CommandFactory home = () -> new GotoPosAutonomous(homeParams.target, homeParams.pos,
+            homeParams.orientation,
             homeParams.toString());
 
-    public static CommandFactory gridForwardTop = () -> new GotoPos(gridForwardTopParams.target,
+    public static CommandFactory gridForwardTop = () -> new GotoPosAutonomous(gridForwardTopParams.target,
             gridForwardTopParams.pos, gridForwardTopParams.orientation, gridForwardTopParams.toString());
-    public static CommandFactory gridForwardMiddle = () -> new GotoPos(gridForwardMiddleParams.target,
+    public static CommandFactory gridForwardMiddle = () -> new GotoPosAutonomous(gridForwardMiddleParams.target,
             gridForwardMiddleParams.pos, gridForwardMiddleParams.orientation, gridForwardMiddleParams.toString());
-    public static CommandFactory gridForwardBottom = () -> new GotoPos(gridForwardBottomParams.target,
+    public static CommandFactory gridForwardBottom = () -> new GotoPosAutonomous(gridForwardBottomParams.target,
             gridForwardBottomParams.pos, gridForwardBottomParams.orientation, gridForwardBottomParams.toString());
 
-    public static CommandFactory gridReverseMiddle = () -> new GotoPos(gridReverseMiddleParams.target,
+    public static CommandFactory gridReverseMiddle = () -> new GotoPosAutonomous(gridReverseMiddleParams.target,
             gridReverseMiddleParams.pos, gridReverseMiddleParams.orientation, gridReverseMiddleParams.toString());
-    public static CommandFactory gridReverseBottom = () -> new GotoPos(gridReverseBottomParams.target,
+    public static CommandFactory gridReverseBottom = () -> new GotoPosAutonomous(gridReverseBottomParams.target,
             gridReverseBottomParams.pos, gridReverseBottomParams.orientation, gridReverseBottomParams.toString());
 
-    public static CommandFactory loadingZoneForwardCone = () -> new GotoPos(loadingZoneForwardConeParams.target,
+    public static CommandFactory loadingZoneForwardCone = () -> new GotoPosAutonomous(
+            loadingZoneForwardConeParams.target,
             loadingZoneForwardConeParams.pos, loadingZoneForwardConeParams.orientation,
             loadingZoneForwardConeParams.toString());
-    public static CommandFactory loadingZoneForwardCube = () -> new GotoPos(loadingZoneForwardCubeParams.target,
+    public static CommandFactory loadingZoneForwardCube = () -> new GotoPosAutonomous(
+            loadingZoneForwardCubeParams.target,
             loadingZoneForwardCubeParams.pos, loadingZoneForwardCubeParams.orientation,
             loadingZoneForwardCubeParams.toString());
 
-    public static CommandFactory loadingZoneReverseCone = () -> new GotoPos(loadingZoneReverseConeParams.target,
+    public static CommandFactory loadingZoneReverseCone = () -> new GotoPosAutonomous(
+            loadingZoneReverseConeParams.target,
             loadingZoneReverseConeParams.pos, loadingZoneReverseConeParams.orientation,
             loadingZoneReverseConeParams.toString());
-    public static CommandFactory loadingZoneReverseCube = () -> new GotoPos(loadingZoneReverseCubeParams.target,
+    public static CommandFactory loadingZoneReverseCube = () -> new GotoPosAutonomous(
+            loadingZoneReverseCubeParams.target,
             loadingZoneReverseCubeParams.pos, loadingZoneReverseCubeParams.orientation,
             loadingZoneReverseCubeParams.toString());
 
-    public static CommandFactory pickUpForward = () -> new GotoPos(pickUpForwardParams.target, pickUpForwardParams.pos,
+    public static CommandFactory pickUpForward = () -> new GotoPosAutonomous(pickUpForwardParams.target,
+            pickUpForwardParams.pos,
             pickUpForwardParams.orientation, pickUpForwardParams.toString());
-    public static CommandFactory pickUpReverse = () -> new GotoPos(pickUpReverseParams.target, pickUpReverseParams.pos,
+    public static CommandFactory pickUpReverse = () -> new GotoPosAutonomous(pickUpReverseParams.target,
+            pickUpReverseParams.pos,
             pickUpReverseParams.orientation, pickUpReverseParams.toString());
 }

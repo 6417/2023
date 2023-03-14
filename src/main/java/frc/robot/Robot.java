@@ -1,9 +1,16 @@
 package frc.robot;
 
 import java.util.List;
+
 import frc.fridowpi.joystick.JoystickHandler;
 import frc.fridowpi.sensors.FridoNavx;
 import frc.robot.subsystems.drive.Drive;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.trajectory.Trajectory;
+import edu.wpi.first.math.trajectory.TrajectoryConfig;
+import edu.wpi.first.math.trajectory.TrajectoryGenerator;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.TimedRobot;
@@ -12,21 +19,35 @@ import edu.wpi.first.wpilibj.SPI.Port;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
+import frc.robot.commands.autonomous.ArmControllCommands;
 import frc.robot.commands.autonomous.AutonomousManager;
+import frc.robot.commands.autonomous.ChargeAutonomous;
+import frc.robot.commands.autonomous.FollowPath;
+import frc.robot.commands.autonomous.PreDefPose;
+import frc.robot.commands.autonomous.TimedForward;
+import frc.robot.commands.balance.PIDBalanceCommand;
 import frc.robot.commands.driveCommands.DriveCommand;
 import edu.wpi.first.wpilibj2.command.button.Button;
+import frc.fridowpi.command.ParallelCommandGroup;
 import frc.fridowpi.joystick.Binding;
 import frc.fridowpi.joystick.joysticks.LogitechExtreme;
 import frc.fridowpi.pneumatics.PneumaticHandler;
+import frc.robot.Constants.Drive.Autonomous;
 import frc.robot.commands.ToggleCompressor;
 import frc.robot.commands.arm.Stop;
 import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.GripperSubsystem;
+import frc.robot.subsystems.Arm.ManualControlMode;
 
 public class Robot extends TimedRobot {
     private Command m_autonomousCommand;
 
     PowerDistribution pdp = new PowerDistribution(62, ModuleType.kCTRE);
+
+    boolean assumeArmAtHomeOnStart = false;
 
     @Override
     public void robotInit() {
@@ -61,6 +82,13 @@ public class Robot extends TimedRobot {
                 Button::toggleOnTrue, new ToggleCompressor()));
 
         JoystickHandler.getInstance().init();
+        Drive.getInstance().releaseBrake();
+
+        if (assumeArmAtHomeOnStart) {
+            Arm.getInstance().setEncoderTicksJoint(Arm.jointAngleToTicks(0));
+            Arm.getInstance().setEncoderTicksBase(Arm.jointAngleToTicks(Math.toRadians(90)));
+            Arm.getInstance().setManualControlMode(ManualControlMode.POS);
+        } 
     }
 
     @Override
@@ -68,11 +96,12 @@ public class Robot extends TimedRobot {
         CommandScheduler.getInstance().run();
 
         // if (pdp.getVoltage() < 8) {
-        //     System.out.println("Brown out!!!!!!!!!!!!!!!!!");
+        // System.out.println("Brown out!!!!!!!!!!!!!!!!!");
         // }
         //
-        // if (pdp.getVoltage() < 8  && PneumaticHandler.getInstance().isCompressorPumping()) {
-        //     PneumaticHandler.getInstance().disableCompressor();
+        // if (pdp.getVoltage() < 8 &&
+        // PneumaticHandler.getInstance().isCompressorPumping()) {
+        // PneumaticHandler.getInstance().disableCompressor();
         // }
     }
 
@@ -89,10 +118,39 @@ public class Robot extends TimedRobot {
 
     @Override
     public void autonomousInit() {
+        Drive.getInstance().releaseBrake();
         Arm.getInstance().stop();
         Arm.getInstance().hold();
-        // m_autonomousCommand = new ChargeAutonomous(StartingPosition.LEFT);
-        m_autonomousCommand = AutonomousManager.getCommand_DriveOnCharginStation();
+
+        //
+        // Pose2d rp1 = PreDefPose.RedPiece1.toPose();
+        // Pose2d target = new Pose2d(rp1.getX(), rp1.getY(), new Rotation2d(0, 1));
+        // m_autonomousCommand = AutonomousManager.generatePathCommand(
+        // List.of(PreDefPose.RedRightCorner.toPose(), PreDefPose.RedPiece4.toPose(),
+        // PreDefPose.RedPiece1.toPose()));
+
+        // Trajectory t = TrajectoryGenerator.generateTrajectory(
+        //         new Pose2d(0,0,new Rotation2d()),
+        //         List.of(new Translation2d(-1., 0), 
+        //             new Translation2d(-0.5, 2.5)), 
+        //         new Pose2d(-4.5, 2.5, new Rotation2d()),
+        //         Drive.getInstance().getTrajectoryConfig());
+        //
+        // m_autonomousCommand = new FollowPath(t);
+        
+        Command gotoTop = ArmControllCommands.gridForwardTop.construct();
+        Command gotoHome = ArmControllCommands.home.construct();
+
+        Command openGripper = new InstantCommand(() -> GripperSubsystem.getInstance().openGripper());
+        Command closedGripper = new InstantCommand(() -> GripperSubsystem.getInstance().closeGripper());
+
+        SequentialCommandGroup scoreCube = new SequentialCommandGroup(gotoTop, openGripper, new WaitCommand(0.5), closedGripper); 
+       
+        // m_autonomousCommand = new SequentialCommandGroup(scoreCube, new PIDBalanceCommand());
+        m_autonomousCommand =  scoreCube.andThen(new ParallelCommandGroup(gotoHome, new WaitCommand(1).andThen(new PIDBalanceCommand())));
+
+
+        
 
         // var cmd = RamseteCommandGenerator.generateRamseteCommand(path);
         // CommandScheduler.getInstance().schedule(cmd);
@@ -103,7 +161,8 @@ public class Robot extends TimedRobot {
     }
 
     @Override
-    public void autonomousPeriodic() { }
+    public void autonomousPeriodic() {
+    }
 
     @Override
     public void teleopInit() {
@@ -115,6 +174,7 @@ public class Robot extends TimedRobot {
             m_autonomousCommand.cancel();
         }
         Drive.getInstance().reset();
+        Drive.getInstance().releaseBrake();
 
         CommandScheduler.getInstance().schedule(new DriveCommand());
     }
@@ -125,6 +185,7 @@ public class Robot extends TimedRobot {
 
     @Override
     public void testInit() {
+        Drive.getInstance().releaseBrake();
         CommandScheduler.getInstance().cancelAll();
         Arm.getInstance().stop();
         Arm.getInstance().hold();
@@ -132,6 +193,7 @@ public class Robot extends TimedRobot {
 
     @Override
     public void simulationInit() {
+        Drive.getInstance().releaseBrake();
     }
 
     @Override

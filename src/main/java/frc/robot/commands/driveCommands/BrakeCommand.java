@@ -6,7 +6,6 @@ import edu.wpi.first.wpilibj2.command.CommandBase;
 public class BrakeCommand extends CommandBase {
 
   public BrakeCommand() {
-    addRequirements(Drive.getInstance());
   }
 
   @Override

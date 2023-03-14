@@ -66,13 +66,13 @@ public final class Constants {
         }
 
         public static final class PathWeaver {
-            public static final double ksMeters = 0.12091;
-            public static final double kvMetersPerSecoond = 2.3501;
-            public static final double ka = 0.21997;
+            public static final double ksMeters = 0.14604;
+            public static final double kvMetersPerSecoond = 2.3639;
+            public static final double ka = 0.35094;
 
             public static final double kMaxSpeed = 3.3;
             public static final double kMaxAcceleration = 1.2;
-            public static final double kMaxCentripetalAcceleration = 0;
+            public static final double kMaxCentripetalAcceleration = 1.5;
 
             public static final double kRamseteB = 0;
             public static final double kRamseteZeta = 0;

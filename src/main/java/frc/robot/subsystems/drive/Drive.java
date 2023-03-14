@@ -43,8 +43,6 @@ import frc.robot.subsystems.base.DriveBase;
 public class Drive extends DriveBase {
     private static DriveBase instance;
 
-    private boolean isActive = true;
-
     private Motors motors;
 
     private DifferentialDriveOdometry odometry;
@@ -59,7 +57,7 @@ public class Drive extends DriveBase {
     private double speed = defaultDriveSpeed;
     private double motorspeed;
 
-    private double steerDirection = 1;
+    private double steerDirection = -1;
     private double steeringWheelSensibility = 1;
     private SteerMode steerMode = Constants.Drive.Defaults.steerMode;
 
@@ -87,6 +85,11 @@ public class Drive extends DriveBase {
 
     // Config
     private TrajectoryConfig trajectoryConfig;
+
+    @Override
+    public TrajectoryConfig getTrajectoryConfig() {
+        return trajectoryConfig;
+    }
 
     public static enum SteerMode {
         CARLIKE, BIDIRECTIONAL
@@ -125,6 +128,7 @@ public class Drive extends DriveBase {
         motors.init();
 
         tankDrive = new DifferentialDrive(motors.left(), motors.right());
+        tankDrive.setDeadband(0.0);
 
         resetSensors();
         resetVariables();
@@ -151,7 +155,6 @@ public class Drive extends DriveBase {
     }
 
     private void resetVariables() {
-        isActive = true;
     }
 
     @Override
@@ -180,8 +183,8 @@ public class Drive extends DriveBase {
         // System.out.println(joystickInputY);
         // System.out.println(steerInput);
 
-        if (!isActive) {
-            tankDrive.feed();
+        if (brakeSolenoid.get() == Value.kForward) {
+            tankDrive.stopMotor();
             return;
         }
 
@@ -213,7 +216,7 @@ public class Drive extends DriveBase {
         // if (rotation > 0.2)
         // System.out.println("steer:" + rotation);
         motorspeed = speed;
-        tankDrive.arcadeDrive(-rotation, speed);
+        tankDrive.arcadeDrive(-rotation, speed, false);
     }
 
     @Override
@@ -368,19 +371,19 @@ public class Drive extends DriveBase {
 
     @Override
     public void stopMotors() {
-        isActive = false;
         tankDrive.stopMotor();
     }
 
     @Override
     public void stopAndBreak() {
         stopMotors();
-        // triggerBrake();
+        triggerBrake();
         // TODO
     }
 
     @Override
     public void periodic() {
+
     }
 
     public double getRightEncoderDistance() {
@@ -428,10 +431,6 @@ public class Drive extends DriveBase {
 
         Binding slow = new Binding(Constants.Joysticks.accelerator, LogitechExtreme._1, Button::whileTrue,
                 new Command() {
-                    {
-                        addRequirements(speedRequirement);
-                    }
-
                     public void initialize() {
                         speed = slowSpeed;
                     }
@@ -450,10 +449,6 @@ public class Drive extends DriveBase {
 
         Binding fast = new Binding(Constants.Joysticks.accelerator, LogitechExtreme._2, Button::whileTrue,
                 new Command() {
-                    {
-                        addRequirements(speedRequirement);
-                    }
-
                     public void initialize() {
                         speed = fastSpeed;
                     }
@@ -488,7 +483,6 @@ public class Drive extends DriveBase {
                 (val) -> joystickSteeringSensibility = val);
         builder.addDoubleProperty("speed", () -> speed, (val) -> speed = val);
         builder.addDoubleProperty("motorspeed", () -> motorspeed, (val) -> motorspeed = val);
-        builder.addStringProperty("brake status", () -> isActive ? "not active" : "active", null);
         builder.addDoubleProperty("wheel speed right", () -> this.getWheelSpeeds().rightMetersPerSecond, null);
         builder.addDoubleProperty("wheel speed left", () -> this.getWheelSpeeds().leftMetersPerSecond, null);
 
@@ -500,11 +494,11 @@ public class Drive extends DriveBase {
         builder.addDoubleProperty("volts left", () -> voltsLeft, null);
         builder.addDoubleProperty("Output", () -> motors.right().get(), null);
         builder.addDoubleProperty("Pitch", this::getPitch, null);
+        builder.addDoubleProperty("speed multiplier", () -> speed, null);
     }
 
     @Override
     public void triggerBrake() {
-        isActive = false;
         tankDrive.stopMotor();
         brakeSolenoid.set(Value.kForward);
     }
@@ -512,12 +506,19 @@ public class Drive extends DriveBase {
     @Override
     public void releaseBrake() {
         brakeSolenoid.set(Value.kReverse);
-        isActive = true;
     }
 
     @Override
     public double getPitch() {
-        return (double) FridoNavx.getInstance().getPitch();
+        return (double) FridoNavx.getInstance().getRoll();
+    }
+
+    @Override
+    public void resetOdometry(Pose2d initialPose) {
+        FridoNavx.getInstance().reset();
+        FridoNavx.getInstance().setAngleAdjustment(initialPose.getRotation().getRadians());
+        System.out.println("Navx rot: " + FridoNavx.getInstance().getRotation2d() + ", initialPose rot: " + initialPose.getRotation());
+        odometry.resetPosition(initialPose.getRotation(), getLeftEncoderDistance(), getRightEncoderDistance(), initialPose);
     }
 
     int testbalance = 0;

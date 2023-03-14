@@ -40,8 +40,8 @@ public class DriveUntilEven extends CommandBase {
         pitchEntry.setDouble(m_pitch);
         m_vel = m_pidController.calculate(m_pitch);
 
-        m_vel = MathUtil.clamp(m_vel, -0.15, 0.15);
-        Drive.getInstance().setMotorPercent(m_vel, m_vel);
+        m_vel = MathUtil.clamp(m_vel, -0.10, 0.10);
+        Drive.getInstance().setMotorPercent(-m_vel, -m_vel);
     }
 
     @Override

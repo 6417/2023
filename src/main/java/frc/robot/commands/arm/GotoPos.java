@@ -1,5 +1,6 @@
 package frc.robot.commands.arm;
 
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.fridowpi.utils.Vector2;
@@ -8,11 +9,11 @@ import frc.robot.ArmPathGenerator.RobotPos;
 import frc.robot.subsystems.Arm;
 
 public class GotoPos extends CommandBase {
-    Vector2 target;
-    ArmPathGenerator generator;
-    ArmPathGenerator.RobotPos pos;
-    ArmPathGenerator.RobotOrientation orientation;
-    String name;
+    protected final Vector2 target;
+    protected final ArmPathGenerator generator;
+    protected final ArmPathGenerator.RobotPos pos;
+    protected final ArmPathGenerator.RobotOrientation orientation;
+    protected final String name;
 
     public GotoPos(Vector2 target, ArmPathGenerator.RobotPos pos, ArmPathGenerator.RobotOrientation orientation,
             String name) {
@@ -23,10 +24,12 @@ public class GotoPos extends CommandBase {
         this.name = name;
     }
 
-    CommandBase generatedPath = null;
+    protected CommandBase generatedPath = null;
+    Timer debug = new Timer();
 
     @Override
     public void initialize() {
+        debug.start();
         if (pos == RobotPos.FIELD) {
             Vector2[] generatedTargets = new ArmPathGenerator().pathTo(target,
                     Arm.getInstance().getRobotPos(), Arm.getInstance().getRobotOrientation());
@@ -45,11 +48,11 @@ public class GotoPos extends CommandBase {
                 System.out.println(p);
             }
             generatedPath = ArmPathGenerator.toCommand(generatedTargets);
-            
+
         }
         CommandScheduler.getInstance().schedule(generatedPath);
-        System.out.println("[Arm] going to target: " + name + "(" + target + ")");
-       
+        System.out.println("(Time: " + debug.get() + ") [Arm] going to target: " + name + "(" + target + ")");
+
         Arm.getInstance().setRobotOrientation(orientation);
         Arm.getInstance().setRobotPos(pos);
     }
@@ -57,6 +60,8 @@ public class GotoPos extends CommandBase {
     @Override
     public void end(boolean interrupted) {
         generatedPath = null;
+        System.out.println("(Time: " + debug.get() + ") [Arm] ended, (interrupted: " + interrupted + ") target: " + name
+                + "(" + target + ")");
     }
 
     @Override

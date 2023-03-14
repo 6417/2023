@@ -45,7 +45,7 @@ public class ArmPathGenerator {
         }
     }
 
-    private static class Quadrant {
+    public static class Quadrant {
         public Vector2 from;
         public Vector2 to;
         public Vector2 driveThrough;
@@ -128,7 +128,7 @@ public class ArmPathGenerator {
         return resultList.toArray(resultArray);
     }
 
-    static Quadrant[] quadrantsField = new Quadrant[] {
+    public static Quadrant[] quadrantsField = new Quadrant[] {
             new Quadrant(new Vector2(0.26, -0.05), new Vector2(1.44, 0.05), new Vector2(0.442, -0.02)),
             new Quadrant(new Vector2(0.26, 0.05), new Vector2(1.44, 1.78), new Vector2(0.29, coneHeight + 0.01)),
             new Quadrant(new Vector2(0.26, 0.05), new Vector2(-0.61, 1.78),
@@ -145,8 +145,8 @@ public class ArmPathGenerator {
         Quadrant[] quadrantsLoadingZone = new Quadrant[] {
                 new Quadrant(new Vector2(0, 1.0 - robotHeight), new Vector2(0.3, 1.78),
                         new Vector2(0.15, ArmPosJoystick.Ids.LOADING_ZONE_FORWARD_CONE.target.y)),
-                new Quadrant(new Vector2(-0.05, -0.05), new Vector2(0.0, 1.78), new Vector2(-0.15, 1.2)),
-                new Quadrant(new Vector2(-0.22, 0.39), new Vector2(-0.24, 0.41), new Vector2(-0.23, 0.4)),
+                new Quadrant(new Vector2(-0.26, -0.05), new Vector2(0.0, 1.78), new Vector2(-0.25, 1.2)),
+                new Quadrant(new Vector2(-0.26, 0.39), new Vector2(-0.24, 0.41), new Vector2(-0.25, 0.4)),
         };
 
         Quadrant[] quadrantsGrid = new Quadrant[] {

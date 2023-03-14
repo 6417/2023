@@ -15,12 +15,18 @@ public class FollowPath extends Command {
         path = PathviewerLoader.loadTrajectory("paths/" + name + ".wpilib.json");
     }
 
+    public FollowPath(Trajectory trajectory) {
+        path = trajectory;
+    }
+
     @Override
     public void initialize() {
         autonomousCommand = RamseteCommandGenerator.generateRamseteCommand(this.path);
         CommandScheduler.getInstance().schedule(autonomousCommand);
 
-        Drive.getInstance().setDirection(1);
+        Drive.getInstance().resetOdometry(path.getStates().get(0).poseMeters);
+
+        Drive.getInstance().setDirection(-1);
     }
 
     @Override
@@ -30,6 +36,7 @@ public class FollowPath extends Command {
 
     @Override
     public void end(boolean interrupted) {
+        Drive.getInstance().setDirection(-1);
         System.out.println("finished");
         // Drive.getInstance().setDirection(1);
     }

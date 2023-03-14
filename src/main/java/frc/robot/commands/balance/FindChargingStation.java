@@ -8,7 +8,7 @@ import frc.robot.subsystems.drive.Drive;
 public class FindChargingStation extends CommandBase {
     private double base_velocity;
     public double pitch;
-    private double THRESHOLD = 12;
+    private double THRESHOLD = 10;
 
     public FindChargingStation(double velocity) {
         addRequirements(Drive.getInstance());

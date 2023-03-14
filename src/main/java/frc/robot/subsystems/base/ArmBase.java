@@ -64,21 +64,10 @@ public class ArmBase extends Module {
 
     }
 
-    public void baseGotoAngle(double angle, boolean fine) {
-
-    }
-
     public void baseGotoAngle(double angle) {
-        baseGotoAngle(angle, true);
-    }
-
-
-    public void jointGotoAngle(double angle, boolean fine) {
-
     }
 
     public void jointGotoAngle(double angle) {
-        jointGotoAngle(angle, true);
     }
 
     public void setBasePercent(double percent) {

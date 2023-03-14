@@ -11,13 +11,16 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.trajectory.TrajectoryConfig;
 import edu.wpi.first.math.trajectory.TrajectoryGenerator;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj.SPI.Port;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
@@ -88,7 +91,7 @@ public class Robot extends TimedRobot {
             Arm.getInstance().setEncoderTicksJoint(Arm.jointAngleToTicks(0));
             Arm.getInstance().setEncoderTicksBase(Arm.jointAngleToTicks(Math.toRadians(90)));
             Arm.getInstance().setManualControlMode(ManualControlMode.POS);
-        } 
+        }
     }
 
     @Override
@@ -116,6 +119,15 @@ public class Robot extends TimedRobot {
     public void disabledPeriodic() {
     }
 
+    static enum CurrentAutonomous {
+        COOP_CUBE_TOP_CHARGE_STATION,
+        RIGHT_CUBE_MOBILITY_PICKUP_POS,
+        LEFT_CUBE_MOBILITY_PICKUP_POS,
+        LEFT_CUBE_MOBILITY_PICKUP_CUBE
+    }
+
+    static final CurrentAutonomous autonomous = CurrentAutonomous.LEFT_CUBE_MOBILITY_PICKUP_CUBE;
+
     @Override
     public void autonomousInit() {
         Drive.getInstance().releaseBrake();
@@ -130,27 +142,62 @@ public class Robot extends TimedRobot {
         // PreDefPose.RedPiece1.toPose()));
 
         // Trajectory t = TrajectoryGenerator.generateTrajectory(
-        //         new Pose2d(0,0,new Rotation2d()),
-        //         List.of(new Translation2d(-1., 0), 
-        //             new Translation2d(-0.5, 2.5)), 
-        //         new Pose2d(-4.5, 2.5, new Rotation2d()),
-        //         Drive.getInstance().getTrajectoryConfig());
+        // new Pose2d(0,0,new Rotation2d()),
+        // List.of(new Translation2d(-1., 0),
+        // new Translation2d(-0.5, 2.5)),
+        // new Pose2d(-4.5, 2.5, new Rotation2d()),
+        // Drive.getInstance().getTrajectoryConfig());
         //
         // m_autonomousCommand = new FollowPath(t);
-        
+
         Command gotoTop = ArmControllCommands.gridForwardTop.construct();
+        Command gotoPickup = ArmControllCommands.pickUpReverse.construct();
         Command gotoHome = ArmControllCommands.home.construct();
 
         Command openGripper = new InstantCommand(() -> GripperSubsystem.getInstance().openGripper());
         Command closedGripper = new InstantCommand(() -> GripperSubsystem.getInstance().closeGripper());
 
-        SequentialCommandGroup scoreCube = new SequentialCommandGroup(gotoTop, openGripper, new WaitCommand(0.5), closedGripper); 
-       
-        // m_autonomousCommand = new SequentialCommandGroup(scoreCube, new PIDBalanceCommand());
-        m_autonomousCommand =  scoreCube.andThen(new ParallelCommandGroup(gotoHome, new WaitCommand(1).andThen(new PIDBalanceCommand())));
+        if (autonomous == CurrentAutonomous.COOP_CUBE_TOP_CHARGE_STATION) {
+            SequentialCommandGroup scoreCube = new SequentialCommandGroup(gotoTop, openGripper, new WaitCommand(0.5),
+                    closedGripper);
 
+            m_autonomousCommand = scoreCube
+                    .andThen(new ParallelCommandGroup(gotoHome, new WaitCommand(2).andThen(new PIDBalanceCommand())));
+        } else if (autonomous == CurrentAutonomous.RIGHT_CUBE_MOBILITY_PICKUP_POS) {
+            SequentialCommandGroup scoreCube = new SequentialCommandGroup(gotoTop, openGripper, new WaitCommand(0.5),
+                    closedGripper);
 
-        
+            CommandBase mobilityToCube = AutonomousManager
+                    .getPathCommand(List.of(PreDefPose.RedRightCorner, PreDefPose.RedPiece4));
+
+            m_autonomousCommand = scoreCube
+                    .andThen(new ParallelCommandGroup(gotoHome, new WaitCommand(2).andThen(mobilityToCube)));
+        } else if (autonomous == CurrentAutonomous.LEFT_CUBE_MOBILITY_PICKUP_POS) {
+            SequentialCommandGroup scoreCube = new SequentialCommandGroup(gotoTop, openGripper, new WaitCommand(0.5),
+                    closedGripper);
+
+            CommandBase mobilityToCube = AutonomousManager
+                    .getPathCommand(List.of(PreDefPose.RedRightCorner, PreDefPose.RedPiece4));
+
+            m_autonomousCommand = scoreCube
+                    .andThen(new ParallelCommandGroup(gotoHome, new WaitCommand(2).andThen(mobilityToCube)));
+        } else if (autonomous == CurrentAutonomous.LEFT_CUBE_MOBILITY_PICKUP_CUBE) {
+            SequentialCommandGroup scoreCube = new SequentialCommandGroup(gotoTop, openGripper, new WaitCommand(0.5),
+                    closedGripper);
+
+            CommandBase mobilityToCube = AutonomousManager
+                    .getPathCommand(List.of(PreDefPose.RedRightCorner, PreDefPose.RedPiece4));
+
+            m_autonomousCommand = scoreCube.andThen(new ParallelCommandGroup(
+                    gotoHome.andThen(new WaitCommand(3))
+                            .andThen(gotoPickup)
+                            .andThen(openGripper),
+                    new WaitCommand(2)
+                            .andThen(mobilityToCube)))
+                    .andThen(closedGripper)
+                    .andThen(new WaitCommand(0.5))
+                    .andThen(gotoHome);
+        }
 
         // var cmd = RamseteCommandGenerator.generateRamseteCommand(path);
         // CommandScheduler.getInstance().schedule(cmd);

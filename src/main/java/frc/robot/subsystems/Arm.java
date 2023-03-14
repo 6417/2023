@@ -161,7 +161,7 @@ public class Arm extends ArmBase {
     }
 
     double kP = 0.045; // 0.2
-    double kI = 0.00001; // 25; // 0.000025 * factor;
+    double kI = 0.00002; // 25; // 0.000025 * factor;
     double kD = 0.001; // 0.3
 
     LatchedBooleanRising gettingZeroed;
@@ -331,7 +331,7 @@ public class Arm extends ArmBase {
     }
 
     @Override
-    public void baseGotoAngle(double angle, boolean fine) {
+    public void baseGotoAngle(double angle) {
         if (Double.isFinite(angle) && !Double.isNaN(angle)) {
             if (baseZeroed && jointZeroed) {
                 setBaseTargetPos(baseAngleToTicks(angle));

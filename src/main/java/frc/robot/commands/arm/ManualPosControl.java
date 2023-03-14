@@ -38,24 +38,26 @@ public class ManualPosControl extends CommandBase {
                 JoystickHandler.getInstance().getJoystick(Constants.Joysticks.armJoystick).getThrottle(),
                 Constants.Joysticks.armJoystickDeadZone);
 
-        if (Arm.getInstance().isZeroed()) {
-            Vector2 newTarget = target.add(new Vector2(px, py).smul(-0.005));
-            if (!Arm.getInstance().isPosValid(newTarget)) {
-                DriverStation.reportError("[ManualPosControl::execute] Invalid position", false);
-                return;
-            }
-            target = newTarget;
-            var solutions = ArmKinematics.posToAngles(target);
-            ArmKinematics.Values<Double> angles;
+        if (Math.abs(px) > 0.0001 || Math.abs(py) > 0.0001) {
+            if (Arm.getInstance().isZeroed()) {
+                Vector2 newTarget = target.add(new Vector2(px, py).smul(-0.005));
+                if (!Arm.getInstance().isPosValid(newTarget)) {
+                    DriverStation.reportError("[ManualPosControl::execute] Invalid position", false);
+                    return;
+                }
+                target = newTarget;
+                var solutions = ArmKinematics.posToAngles(target);
+                ArmKinematics.Values<Double> angles;
 
-            if (target.x >= 0) {
-                angles = solutions.getFirst();
-            } else {
-                angles = solutions.getSecond();
-            }
+                if (target.x >= 0) {
+                    angles = solutions.getFirst();
+                } else {
+                    angles = solutions.getSecond();
+                }
 
-            Arm.getInstance().baseGotoAngle(angles.base);
-            Arm.getInstance().jointGotoAngle(angles.joint);
-        } 
+                Arm.getInstance().baseGotoAngle(angles.base);
+                Arm.getInstance().jointGotoAngle(angles.joint);
+            }
+        }
     }
 }

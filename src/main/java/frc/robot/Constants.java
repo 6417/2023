@@ -226,7 +226,7 @@ public final class Constants {
         public static final double baseAllowableErrorDriveThrough = 300;
         public static final double jointAllowableErrorDriveThrough = 1000;
 
-        public static final double baseAllowableError = 300;
+        public static final double baseAllowableError = 200;
         public static final double jointAllowableError = 800;
 
         public static final double baseDefaultManualMaxPercent = 0.3;

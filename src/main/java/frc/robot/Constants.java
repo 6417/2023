@@ -7,6 +7,7 @@ package frc.robot;
 import frc.fridowpi.joystick.IJoystickId;
 import frc.fridowpi.joystick.joysticks.LogitechExtreme;
 import frc.robot.subsystems.drive.Drive.SteerMode;
+import edu.wpi.first.wpilibj.AddressableLED;
 import frc.fridowpi.joystick.IJoystickButtonId;
 
 /**
@@ -100,9 +101,23 @@ public final class Constants {
             public static final IJoystickButtonId activateBrake = LogitechExtreme._4;
 
             public static final IJoystickButtonId activateBalancing = LogitechExtreme._5;
-        }
-        
 
-        
+            public static final IJoystickButtonId coneLeds = LogitechExtreme._6;
+            public static final IJoystickButtonId cubeLeds = LogitechExtreme._8;
+
+        }    
     }
+
+    
+    public static final class LEDs {
+        public static final int portFrontRight = 1;
+        public static final int portFrontLeft = 2;
+        public static final int portBackRight = 3;
+        public static final int portBackLeft = 4;
+
+        public static final int bufferFrontRight = 60;
+        public static final int bufferFrontLeft = 60;
+        public static final int bufferBackRight = 60;
+        public static final int bufferBackLeft = 60;
+    } 
 }

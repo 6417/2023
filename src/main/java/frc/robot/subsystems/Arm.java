@@ -149,6 +149,7 @@ public class Arm extends ArmBase {
     private ArmPathGenerator.RobotOrientation orientation;
     private ArmPathGenerator.RobotPos pos;
 
+
     public static ArmBase getInstance() {
         if (instance == null) {
             if (Constants.Arm.enabled) {
@@ -292,6 +293,7 @@ public class Arm extends ArmBase {
     public void setEncoderTicksJoint(double ticks) {
         jointZeroed = true;
         motors.joint.setEncoderPosition(ticks);
+        motors.jointFollower.setEncoderPosition(ticks);
     }
 
     @Override
@@ -429,7 +431,7 @@ public class Arm extends ArmBase {
     public List<Binding> getMappings() {
         List<Binding> posBindings = Arrays.stream(ArmPosJoystick.Ids.values()).map((id) -> {
             return new Binding(Constants.Joysticks.armJoystick, id, Button::onTrue,
-                    new GotoPos(id.target, id.pos, id.orientation, id.toString()));
+                    new GotoPos(id.target, id.pos, id.orientation, id.toString(), id.invertXDirection));
         }).collect(Collectors.toList());
         List<Binding> otherBindings = List
                 .of(new Binding(Constants.Joysticks.armJoystick, Logitech.lb, Button::onFalse, new InstantCommand(
@@ -588,7 +590,8 @@ public class Arm extends ArmBase {
                 () -> model.torqueToHoldState().getSecond() > 0, null);
         builder.addDoubleProperty("Base Angle [DEG]", () -> Math.toDegrees(this.baseAngle()), null);
         builder.addDoubleProperty("Joint Angle [DEG]", () -> Math.toDegrees(this.jointAngle()), null);
-        builder.addDoubleProperty("Joint ticks", motors.joint::getEncoderTicks, null);
+        builder.addDoubleProperty("Joint ticks master", motors.joint::getEncoderTicks, null);
+        builder.addDoubleProperty("Joint ticks slave", motors.jointFollower::getEncoderTicks, null);
         builder.addBooleanProperty("holdJoint", () -> holdJoint, null);
         builder.addDoubleProperty("Base ticks", motors.base::getEncoderTicks, null);
         // builder.addDoubleProperty("Motor Temp base right",

@@ -31,27 +31,27 @@ public class ArmPosJoystick extends WPIJoystick {
     public static enum Ids implements IJoystickButtonId {
         GRID_FORWARD_BOTTOM(POV.DOWN, forward, null,
                 new Vector2(0.54, 0.26),
-                RobotPos.FIELD, RobotOrientation.FORWARD),
+                RobotPos.FIELD, RobotOrientation.FORWARD, true),
         GRID_FORWARD_MIDDLE(POV.LEFT, forward, null, new Vector2(0.968, 0.934), RobotPos.GRID,
-                RobotOrientation.FORWARD),
-        GRID_FORWARD_TOP(POV.UP, forward, null, new Vector2(1.36,1.28), RobotPos.GRID, RobotOrientation.FORWARD),
-        GRID_REVERSE_BOTTOM(POV.DOWN, reverse, null, new Vector2(-0.89, 0.26), RobotPos.FIELD,
-                RobotOrientation.REVERSE),
+                RobotOrientation.FORWARD, true),
+        GRID_FORWARD_TOP(POV.UP, forward, null, new Vector2(1.36,1.28), RobotPos.GRID, RobotOrientation.FORWARD, true),
+        GRID_REVERSE_BOTTOM(POV.DOWN, reverse, null, new Vector2(-0.94, 0.26), RobotPos.FIELD,
+                RobotOrientation.REVERSE, false),
         GRID_REVERSE_MIDDLE(POV.LEFT, reverse, null, new Vector2(-1.214, 1.156), RobotPos.GRID,
-                RobotOrientation.REVERSE),
+                RobotOrientation.REVERSE, false),
         HOME(null, Logitech.b, null, homePos, RobotPos.FIELD,
-                RobotOrientation.FORWARD),
-        LOADING_ZONE_FORWARD_CUBE(null, reverse, Logitech.x, new Vector2(0.474, 0.89 + 0.08), RobotPos.LOADING_ZONE,
-                RobotOrientation.FORWARD),
-        LOADING_ZONE_FORWARD_CONE(null, reverse, Logitech.y, new Vector2(0.51, 0.94 + 0.08), RobotPos.LOADING_ZONE,
-                RobotOrientation.FORWARD),
-        LOADING_ZONE_REVERSE_CUBE(null, forward, Logitech.x, new Vector2(-0.781, 1.00 + 0.08), RobotPos.LOADING_ZONE,
-                RobotOrientation.REVERSE),
-        LOADING_ZONE_REVERSE_CONE(null, forward, Logitech.y, new Vector2(-0.817, 1.1 + 0.08), RobotPos.LOADING_ZONE,
-                RobotOrientation.REVERSE),
-        PICKUP_FORWARD(POV.RIGHT, forward, null, new Vector2(0.465, 0.208), RobotPos.FIELD, RobotOrientation.FORWARD),
+                RobotOrientation.FORWARD, false),
+        LOADING_ZONE_FORWARD_CUBE(null, reverse, Logitech.x, new Vector2(0.508, 0.93), RobotPos.LOADING_ZONE,
+                RobotOrientation.FORWARD, false),
+        LOADING_ZONE_FORWARD_CONE(null, reverse, Logitech.y, new Vector2(0.52, 1.02), RobotPos.LOADING_ZONE,
+                RobotOrientation.FORWARD, false),
+        LOADING_ZONE_REVERSE_CUBE(null, forward, Logitech.x, new Vector2(-0.809, 1.0), RobotPos.LOADING_ZONE,
+                RobotOrientation.REVERSE, true),
+        LOADING_ZONE_REVERSE_CONE(null, forward, Logitech.y, new Vector2(-0.797, 1.079), RobotPos.LOADING_ZONE,
+                RobotOrientation.REVERSE, true),
+        PICKUP_FORWARD(POV.RIGHT, forward, null, new Vector2(0.465, 0.208), RobotPos.FIELD, RobotOrientation.FORWARD, true),
         PICKUP_REVERSE(POV.RIGHT, reverse, null, new Vector2(-0.79, 0.02), RobotPos.FIELD,
-                RobotOrientation.REVERSE);
+                RobotOrientation.REVERSE, true);
 
         private final int id;
         public final POV pov;
@@ -60,10 +60,11 @@ public class ArmPosJoystick extends WPIJoystick {
         public final Vector2 target;
         public final ArmPathGenerator.RobotPos pos;
         public final ArmPathGenerator.RobotOrientation orientation;
+        public final boolean invertXDirection;
 
         private Ids(POV pov, IJoystickButtonId button1, IJoystickButtonId button2, Vector2 targetPos,
                 ArmPathGenerator.RobotPos pos,
-                ArmPathGenerator.RobotOrientation orientation) {
+                ArmPathGenerator.RobotOrientation orientation, boolean invertXDirection) {
             System.out.println("initializing pos joystick ids");
             id = idCounter;
             idCounter++;
@@ -74,6 +75,7 @@ public class ArmPosJoystick extends WPIJoystick {
             this.target = targetPos;
             this.pos = pos;
             this.orientation = orientation;
+            this.invertXDirection = invertXDirection;
         }
 
         public Button toButtonOnJoystick(WPIJoystick j) {

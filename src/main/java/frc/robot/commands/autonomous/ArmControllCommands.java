@@ -15,7 +15,7 @@ public class ArmControllCommands {
     private static class GotoPosAutonomous extends GotoPos {
 
         public GotoPosAutonomous(Vector2 target, RobotPos pos, RobotOrientation orientation, String name) {
-            super(target, pos, orientation, name);
+            super(target, pos, orientation, name, false);
             System.out.println("[GotoPosAutonomous::new]");
         }
 
@@ -38,7 +38,7 @@ public class ArmControllCommands {
                 return true;
             }
 
-            return Arm.getInstance().getPos().minus(target).magnitude() < 0.03 || !Arm.getInstance().isZeroed();
+            return Arm.getInstance().getPos().minus(target).magnitude() < 0.06 || !Arm.getInstance().isZeroed();
         }
 
     }

@@ -14,14 +14,16 @@ public class GotoPos extends CommandBase {
     protected final ArmPathGenerator.RobotPos pos;
     protected final ArmPathGenerator.RobotOrientation orientation;
     protected final String name;
+    protected final boolean invertXDir;
 
     public GotoPos(Vector2 target, ArmPathGenerator.RobotPos pos, ArmPathGenerator.RobotOrientation orientation,
-            String name) {
+            String name, boolean invertXDir) {
         this.target = target;
         generator = new ArmPathGenerator();
         this.pos = pos;
         this.orientation = orientation;
         this.name = name;
+        this.invertXDir = invertXDir;
     }
 
     protected CommandBase generatedPath = null;
@@ -29,6 +31,7 @@ public class GotoPos extends CommandBase {
 
     @Override
     public void initialize() {
+        Arm.getInstance().xDirInverted = invertXDir;
         debug.start();
         if (pos == RobotPos.FIELD) {
             Vector2[] generatedTargets = new ArmPathGenerator().pathTo(target,

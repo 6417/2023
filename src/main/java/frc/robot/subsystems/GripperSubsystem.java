@@ -6,6 +6,7 @@ import frc.fridowpi.joystick.Binding;
 import frc.fridowpi.pneumatics.FridoDoubleSolenoid;
 import frc.robot.Constants;
 import frc.robot.commands.GripperCommand;
+import frc.robot.subsystems.LEDs.LEDs;
 import frc.robot.subsystems.base.GripperSubsystemBase;
 import java.util.List;
 import org.apache.logging.log4j.LogManager;

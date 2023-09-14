@@ -11,6 +11,8 @@ import frc.robot.ArmPathGenerator.RobotPos;
 import frc.robot.subsystems.Arm;
 
 public class ArmBase extends Module {
+    public boolean xDirInverted = false; 
+    
     public double baseAngle() {
         return Math.PI / 2.0;
     }

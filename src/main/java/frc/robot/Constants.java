@@ -6,6 +6,7 @@ import frc.fridowpi.joystick.joysticks.LogitechExtreme;
 import frc.robot.subsystems.drive.Drive.SteerMode;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
+import edu.wpi.first.wpilibj.AddressableLED;
 import frc.fridowpi.joystick.IJoystickButtonId;
 
 import frc.fridowpi.motors.FridolinsMotor.DirectionType;
@@ -246,6 +247,9 @@ public final class Constants {
 
         public static class ButtonIds {
             public static final IJoystickButtonId openClose = Logitech.a;
+
+            public static final IJoystickButtonId coneLeds = Logitech.y;
+            public static final IJoystickButtonId cubeLeds = Logitech.x;
         }
 
         public static final int idHigher = 3;
@@ -255,4 +259,13 @@ public final class Constants {
         public static final Value gripperClosed = Value.kReverse;
         public static final Value gripperOpen = Value.kForward;
     }
+
+    
+    public static final class LEDs {
+        public static final int portRight = 0;
+        public static final int portLeft = 1;
+
+        public static final int bufferLength = 12;
+        public static final int gamePiceOffset = 3;
+   } 
 }

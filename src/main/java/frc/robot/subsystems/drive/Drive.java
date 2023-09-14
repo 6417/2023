@@ -51,8 +51,8 @@ public class Drive extends DriveBase {
     private LinearFilter driveFilter;
 
     private double driveDirection = -1;
-    private static final double defaultDriveSpeed = 0.8;
-    private static final double fastSpeed = 1;
+    private static final double defaultDriveSpeed = 1;
+    private static final double fastSpeed = 0.8;
     private static final double slowSpeed = 0.15;
     private double speed = defaultDriveSpeed;
     private double motorspeed;

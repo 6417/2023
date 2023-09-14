@@ -30,7 +30,7 @@ public class ManualPosControl extends CommandBase {
             target = Arm.getInstance().getPos();
         }
 
-        double px = -MathUtil.applyDeadband(
+        double px =  (Arm.getInstance().xDirInverted ? 1 : -1) * -MathUtil.applyDeadband(
                 JoystickHandler.getInstance().getJoystick(Constants.Joysticks.armJoystick).getY(),
                 Constants.Joysticks.armJoystickDeadZone);
 

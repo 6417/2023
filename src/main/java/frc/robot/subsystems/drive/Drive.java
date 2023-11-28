@@ -203,7 +203,7 @@ public class Drive extends DriveBase {
             steerInput = -steerInput;
 
         if (steerWithJoystick) {
-            this.driveRaw(yInput, xInput);
+            this.driveRaw(yInput, speed * xInput);
         } else {
             Pair<Double, Double> pair = joystickToChassisSpeed(yInput, steerInput);
             this.driveRaw(pair.getFirst(), pair.getSecond());
